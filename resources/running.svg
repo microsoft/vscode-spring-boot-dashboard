@@ -1,0 +1,19 @@
+<svg width="16" height="16" xmlns="http://www.w3.org/2000/svg">
+ <style type="text/css">.st0{fill:#F6F6F6;fill-opacity:0;}
+	.st1{fill:#FF0000;}</style>
+
+ <g>
+  <title>background</title>
+  <rect fill="none" id="canvas_background" height="402" width="582" y="-1" x="-1"/>
+ </g>
+ <g>
+  <title>Layer 1</title>
+  <g id="svg_1">
+   <path fill="#00ff00" d="m16.00098,15.66667l-16,0l0,-16l16,0l0,16z" class="st0" id="canvas_8_"/>
+   <ellipse ry="5" rx="5" id="svg_3" cy="7.66667" cx="8" fill-opacity="null" stroke-opacity="null" stroke-width="null" stroke="null" fill="#00ff00"/>
+   <ellipse id="svg_5" cy="7.750007" cx="8.416656" fill-opacity="null" stroke-opacity="null" stroke-width="null" stroke="null" fill="#00ff00"/>
+   <ellipse id="svg_6" cy="14.08327" cx="12.083282" fill-opacity="null" stroke-opacity="null" stroke-width="null" stroke="null" fill="#00ff00"/>
+   <ellipse id="svg_7" cy="35.41637" cx="18.249881" fill-opacity="null" stroke-opacity="null" stroke-width="null" stroke="null" fill="#00ff00"/>
+  </g>
+ </g>
+</svg>
