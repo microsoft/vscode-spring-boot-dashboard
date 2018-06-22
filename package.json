@@ -27,7 +27,11 @@
             {
                 "command": "spring-boot-dashboard.refresh",
                 "title": "Refresh",
-                "category": "Spring-Boot Dashboard"
+                "category": "Spring-Boot Dashboard",
+                "icon": {
+                    "light": "resources/light/refresh.svg",
+                    "dark": "resources/dark/refresh.svg"
+                }
             },
             {
                 "command": "spring-boot-dashboard.localapp.start",
@@ -37,6 +41,11 @@
             {
                 "command": "spring-boot-dashboard.localapp.stop",
                 "title": "Stop",
+                "category": "Spring-Boot Dashboard"
+            },
+            {
+                "command": "spring-boot-dashboard.localapp.open",
+                "title": "Open",
                 "category": "Spring-Boot Dashboard"
             }
         ],
@@ -51,13 +60,18 @@
             "view/item/context": [
                 {
                     "command": "spring-boot-dashboard.localapp.start",
-                    "when": "view == spring-boot-dashboard && viewItem == BootApp",
+                    "when": "view == spring-boot-dashboard && viewItem == BootApp_inactive",
                     "group": "action@5"
                 },
                 {
                     "command": "spring-boot-dashboard.localapp.stop",
-                    "when": "view == spring-boot-dashboard && viewItem == BootApp",
+                    "when": "view == spring-boot-dashboard && viewItem == BootApp_running",
                     "group": "action@8"
+                },
+                {
+                    "command": "spring-boot-dashboard.localapp.open",
+                    "when": "view == spring-boot-dashboard && viewItem =~ /BootApp_.*/",
+                    "group": "action@a"
                 }
             ]
         }

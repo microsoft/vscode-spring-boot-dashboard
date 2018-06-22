@@ -2,23 +2,20 @@
 // Licensed under the MIT license.
 
 export class BootApp {
-    private _name: string;
-    private _state: string;
+    constructor(
+        private _name: string,
+        private _state: string
+    ) { }
 
-    constructor(name: string, state: string) {
-        this._name = name;
-        this._state = state;
-    }
-
-    public getName(): string {
+    public get name(): string {
         return this._name;
     }
 
-    public getState(): string {
+    public get state(): string {
         return this._state;
     }
 
-    public setState(state: string) : void {
+    public set state(state: string) {
         this._state = state;
     }
 }

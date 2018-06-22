@@ -16,38 +16,42 @@ export class Controller {
         this._manager = manager;
     }
 
-    public getAppList() : BootApp[] {
+    public getAppList(): BootApp[] {
         return this._manager.getAppList();
     }
 
-    public async startBootApp(app: BootApp) : Promise<void> {
+    public async startBootApp(app: BootApp): Promise<void> {
         // TODO
         this.setState(app, "running");
         vscode.window.showInformationMessage("Not implemented.");
     }
 
-    public async stopBootApp(app: BootApp) : Promise<void> {
+    public async stopBootApp(app: BootApp): Promise<void> {
         // TODO
         this.setState(app, "inactive");
         vscode.window.showInformationMessage("Not implemented.");
     }
 
+    public async openBootApp(app: BootApp): Promise<void> {
+        vscode.window.showInformationMessage("Not implemented.");
+    }
+
     private setState(app: BootApp, state: string): void {
         const output: vscode.OutputChannel = this.getOutput(app);
-        app.setState(state);
-        output.appendLine(`${app.getName()} is ${state} now.`);
+        app.state = state;
+        output.appendLine(`${app.name} is ${state} now.`);
         this._onDidChangeTreeData.fire();
     }
 
     private getChannelName(app: BootApp): string {
-        return `BootApp_${app.getName()}`;
+        return `BootApp_${app.name}`;
     }
 
     private getOutput(app: BootApp): vscode.OutputChannel {
         const channelName: string = this.getChannelName(app);
         let output: vscode.OutputChannel | undefined = this._outputChannels.get(channelName);
         if (!output) {
-            output  = vscode.window.createOutputChannel(channelName);
+            output = vscode.window.createOutputChannel(channelName);
             this._outputChannels.set(channelName, output);
         }
         return output;

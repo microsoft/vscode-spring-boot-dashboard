@@ -9,10 +9,10 @@ export class BootAppManager {
     constructor() {
         this._appList = [];
         this.initAppListSync();
-    
+
     }
 
-    public getAppList() : BootApp[] {
+    public getAppList(): BootApp[] {
         return this._appList;
     }
 

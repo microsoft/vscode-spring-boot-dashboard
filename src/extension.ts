@@ -23,6 +23,9 @@ export function activate(context: vscode.ExtensionContext) {
     context.subscriptions.push(vscode.commands.registerCommand("spring-boot-dashboard.localapp.stop", (app: BootApp) => {
         controller.stopBootApp(app);
     }));
+    context.subscriptions.push(vscode.commands.registerCommand("spring-boot-dashboard.localapp.open", (app: BootApp) => {
+        controller.openBootApp(app);
+    }));
 }
 
 // this method is called when your extension is deactivated

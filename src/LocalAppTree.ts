@@ -16,7 +16,7 @@ export class BootAppItem implements vscode.TreeItem {
     }
 
     public get label(): string {
-        return this._app.getName();
+        return this._app.name;
     }
 
     public get iconPath(): string {
@@ -28,18 +28,18 @@ export class BootAppItem implements vscode.TreeItem {
     }
 
     public get state(): string {
-        return this._app.getState();
+        return this._app.state;
     }
 
     public get contextValue(): string {
-        return `BootApp`;
+        return `BootApp_${this._app.state}`;
     }
 }
 
 export class LocalAppTreeProvider implements vscode.TreeDataProvider<BootApp> {
 
-    public _onDidChangeTreeData: vscode.EventEmitter<BootApp|undefined> = new vscode.EventEmitter<BootApp|undefined>();
-    public readonly onDidChangeTreeData: vscode.Event<BootApp|undefined> = this._onDidChangeTreeData.event;
+    public _onDidChangeTreeData: vscode.EventEmitter<BootApp | undefined> = new vscode.EventEmitter<BootApp | undefined>();
+    public readonly onDidChangeTreeData: vscode.Event<BootApp | undefined> = this._onDidChangeTreeData.event;
     private _manager: BootAppManager;
     private _context: vscode.ExtensionContext;
 
