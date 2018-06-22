@@ -1,0 +1,94 @@
+{
+    "name": "vscode-spring-boot-dashboard",
+    "displayName": "Spring Boot Dashboard",
+    "description": "Spring Boot Dashboard for VS Code",
+    "version": "0.0.1",
+    "publisher": "vscjava",
+    "engines": {
+        "vscode": "^1.24.0"
+    },
+    "categories": [
+        "Other"
+    ],
+    "activationEvents": [
+        "onView:spring-boot-dashboard"
+    ],
+    "main": "./out/extension",
+    "contributes": {
+        "views": {
+            "explorer": [
+                {
+                    "id": "spring-boot-dashboard",
+                    "name": "Spring-Boot Dashboard"
+                }
+            ]
+        },
+        "commands": [
+            {
+                "command": "spring-boot-dashboard.refresh",
+                "title": "Refresh",
+                "category": "Spring-Boot Dashboard",
+                "icon": {
+                    "light": "resources/light/refresh.svg",
+                    "dark": "resources/dark/refresh.svg"
+                }
+            },
+            {
+                "command": "spring-boot-dashboard.localapp.start",
+                "title": "Start",
+                "category": "Spring-Boot Dashboard"
+            },
+            {
+                "command": "spring-boot-dashboard.localapp.stop",
+                "title": "Stop",
+                "category": "Spring-Boot Dashboard"
+            },
+            {
+                "command": "spring-boot-dashboard.localapp.open",
+                "title": "Open",
+                "category": "Spring-Boot Dashboard"
+            }
+        ],
+        "menus": {
+            "view/title": [
+                {
+                    "command": "spring-boot-dashboard.refresh",
+                    "when": "view == spring-boot-dashboard",
+                    "group": "navigation@5"
+                }
+            ],
+            "view/item/context": [
+                {
+                    "command": "spring-boot-dashboard.localapp.start",
+                    "when": "view == spring-boot-dashboard && viewItem == BootApp_inactive",
+                    "group": "action@5"
+                },
+                {
+                    "command": "spring-boot-dashboard.localapp.stop",
+                    "when": "view == spring-boot-dashboard && viewItem == BootApp_running",
+                    "group": "action@8"
+                },
+                {
+                    "command": "spring-boot-dashboard.localapp.open",
+                    "when": "view == spring-boot-dashboard && viewItem =~ /BootApp_.*/",
+                    "group": "action@a"
+                }
+            ]
+        }
+    },
+    "scripts": {
+        "vscode:prepublish": "npm run compile",
+        "compile": "tsc -p ./",
+        "watch": "tsc -watch -p ./",
+        "postinstall": "node ./node_modules/vscode/bin/install",
+        "test": "npm run compile && node ./node_modules/vscode/bin/test",
+        "tslint": "tslint -t verbose src/**/*.ts"
+    },
+    "devDependencies": {
+        "typescript": "^2.6.1",
+        "vscode": "^1.1.6",
+        "tslint": "^5.8.0",
+        "@types/node": "^7.0.43",
+        "@types/mocha": "^2.2.42"
+    }
+}
