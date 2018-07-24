@@ -41,36 +41,46 @@ function isBootAppClasspath(cp : ClassPathData) : boolean {
     return false;
 }
 
+function sleep(milliseconds: number): Promise<void> {
+    return new Promise<void>((resolve) => setTimeout(resolve, milliseconds));
+}
+
 export class BootAppManager {
 
     private _boot_projects : Map<String, JavaProjectData> = new Map();
 
     constructor() {
-        this.initAppListSync();
+        //We have to do something with the errors here because constructor cannot
+        // be declared as `async`.
+        this._startAppListSynchronisation()
+        .catch((error) => { 
+            console.error(error);
+        });
     }
 
     public getAppList(): BootApp[] {
         let apps : BootApp[] = [];
         this._boot_projects.forEach(p => {
+            //TODO: properly determine/track run-state of the app.
             apps.push(new BootApp(p.name, STATE_INACTIVE));
         });
         return apps;
     }
 
-    private initAppListSync(): void {
+    /**
+     * Registers for classpath change events (from redhat.java and pivotal.spring-boot extension).
+     * These events are used to keep the list of boot apps in sync with the workspace projects.
+     */
+    private async _startAppListSynchronisation(): Promise<void> {
         //TODO: The code below will fail if jdt language server has not yet been started
         //  How should we deal with that?
         const callbackId = uuid.v4();
 
-        vscode.commands.registerCommand(callbackId, (...args) => {
-            let location : string = args[0];
-            let name : string = args[1];
-            let isDeleted : boolean = args[2];
+        vscode.commands.registerCommand(callbackId, (location: string, name: string, isDeleted: boolean, entries: ClassPathData, ...args: any[]) => {
             if (isDeleted) {
                 this._boot_projects.delete(location);
             } else {
-                let entries : ClassPathData = args[3];
-                if (isBootAppClasspath(entries)) {
+                if (entries && isBootAppClasspath(entries)) {
                     this._boot_projects.set(location, {
                         path: location,
                         name: name,
@@ -82,24 +92,24 @@ export class BootAppManager {
             }
         });
 
-        let tries = 0;
-
-        function registerClasspathListener() {
-            vscode.commands.executeCommand('java.execute.workspaceCommand', 'sts.java.addClasspathListener', callbackId).then(
-                //okay:
-                (v) => {},
-                //failed:
-                (reason) => {
-                    setTimeout(() => {
-                        if (tries++ < 20) {
-                            registerClasspathListener();
-                        } else {
-                            console.error(reason);
-                        }
-                    }, 2000)
+        async function registerClasspathListener() : Promise<void> {
+            const MAX_RETRIES = 10;
+            const WAIT_IN_SECONDS = 2;
+            let available_tries = MAX_RETRIES;
+            while (available_tries>0) {
+                available_tries--;
+                try {
+                    await vscode.commands.executeCommand('java.execute.workspaceCommand', 'sts.java.addClasspathListener', callbackId);
+                    return;
+                } catch (error) {
+                    if (available_tries>0) {
+                        await sleep(WAIT_IN_SECONDS*1000);
+                    } else {
+                        throw new Error(`Failed to register classpath listener after ${MAX_RETRIES} retries.`);
+                    }
                 }
-            );
+            }
         }
-        registerClasspathListener();
+        return await registerClasspathListener();
     }
 }
