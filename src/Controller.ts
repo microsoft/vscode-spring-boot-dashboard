@@ -7,12 +7,10 @@ import { BootApp, STATE_INACTIVE } from "./BootApp";
 
 export class Controller {
     private _outputChannels: Map<string, vscode.OutputChannel>;
-    private _onDidChangeTreeData: vscode.EventEmitter<BootApp | undefined>;
     private _manager: BootAppManager;
 
-    constructor(manager: BootAppManager, onDidChangeTreeData: vscode.EventEmitter<BootApp | undefined>) {
+    constructor(manager: BootAppManager) {
         this._outputChannels = new Map<string, vscode.OutputChannel>();
-        this._onDidChangeTreeData = onDidChangeTreeData;
         this._manager = manager;
     }
 
@@ -40,7 +38,7 @@ export class Controller {
         const output: vscode.OutputChannel = this.getOutput(app);
         app.state = state;
         output.appendLine(`${app.name} is ${state} now.`);
-        this._onDidChangeTreeData.fire();
+        this._manager.fireDidChangeApps();
     }
 
     private getChannelName(app: BootApp): string {

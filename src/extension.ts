@@ -11,11 +11,11 @@ import { Controller } from './Controller';
 export function activate(context: vscode.ExtensionContext) {
     const localAppManager: BootAppManager = new BootAppManager();
     const localTree: LocalAppTreeProvider = new LocalAppTreeProvider(context, localAppManager);
-    const controller: Controller = new Controller(localAppManager, localTree._onDidChangeTreeData);
+    const controller: Controller = new Controller(localAppManager);
 
     context.subscriptions.push(vscode.window.registerTreeDataProvider('spring-boot-dashboard', localTree));
     context.subscriptions.push(vscode.commands.registerCommand("spring-boot-dashboard.refresh", () => {
-        localTree._onDidChangeTreeData.fire();
+        localAppManager.fireDidChangeApps();
     }));
     context.subscriptions.push(vscode.commands.registerCommand("spring-boot-dashboard.localapp.start", (app: BootApp) => {
         controller.startBootApp(app);

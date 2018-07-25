@@ -38,15 +38,15 @@ export class BootAppItem implements vscode.TreeItem {
 
 export class LocalAppTreeProvider implements vscode.TreeDataProvider<BootApp> {
 
-    public _onDidChangeTreeData: vscode.EventEmitter<BootApp | undefined> = new vscode.EventEmitter<BootApp | undefined>();
-    public readonly onDidChangeTreeData: vscode.Event<BootApp | undefined> = this._onDidChangeTreeData.event;
     private _manager: BootAppManager;
     private _context: vscode.ExtensionContext;
+    public readonly onDidChangeTreeData: vscode.Event<BootApp | undefined>;
 
     constructor(context: vscode.ExtensionContext, manager: BootAppManager) {
         this._manager = manager;
         this._context = context;
-        this._onDidChangeTreeData.fire();
+        this.onDidChangeTreeData = this._manager.onDidChangeApps;
+        this._manager.fireDidChangeApps();
     }
 
     getTreeItem(element: BootApp): vscode.TreeItem | Thenable<vscode.TreeItem> {
