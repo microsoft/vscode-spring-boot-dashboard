@@ -89,6 +89,8 @@
         "vscode": "^1.1.6",
         "tslint": "^5.8.0",
         "@types/node": "^7.0.43",
-        "@types/mocha": "^2.2.42"
-    }
+        "@types/mocha": "^2.2.42",
+        "@types/uuid": "^3.4.3"
+    },
+    "extensionDependencies" : ["Pivotal.vscode-spring-boot", "redhat.java"]
 }

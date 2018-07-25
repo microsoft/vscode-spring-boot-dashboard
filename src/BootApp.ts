@@ -1,6 +1,8 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT license.
 
+export const STATE_INACTIVE = 'inactive';
+
 export class BootApp {
     constructor(
         private _name: string,

@@ -3,7 +3,7 @@
 
 import * as vscode from "vscode";
 import { BootAppManager } from "./BootAppManager";
-import { BootApp } from "./BootApp";
+import { BootApp, STATE_INACTIVE } from "./BootApp";
 
 export class Controller {
     private _outputChannels: Map<string, vscode.OutputChannel>;
@@ -28,7 +28,7 @@ export class Controller {
 
     public async stopBootApp(app: BootApp): Promise<void> {
         // TODO
-        this.setState(app, "inactive");
+        this.setState(app, STATE_INACTIVE);
         vscode.window.showInformationMessage("Not implemented.");
     }
 
