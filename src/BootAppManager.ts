@@ -8,25 +8,25 @@ import * as uuid from 'uuid';
 import * as path from 'path';
 
 interface JavaProjectData {
-    path : string
-    name : string
-    classpath : ClassPathData
+    path: string;
+    name: string;
+    classpath: ClassPathData;
 }
 
 interface ClassPathData {
-    entries : CPE[];
+    entries: CPE[];
 }
 
 interface CPE {
     kind: string;
     path: string; // TODO: Change to File, Path or URL?
-	outputFolder : string;
-	sourceContainerUrl : string;
-	javadocContainerUrl : string;
-	isSystem : boolean;
+    outputFolder: string;
+    sourceContainerUrl: string;
+    javadocContainerUrl: string;
+    isSystem: boolean;
 }
 
-function isBootAppClasspath(cp : ClassPathData) : boolean {
+function isBootAppClasspath(cp: ClassPathData): boolean {
     if (cp.entries) {
         let entries = cp.entries;
         for (let i = 0; i < entries.length; i++) {
@@ -37,7 +37,7 @@ function isBootAppClasspath(cp : ClassPathData) : boolean {
                 return true;
             }
         }
-    } 
+    }
     return false;
 }
 
@@ -48,7 +48,7 @@ function sleep(milliseconds: number): Promise<void> {
 export class BootAppManager {
 
     private _boot_projects : Map<String, JavaProjectData> = new Map();
-
+    private _onDidChangeApps: vscode.EventEmitter<BootApp | undefined> = new vscode.EventEmitter<BootApp | undefined>();
     constructor() {
         //We have to do something with the errors here because constructor cannot
         // be declared as `async`.
@@ -58,6 +58,12 @@ export class BootAppManager {
         });
     }
 
+    public get onDidChangeApps(): vscode.Event<BootApp | undefined> {
+        return this._onDidChangeApps.event;
+    }
+    public fireDidChangeApps(): void {
+        this._onDidChangeApps.fire();
+    }
     public getAppList(): BootApp[] {
         let apps : BootApp[] = [];
         this._boot_projects.forEach(p => {
@@ -90,6 +96,7 @@ export class BootAppManager {
                     this._boot_projects.delete(location);
                 }
             }
+            this.fireDidChangeApps();
         });
 
         async function registerClasspathListener() : Promise<void> {
