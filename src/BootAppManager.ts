@@ -28,15 +28,15 @@ function sleep(milliseconds: number): Promise<void> {
 
 export class BootAppManager {
 
-    private _boot_projects : Map<String, BootApp> = new Map();
+    private _boot_projects: Map<String, BootApp> = new Map();
     private _onDidChangeApps: vscode.EventEmitter<BootApp | undefined> = new vscode.EventEmitter<BootApp | undefined>();
     constructor() {
         //We have to do something with the errors here because constructor cannot
         // be declared as `async`.
         this._startAppListSynchronisation()
-        .catch((error) => { 
-            console.error(error);
-        });
+            .catch((error) => {
+                console.error(error);
+            });
     }
 
     public get onDidChangeApps(): vscode.Event<BootApp | undefined> {
@@ -65,7 +65,13 @@ export class BootAppManager {
                 this._boot_projects.delete(location);
             } else {
                 if (entries && isBootAppClasspath(entries)) {
-                    this._boot_projects.set(location, new BootApp(location, name, entries, STATE_INACTIVE));
+                    const current: BootApp | undefined = this._boot_projects.get(location);
+                    if (current) {
+                        current.name = name;
+                        current.classpath = entries;
+                    } else {
+                        this._boot_projects.set(location, new BootApp(location, name, entries, STATE_INACTIVE));
+                    }
                 } else {
                     this._boot_projects.delete(location);
                 }
@@ -73,18 +79,18 @@ export class BootAppManager {
             this.fireDidChangeApps();
         });
 
-        async function registerClasspathListener() : Promise<void> {
+        async function registerClasspathListener(): Promise<void> {
             const MAX_RETRIES = 10;
             const WAIT_IN_SECONDS = 2;
             let available_tries = MAX_RETRIES;
-            while (available_tries>0) {
+            while (available_tries > 0) {
                 available_tries--;
                 try {
                     await vscode.commands.executeCommand('java.execute.workspaceCommand', 'sts.java.addClasspathListener', callbackId);
                     return;
                 } catch (error) {
-                    if (available_tries>0) {
-                        await sleep(WAIT_IN_SECONDS*1000);
+                    if (available_tries > 0) {
+                        await sleep(WAIT_IN_SECONDS * 1000);
                     } else {
                         throw new Error(`Failed to register classpath listener after ${MAX_RETRIES} retries.`);
                     }

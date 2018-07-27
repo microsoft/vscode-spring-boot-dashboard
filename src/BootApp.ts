@@ -11,16 +11,26 @@ export class BootApp {
         private _state: string
     ) { }
 
-    public get path() : string {
+    public get path(): string {
         return this._path;
     }
-    
+
     public get name(): string {
         return this._name;
     }
 
+
+    public set name(name: string) {
+        this._name = name;
+    }
+
+
     public get classpath(): ClassPathData {
         return this._classpath;
+    }
+
+    public set classpath(classpath: ClassPathData) {
+        this._classpath = classpath;
     }
 
     public get state(): string {
