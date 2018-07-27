@@ -1,30 +1,11 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT license.
 
-import { BootApp, STATE_INACTIVE } from "./BootApp";
+import { BootApp, STATE_INACTIVE, ClassPathData } from "./BootApp";
 
 import * as vscode from 'vscode';
 import * as uuid from 'uuid';
 import * as path from 'path';
-
-interface JavaProjectData {
-    path: string;
-    name: string;
-    classpath: ClassPathData;
-}
-
-interface ClassPathData {
-    entries: CPE[];
-}
-
-interface CPE {
-    kind: string;
-    path: string; // TODO: Change to File, Path or URL?
-    outputFolder: string;
-    sourceContainerUrl: string;
-    javadocContainerUrl: string;
-    isSystem: boolean;
-}
 
 function isBootAppClasspath(cp: ClassPathData): boolean {
     if (cp.entries) {
@@ -47,7 +28,7 @@ function sleep(milliseconds: number): Promise<void> {
 
 export class BootAppManager {
 
-    private _boot_projects : Map<String, JavaProjectData> = new Map();
+    private _boot_projects : Map<String, BootApp> = new Map();
     private _onDidChangeApps: vscode.EventEmitter<BootApp | undefined> = new vscode.EventEmitter<BootApp | undefined>();
     constructor() {
         //We have to do something with the errors here because constructor cannot
@@ -61,16 +42,13 @@ export class BootAppManager {
     public get onDidChangeApps(): vscode.Event<BootApp | undefined> {
         return this._onDidChangeApps.event;
     }
+
     public fireDidChangeApps(): void {
         this._onDidChangeApps.fire();
     }
+
     public getAppList(): BootApp[] {
-        let apps : BootApp[] = [];
-        this._boot_projects.forEach(p => {
-            //TODO: properly determine/track run-state of the app.
-            apps.push(new BootApp(p.name, STATE_INACTIVE));
-        });
-        return apps;
+        return Array.from(this._boot_projects.values());
     }
 
     /**
@@ -87,11 +65,7 @@ export class BootAppManager {
                 this._boot_projects.delete(location);
             } else {
                 if (entries && isBootAppClasspath(entries)) {
-                    this._boot_projects.set(location, {
-                        path: location,
-                        name: name,
-                        classpath: entries
-                    });
+                    this._boot_projects.set(location, new BootApp(location, name, entries, STATE_INACTIVE));
                 } else {
                     this._boot_projects.delete(location);
                 }
