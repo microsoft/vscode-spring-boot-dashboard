@@ -3,7 +3,8 @@
 
 import * as vscode from "vscode";
 import { BootAppManager } from "./BootAppManager";
-import { BootApp, STATE_INACTIVE } from "./BootApp";
+import { BootApp, STATE_INACTIVE, STATE_RUNNING } from "./BootApp";
+import { ChildProcess, spawn } from "child_process";
 
 export class Controller {
     private _outputChannels: Map<string, vscode.OutputChannel>;
@@ -19,34 +20,67 @@ export class Controller {
     }
 
     public async startBootApp(app: BootApp): Promise<void> {
-        // TODO
-        this.setState(app, "running");
-        vscode.window.showInformationMessage("Not implemented.");
+        this._setState(app, STATE_RUNNING);
+        const outputChannel: vscode.OutputChannel = this._getOutput(app);
+        const classpathString = app.classpath.entries.map(e => e.kind === "source" ? e.outputFolder : e.path).join(";");
+
+        // Note: Command `vscode.java.resolveMainClass` is implemented in extension `vscode.java.resolveMainClass`
+        const mainClassList = await vscode.commands.executeCommand('java.execute.workspaceCommand', 'vscode.java.resolveMainClass', app.path);
+        if (mainClassList && mainClassList instanceof Array && mainClassList.length > 0) {
+            const mainClassData: MainClassData = mainClassList.length === 1 ? mainClassList[0] :
+                await vscode.window.showQuickPick(mainClassList.map(x => Object.assign({ title: x.mainClass }, x)));
+
+            outputChannel.clear();
+            outputChannel.show();
+            let stderr: string = '';
+            const javaProcess: ChildProcess = spawn("java", ["-classpath", classpathString, mainClassData.mainClass]);
+            javaProcess.stdout.on('data', (data: string | Buffer): void => {
+                outputChannel.append(data.toString());
+            });
+            javaProcess.stderr.on('data', (data: string | Buffer) => {
+                stderr = stderr.concat(data.toString());
+                outputChannel.append(data.toString());
+            });
+            javaProcess.on('error', (err: Error) => {
+                console.error("on error: ", err.toString());
+            });
+            javaProcess.on('exit', (code: number, signal: string) => {
+                this._setState(app, STATE_INACTIVE);
+            });
+            app.process = javaProcess;
+        } else {
+            vscode.window.showWarningMessage("Found no Main Class.");
+        }
     }
 
     public async stopBootApp(app: BootApp): Promise<void> {
-        // TODO
-        this.setState(app, STATE_INACTIVE);
-        vscode.window.showInformationMessage("Not implemented.");
+        // TODO: How to send a shutdown signal to the app instead of killing the process directly?
+        if (app.process) {
+            app.process.kill("SIGINT");
+            if (app.process.killed) {
+                app.process = undefined;
+            }
+        }
     }
 
     public async openBootApp(app: BootApp): Promise<void> {
+        // TODO: How to find out the port?
         vscode.window.showInformationMessage("Not implemented.");
     }
 
-    private setState(app: BootApp, state: string): void {
-        const output: vscode.OutputChannel = this.getOutput(app);
+    private _setState(app: BootApp, state: string): void {
+        const output: vscode.OutputChannel = this._getOutput(app);
         app.state = state;
         output.appendLine(`${app.name} is ${state} now.`);
         this._manager.fireDidChangeApps();
     }
 
-    private getChannelName(app: BootApp): string {
+    private _getChannelName(app: BootApp): string {
         return `BootApp_${app.name}`;
     }
 
-    private getOutput(app: BootApp): vscode.OutputChannel {
-        const channelName: string = this.getChannelName(app);
+    private _getOutput(app: BootApp): vscode.OutputChannel {
+        const channelName: string = this._getChannelName(app);
         let output: vscode.OutputChannel | undefined = this._outputChannels.get(channelName);
         if (!output) {
             output = vscode.window.createOutputChannel(channelName);
@@ -54,4 +88,10 @@ export class Controller {
         }
         return output;
     }
+}
+
+interface MainClassData {
+    filePath: string;
+    mainClass: string;
+    projectName: string;
 }
