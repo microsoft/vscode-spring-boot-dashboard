@@ -3,7 +3,7 @@
 
 import * as vscode from "vscode";
 import * as path from "path";
-import { BootApp } from "./BootApp";
+import { BootApp, STATE_RUNNING } from "./BootApp";
 import { BootAppManager } from "./BootAppManager";
 
 export class BootAppItem implements vscode.TreeItem {
@@ -21,7 +21,7 @@ export class BootAppItem implements vscode.TreeItem {
 
     public get iconPath(): string {
         let status: string = 'stop.svg';
-        if (this.state === "running") {
+        if (this.state === STATE_RUNNING) {
             status = 'running.svg';
         }
         return this._context.asAbsolutePath(path.join('resources', status));
