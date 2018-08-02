@@ -2,6 +2,7 @@
 // Licensed under the MIT license.
 
 import * as vscode from "vscode";
+import * as path from "path";
 import { BootAppManager } from "./BootAppManager";
 import { BootApp, STATE_INACTIVE, STATE_RUNNING } from "./BootApp";
 import { ChildProcess, spawn } from "child_process";
@@ -22,7 +23,7 @@ export class Controller {
     public async startBootApp(app: BootApp): Promise<void> {
         this._setState(app, STATE_RUNNING);
         const outputChannel: vscode.OutputChannel = this._getOutput(app);
-        const classpathString = app.classpath.entries.map(e => e.kind === "source" ? e.outputFolder : e.path).join(";");
+        const classpathString = app.classpath.entries.map(e => e.kind === "source" ? e.outputFolder : e.path).join(path.delimiter);
 
         // Note: Command `vscode.java.resolveMainClass` is implemented in extension `vscode.java.resolveMainClass`
         const mainClassList = await vscode.commands.executeCommand('java.execute.workspaceCommand', 'vscode.java.resolveMainClass', app.path);
