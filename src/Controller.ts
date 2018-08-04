@@ -57,7 +57,7 @@ export class Controller {
     public async stopBootApp(app: BootApp): Promise<void> {
         // TODO: How to send a shutdown signal to the app instead of killing the process directly?
         if (app.process) {
-            app.process.kill("SIGINT");
+            app.process.kill("SIGTERM");
             if (app.process.killed) {
                 app.process = undefined;
             }
