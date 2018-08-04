@@ -48,7 +48,7 @@ export class BootAppManager {
     }
 
     public getAppList(): BootApp[] {
-        return Array.from(this._boot_projects.values());
+        return Array.from(this._boot_projects.values()).sort((a, b) => a.name.toLowerCase() < b.name.toLowerCase() ? -1 : 1);
     }
 
     /**
