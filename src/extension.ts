@@ -8,7 +8,7 @@ import { BootAppManager } from './BootAppManager';
 import { BootApp } from './BootApp';
 import { Controller } from './Controller';
 
-export function activate(context: vscode.ExtensionContext) {
+export function activate(context: vscode.ExtensionContext) {    
     const localAppManager: BootAppManager = new BootAppManager();
     const localTree: LocalAppTreeProvider = new LocalAppTreeProvider(context, localAppManager);
     const controller: Controller = new Controller(localAppManager);
@@ -19,6 +19,9 @@ export function activate(context: vscode.ExtensionContext) {
     }));
     context.subscriptions.push(vscode.commands.registerCommand("spring-boot-dashboard.localapp.start", (app: BootApp) => {
         controller.startBootApp(app);
+    }));
+    context.subscriptions.push(vscode.commands.registerCommand("spring-boot-dashboard.localapp.debug", (app: BootApp) => {
+        controller.debugBootApp(app);
     }));
     context.subscriptions.push(vscode.commands.registerCommand("spring-boot-dashboard.localapp.stop", (app: BootApp) => {
         controller.stopBootApp(app);

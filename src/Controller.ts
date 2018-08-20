@@ -64,6 +64,10 @@ export class Controller {
         }
     }
 
+    public async debugBootApp(app: BootApp): Promise<void> {
+        vscode.window.showInformationMessage("Not implemented.");
+    }
+
     public async openBootApp(app: BootApp): Promise<void> {
         // TODO: How to find out the port?
         vscode.window.showInformationMessage("Not implemented.");
