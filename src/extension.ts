@@ -8,8 +8,10 @@ import { BootAppManager } from './BootAppManager';
 import { BootApp } from './BootApp';
 import { Controller } from './Controller';
 
+let localAppManager: BootAppManager;
+
 export function activate(context: vscode.ExtensionContext) {    
-    const localAppManager: BootAppManager = new BootAppManager();
+    localAppManager = new BootAppManager();
     const localTree: LocalAppTreeProvider = new LocalAppTreeProvider(context, localAppManager);
     const controller: Controller = new Controller(localAppManager);
 
@@ -29,8 +31,15 @@ export function activate(context: vscode.ExtensionContext) {
     context.subscriptions.push(vscode.commands.registerCommand("spring-boot-dashboard.localapp.open", (app: BootApp) => {
         controller.openBootApp(app);
     }));
+
 }
 
 // this method is called when your extension is deactivated
 export function deactivate() {
+    // Kill all running boot apps.
+    localAppManager.getAppList().forEach(app => {
+        if(app.process) {
+            app.process.kill("SIGKILL");
+        }
+    });
 }
