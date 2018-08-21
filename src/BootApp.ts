@@ -1,13 +1,14 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT license.
 
-import { ChildProcess } from "child_process";
+import { DebugSession } from "vscode";
 
 export const STATE_INACTIVE = 'inactive';
 export const STATE_RUNNING = 'running';
 
 export class BootApp {
-    private _process?: ChildProcess;
+    private _activeSession?: DebugSession;
+
     constructor(
         private _path: string,
         private _name: string,
@@ -15,12 +16,12 @@ export class BootApp {
         private _state: string
     ) { }
 
-    public get process(): ChildProcess | undefined {
-        return this._process;
+    public get activeSession() : DebugSession | undefined {
+        return this._activeSession;
     }
 
-    public set process(process: ChildProcess | undefined) {
-        this._process = process;
+    public set activeSession(session: DebugSession | undefined) {
+        this._activeSession = session;
     }
 
     public get path(): string {
