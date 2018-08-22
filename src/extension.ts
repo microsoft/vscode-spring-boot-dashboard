@@ -5,12 +5,12 @@
 import * as vscode from 'vscode';
 import { LocalAppTreeProvider } from './LocalAppTree';
 import { BootAppManager } from './BootAppManager';
-import { BootApp, STATE_INACTIVE } from './BootApp';
+import { BootApp } from './BootApp';
 import { Controller } from './Controller';
 
 let localAppManager: BootAppManager;
 
-export function activate(context: vscode.ExtensionContext) {    
+export function activate(context: vscode.ExtensionContext) {
     localAppManager = new BootAppManager();
     const localTree: LocalAppTreeProvider = new LocalAppTreeProvider(context, localAppManager);
     const controller: Controller = new Controller(localAppManager);
@@ -31,13 +31,14 @@ export function activate(context: vscode.ExtensionContext) {
     context.subscriptions.push(vscode.commands.registerCommand("spring-boot-dashboard.localapp.open", (app: BootApp) => {
         controller.openBootApp(app);
     }));
-
-    vscode.debug.onDidTerminateDebugSession(e => {
-        if (e.type === "java") {
-            const app = localAppManager.getAppList().find(app => (app.activeSession && app.activeSession.name === e.name) as boolean);
-            if(app) {
-                controller.setState(app, STATE_INACTIVE);
-            }
+    vscode.debug.onDidStartDebugSession((session: vscode.DebugSession) => {
+        if (session.type === "java") {
+            controller.onDidStartBootApp(session);
+        }
+    });
+    vscode.debug.onDidTerminateDebugSession((session: vscode.DebugSession) => {
+        if (session.type === "java") {
+            controller.onDidStopBootApp(session);
         }
     });
 }

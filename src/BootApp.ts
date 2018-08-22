@@ -1,13 +1,11 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT license.
 
-import { DebugSession } from "vscode";
-
 export const STATE_INACTIVE = 'inactive';
 export const STATE_RUNNING = 'running';
 
 export class BootApp {
-    private _activeSession?: DebugSession;
+    private _activeSessionName?: string;
 
     constructor(
         private _path: string,
@@ -16,12 +14,12 @@ export class BootApp {
         private _state: string
     ) { }
 
-    public get activeSession() : DebugSession | undefined {
-        return this._activeSession;
+    public get activeSessionName() : string | undefined {
+        return this._activeSessionName;
     }
 
-    public set activeSession(session: DebugSession | undefined) {
-        this._activeSession = session;
+    public set activeSessionName(session: string | undefined) {
+        this._activeSessionName = session;
     }
 
     public get path(): string {

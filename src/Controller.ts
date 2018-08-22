@@ -3,7 +3,7 @@
 
 import * as vscode from "vscode";
 import { BootAppManager } from "./BootAppManager";
-import { BootApp, STATE_RUNNING } from "./BootApp";
+import { BootApp, STATE_RUNNING, STATE_INACTIVE } from "./BootApp";
 
 export class Controller {
     private _outputChannels: Map<string, vscode.OutputChannel>;
@@ -32,23 +32,42 @@ export class Controller {
             // See: https://github.com/Microsoft/vscode-java-debug/issues/351
             debug ? await this._enableAllBPs() : await this._disableAllBPs();
 
+            app.activeSessionName = targetConfig.name;
             const ok: boolean = await vscode.debug.startDebugging(
                 vscode.workspace.getWorkspaceFolder(vscode.Uri.parse(app.path)),
                 Object.assign({}, targetConfig, { noDebug: !debug })
             );
             if (ok) {
-                app.activeSession = vscode.debug.activeDebugSession;
-                this.setState(app, STATE_RUNNING);
+                // Cannot determine status. It always returns true now. 
+                // See: https://github.com/Microsoft/vscode/issues/54214
             }
         } else {
             vscode.window.showWarningMessage("Found no Main Class.");
         }
     }
 
-    public async stopBootApp(app: BootApp, restart?: boolean): Promise<void> {
-        if (app.activeSession) {
-            await app.activeSession.customRequest("disconnect", { restart: !!restart });
+    public onDidStartBootApp(session: vscode.DebugSession): void {
+        const app: BootApp | undefined = this._manager.getAppList().find((elem: BootApp) => elem.activeSessionName === session.name);
+        if (app) {
+            this._manager.bindDebugSession(app, session);
+            this._setState(app, STATE_RUNNING);
         }
+    }
+
+    public async stopBootApp(app: BootApp, restart?: boolean): Promise<void> {
+        const session: vscode.DebugSession | undefined = this._manager.getSessionByApp(app);
+        if (session) {
+            await session.customRequest("disconnect", { restart: !!restart });
+        } else {
+            // What if session not found? Force to set STATE_INACTIVE?
+        }
+    }
+
+    public onDidStopBootApp(session: vscode.DebugSession): void {
+        const app = this._manager.getAppBySession(session);
+            if (app) {
+                this._setState(app, STATE_INACTIVE);
+            }
     }
 
     public async openBootApp(app: BootApp): Promise<void> {
@@ -56,7 +75,7 @@ export class Controller {
         vscode.window.showInformationMessage("Not implemented.");
     }
 
-    public setState(app: BootApp, state: string): void {
+    private _setState(app: BootApp, state: string): void {
         const output: vscode.OutputChannel = this._getOutput(app);
         app.state = state;
         output.appendLine(`${app.name} is ${state} now.`);
