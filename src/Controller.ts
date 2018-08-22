@@ -55,6 +55,7 @@ export class Controller {
     }
 
     public async stopBootApp(app: BootApp, restart?: boolean): Promise<void> {
+        // TODO: How to send a shutdown signal to the app instead of killing the process directly?
         const session: vscode.DebugSession | undefined = this._manager.getSessionByApp(app);
         if (session) {
             await session.customRequest("disconnect", { restart: !!restart });
