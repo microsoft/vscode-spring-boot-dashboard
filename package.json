@@ -4,6 +4,10 @@
     "description": "Spring Boot Dashboard for VS Code",
     "version": "0.0.1",
     "publisher": "vscjava",
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/Microsoft/vscode-spring-boot-dashboard.git"
+    },
     "engines": {
         "vscode": "^1.24.0"
     },
@@ -92,5 +96,11 @@
         "@types/mocha": "^2.2.42",
         "@types/uuid": "^3.4.3"
     },
-    "extensionDependencies" : ["Pivotal.vscode-spring-boot", "redhat.java"]
+    "extensionDependencies": [
+        "Pivotal.vscode-spring-boot",
+        "redhat.java"
+    ],
+    "dependencies": {
+        "uuid": "^3.3.2"
+    }
 }
