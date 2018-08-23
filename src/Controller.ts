@@ -29,7 +29,7 @@ export class Controller {
         const mainClassList = await vscode.commands.executeCommand('java.execute.workspaceCommand', 'vscode.java.resolveMainClass', app.path);
         if (mainClassList && mainClassList instanceof Array && mainClassList.length > 0) {
             const mainClassData: MainClassData = mainClassList.length === 1 ? mainClassList[0] :
-                await vscode.window.showQuickPick(mainClassList.map(x => Object.assign({ title: x.mainClass }, x)));
+                await vscode.window.showQuickPick(mainClassList.map(x => Object.assign({ label: x.mainClass }, x)));
 
             outputChannel.clear();
             outputChannel.show();
