@@ -1,13 +1,12 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT license.
 
-import { ChildProcess } from "child_process";
-
 export const STATE_INACTIVE = 'inactive';
 export const STATE_RUNNING = 'running';
 
 export class BootApp {
-    private _process?: ChildProcess;
+    private _activeSessionName?: string;
+
     constructor(
         private _path: string,
         private _name: string,
@@ -15,12 +14,12 @@ export class BootApp {
         private _state: string
     ) { }
 
-    public get process(): ChildProcess | undefined {
-        return this._process;
+    public get activeSessionName() : string | undefined {
+        return this._activeSessionName;
     }
 
-    public set process(process: ChildProcess | undefined) {
-        this._process = process;
+    public set activeSessionName(session: string | undefined) {
+        this._activeSessionName = session;
     }
 
     public get path(): string {

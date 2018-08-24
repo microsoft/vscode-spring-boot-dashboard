@@ -6,6 +6,7 @@ import { BootApp, STATE_INACTIVE, ClassPathData } from "./BootApp";
 import * as vscode from 'vscode';
 import * as uuid from 'uuid';
 import * as path from 'path';
+import { DebugSession } from "vscode";
 
 function isBootAppClasspath(cp: ClassPathData): boolean {
     if (cp.entries) {
@@ -28,7 +29,8 @@ function sleep(milliseconds: number): Promise<void> {
 
 export class BootAppManager {
 
-    private _boot_projects: Map<String, BootApp> = new Map();
+    private _boot_projects: Map<string, BootApp> = new Map();
+    private _bindedSessions: Map<string, DebugSession> = new Map();
     private _onDidChangeApps: vscode.EventEmitter<BootApp | undefined> = new vscode.EventEmitter<BootApp | undefined>();
     constructor() {
         //We have to do something with the errors here because constructor cannot
@@ -51,6 +53,23 @@ export class BootAppManager {
         return Array.from(this._boot_projects.values()).sort((a, b) => a.name.toLowerCase() < b.name.toLowerCase() ? -1 : 1);
     }
 
+    public getAppBySession(session: DebugSession): BootApp | undefined {
+        const location = Array.from(this._bindedSessions.keys()).find(key => this._bindedSessions.get(key) === session);
+        if (location) {
+            return this._boot_projects.get(location);
+        } else {
+            return undefined;
+        }
+    }
+
+    public getSessionByApp(app: BootApp) :DebugSession | undefined {
+        return this._bindedSessions.get(app.path);
+    }
+
+    public bindDebugSession(app: BootApp, session: DebugSession): void {
+        app.activeSessionName = session.name;
+        this._bindedSessions.set(app.path, session);
+    }
     /**
      * Registers for classpath change events (from redhat.java and pivotal.spring-boot extension).
      * These events are used to keep the list of boot apps in sync with the workspace projects.

@@ -2,10 +2,8 @@
 // Licensed under the MIT license.
 
 import * as vscode from "vscode";
-import * as path from "path";
 import { BootAppManager } from "./BootAppManager";
-import { BootApp, STATE_INACTIVE, STATE_RUNNING } from "./BootApp";
-import { ChildProcess, spawn } from "child_process";
+import { BootApp, STATE_RUNNING, STATE_INACTIVE } from "./BootApp";
 
 export class Controller {
     private _outputChannels: Map<string, vscode.OutputChannel>;
@@ -20,48 +18,57 @@ export class Controller {
         return this._manager.getAppList();
     }
 
-    public async startBootApp(app: BootApp): Promise<void> {
-        this._setState(app, STATE_RUNNING);
-        const outputChannel: vscode.OutputChannel = this._getOutput(app);
-        const classpathString = app.classpath.entries.map(e => e.kind === "source" ? e.outputFolder : e.path).join(path.delimiter);
+    public async startBootApp(app: BootApp, debug?: boolean): Promise<void> {
+        const mainClasData = await this._getMainClass(app.path);
 
-        // Note: Command `vscode.java.resolveMainClass` is implemented in extension `vscode.java.resolveMainClass`
-        const mainClassList = await vscode.commands.executeCommand('java.execute.workspaceCommand', 'vscode.java.resolveMainClass', app.path);
-        if (mainClassList && mainClassList instanceof Array && mainClassList.length > 0) {
-            const mainClassData: MainClassData = mainClassList.length === 1 ? mainClassList[0] :
-                await vscode.window.showQuickPick(mainClassList.map(x => Object.assign({ label: x.mainClass }, x)));
+        if (mainClasData) {
+            let targetConfig = this._getLaunchConfig(mainClasData);
+            if (!targetConfig) {
+                targetConfig = await this._createNewLaunchConfig(mainClasData);
+            }
+            // TO REMOVE:
+            // This is a workaround to make "start" work. For Java Debugger, "Start without debugging" feature 
+            // has not been released, it fallbacks to "Start debugging" mode.
+            // See: https://github.com/Microsoft/vscode-java-debug/issues/351
+            debug ? await this._enableAllBPs() : await this._disableAllBPs();
 
-            outputChannel.clear();
-            outputChannel.show();
-            let stderr: string = '';
-            const javaProcess: ChildProcess = spawn("java", ["-classpath", classpathString, mainClassData.mainClass]);
-            javaProcess.stdout.on('data', (data: string | Buffer): void => {
-                outputChannel.append(data.toString());
-            });
-            javaProcess.stderr.on('data', (data: string | Buffer) => {
-                stderr = stderr.concat(data.toString());
-                outputChannel.append(data.toString());
-            });
-            javaProcess.on('error', (err: Error) => {
-                console.error("on error: ", err.toString());
-            });
-            javaProcess.on('exit', (code: number, signal: string) => {
-                this._setState(app, STATE_INACTIVE);
-            });
-            app.process = javaProcess;
+            app.activeSessionName = targetConfig.name;
+            const ok: boolean = await vscode.debug.startDebugging(
+                vscode.workspace.getWorkspaceFolder(vscode.Uri.parse(app.path)),
+                Object.assign({}, targetConfig, { noDebug: !debug })
+            );
+            if (ok) {
+                // Cannot determine status. It always returns true now. 
+                // See: https://github.com/Microsoft/vscode/issues/54214
+            }
         } else {
             vscode.window.showWarningMessage("Found no Main Class.");
         }
     }
 
-    public async stopBootApp(app: BootApp): Promise<void> {
-        // TODO: How to send a shutdown signal to the app instead of killing the process directly?
-        if (app.process) {
-            app.process.kill("SIGTERM");
-            if (app.process.killed) {
-                app.process = undefined;
-            }
+    public onDidStartBootApp(session: vscode.DebugSession): void {
+        const app: BootApp | undefined = this._manager.getAppList().find((elem: BootApp) => elem.activeSessionName === session.name);
+        if (app) {
+            this._manager.bindDebugSession(app, session);
+            this._setState(app, STATE_RUNNING);
         }
+    }
+
+    public async stopBootApp(app: BootApp, restart?: boolean): Promise<void> {
+        // TODO: How to send a shutdown signal to the app instead of killing the process directly?
+        const session: vscode.DebugSession | undefined = this._manager.getSessionByApp(app);
+        if (session) {
+            await session.customRequest("disconnect", { restart: !!restart });
+        } else {
+            // What if session not found? Force to set STATE_INACTIVE?
+        }
+    }
+
+    public onDidStopBootApp(session: vscode.DebugSession): void {
+        const app = this._manager.getAppBySession(session);
+            if (app) {
+                this._setState(app, STATE_INACTIVE);
+            }
     }
 
     public async openBootApp(app: BootApp): Promise<void> {
@@ -88,6 +95,58 @@ export class Controller {
             this._outputChannels.set(channelName, output);
         }
         return output;
+    }
+
+    private async _getMainClass(folder: string): Promise<MainClassData | null> {
+        // Note: Command `vscode.java.resolveMainClass` is implemented in extension `vscode.java.resolveMainClass`
+        const mainClassList = await vscode.commands.executeCommand('java.execute.workspaceCommand', 'vscode.java.resolveMainClass', folder);
+        if (mainClassList && mainClassList instanceof Array && mainClassList.length > 0) {
+            return mainClassList.length === 1 ? mainClassList[0] :
+                await vscode.window.showQuickPick(mainClassList.map(x => Object.assign({ label: x.mainClass }, x)));
+        }
+        return Promise.resolve(null);
+    }
+
+    private _getLaunchConfig(mainClasData: MainClassData) {
+        const launchConfigurations: vscode.WorkspaceConfiguration = vscode.workspace.getConfiguration("launch", vscode.Uri.file(mainClasData.filePath));
+        const rawConfigs: vscode.DebugConfiguration[] = launchConfigurations.configurations;
+        console.log(rawConfigs);
+        return rawConfigs.find(conf => conf.type === "java" && conf.request === "launch" && conf.mainClass === mainClasData.mainClass);
+    }
+
+    private _constructLaunchConfigName(mainClass: string, projectName: string) {
+        const prefix = "Spring Boot-";
+        let name = prefix + mainClass.substr(mainClass.lastIndexOf(".") + 1);
+        if (projectName !== undefined) {
+            name += `<${projectName}>`;
+        }
+        return name;
+    }
+
+    private async _createNewLaunchConfig(mainClasData: MainClassData): Promise<vscode.DebugConfiguration> {
+        const newConfig = {
+            type: "java",
+            name: this._constructLaunchConfigName(mainClasData.mainClass, mainClasData.projectName),
+            request: "launch",
+            cwd: "${workspaceFolder}",
+            console: "internalConsole",
+            mainClass: mainClasData.mainClass,
+            projectName: mainClasData.projectName,
+            args: "",
+        };
+        const launchConfigurations: vscode.WorkspaceConfiguration = vscode.workspace.getConfiguration("launch", vscode.Uri.file(mainClasData.filePath));
+        const configs: vscode.DebugConfiguration[] = launchConfigurations.configurations;
+        configs.push(newConfig);
+        await launchConfigurations.update("configurations", configs);
+        return newConfig;
+    }
+
+    private async _disableAllBPs() {
+        return await vscode.commands.executeCommand("workbench.debug.viewlet.action.disableAllBreakpoints");
+    }
+
+    private async _enableAllBPs() {
+        return await vscode.commands.executeCommand("workbench.debug.viewlet.action.enableAllBreakpoints");
     }
 }
 
