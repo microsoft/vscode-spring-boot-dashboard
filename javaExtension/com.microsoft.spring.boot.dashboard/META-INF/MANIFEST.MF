@@ -1,0 +1,10 @@
+Manifest-Version: 1.0
+Bundle-ManifestVersion: 2
+Bundle-Name: Dashboard
+Bundle-SymbolicName: com.microsoft.spring.boot.dashboard;singleton:=true
+Bundle-Version: 0.1.0.qualifier
+Bundle-Vendor: MICROSOFT
+Automatic-Module-Name: com.microsoft.spring.boot.dashboard
+Bundle-RequiredExecutionEnvironment: JavaSE-1.8
+Require-Bundle: org.eclipse.jdt.ls.core,
+ org.eclipse.core.runtime

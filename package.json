@@ -19,6 +19,9 @@
     ],
     "main": "./out/extension",
     "contributes": {
+        "javaExtensions": [
+            "./lib/com.microsoft.spring.boot.dashboard-0.1.0-SNAPSHOT.jar"
+        ],
         "views": {
             "explorer": [
                 {
