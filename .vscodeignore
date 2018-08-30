@@ -5,5 +5,5 @@ out/**/*.map
 src/**
 .gitignore
 tsconfig.json
-vsc-extension-quickstart.md
 tslint.json
+javaExtension/**

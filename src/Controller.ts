@@ -74,6 +74,8 @@ export class Controller {
     public async openBootApp(app: BootApp): Promise<void> {
         // TODO: How to find out the port?
         vscode.window.showInformationMessage("Not implemented.");
+        // TODO: Following is a placeholder for JMX related commands.
+        vscode.commands.executeCommand("java.execute.workspaceCommand", "vscode.spring.boot.dashboard.hello").then(ret => console.log(ret));
     }
 
     private _setState(app: BootApp, state: string): void {
