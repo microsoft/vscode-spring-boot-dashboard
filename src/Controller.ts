@@ -4,14 +4,19 @@
 import * as vscode from "vscode";
 import { BootAppManager } from "./BootAppManager";
 import { BootApp, STATE_RUNNING, STATE_INACTIVE } from "./BootApp";
+import { findJvm } from "@pivotal-tools/jvm-launch-utils";
+import * as path from "path";
+import { readAll } from "./stream-util";
 
 export class Controller {
     private _outputChannels: Map<string, vscode.OutputChannel>;
     private _manager: BootAppManager;
+    private _context: vscode.ExtensionContext;
 
-    constructor(manager: BootAppManager) {
+    constructor(manager: BootAppManager, context: vscode.ExtensionContext) {
         this._outputChannels = new Map<string, vscode.OutputChannel>();
         this._manager = manager;
+        this._context = context;
     }
 
     public getAppList(): BootApp[] {
@@ -72,6 +77,20 @@ export class Controller {
     }
 
     public async openBootApp(app: BootApp): Promise<void> {
+        let jvm = await findJvm();
+        let argument = "Darth Vader";
+        if (jvm) {
+            let javaProcess = jvm.jarLaunch(
+                path.resolve(this._context.extensionPath, "lib", "java-extension.jar"),
+                [
+                    "-Dgreeting.name="+argument
+                ]
+            );
+            let output = await readAll(javaProcess.stdout);
+            vscode.window.showInformationMessage(output);
+        } else {
+            throw new Error("Couldn't fina a JVM to run Java code");
+        }
         // TODO: How to find out the port?
         vscode.window.showInformationMessage("Not implemented.");
     }
