@@ -26,12 +26,6 @@ export class Controller {
             if (!targetConfig) {
                 targetConfig = await this._createNewLaunchConfig(mainClasData);
             }
-            // TO REMOVE:
-            // This is a workaround to make "start" work. For Java Debugger, "Start without debugging" feature 
-            // has not been released, it fallbacks to "Start debugging" mode.
-            // See: https://github.com/Microsoft/vscode-java-debug/issues/351
-            debug ? await this._enableAllBPs() : await this._disableAllBPs();
-
             app.activeSessionName = targetConfig.name;
             const ok: boolean = await vscode.debug.startDebugging(
                 vscode.workspace.getWorkspaceFolder(vscode.Uri.parse(app.path)),
@@ -139,14 +133,6 @@ export class Controller {
         configs.push(newConfig);
         await launchConfigurations.update("configurations", configs);
         return newConfig;
-    }
-
-    private async _disableAllBPs() {
-        return await vscode.commands.executeCommand("workbench.debug.viewlet.action.disableAllBreakpoints");
-    }
-
-    private async _enableAllBPs() {
-        return await vscode.commands.executeCommand("workbench.debug.viewlet.action.enableAllBreakpoints");
     }
 }
 
