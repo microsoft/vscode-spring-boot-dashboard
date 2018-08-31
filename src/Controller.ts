@@ -78,20 +78,34 @@ export class Controller {
 
     public async openBootApp(app: BootApp): Promise<void> {
         let jvm = await findJvm();
-        let argument = "Darth Vader";
+        let jmxport = 9999; // TODO: determine port from boot app (by parsing and extracting from launch.json?)
+        //TODO: upon launch we must somehow ensure that the folowing vmargs are added:
+        //  -Dcom.sun.management.jmxremote 
+        //  -Dcom.sun.management.jmxremote.port=${jmxport} 
+        //  -Dcom.sun.management.jmxremote.authenticate=false 
+        //  -Dcom.sun.management.jmxremote.ssl=false 
+        //  -Djava.rmi.server.hostname=localhost 
+        //  -Dspring.application.admin.enabled=true 
+        let jmxurl = `service:jmx:rmi:///jndi/rmi://localhost:${jmxport}/jmxrmi`;
         if (jvm) {
             let javaProcess = jvm.jarLaunch(
                 path.resolve(this._context.extensionPath, "lib", "java-extension.jar"),
                 [
-                    "-Dgreeting.name="+argument
+                    "-Djmxurl="+jmxurl
                 ]
             );
-            let output = await readAll(javaProcess.stdout);
-            vscode.window.showInformationMessage(output);
+            let port = parseInt(await readAll(javaProcess.stdout));
+            if (port>0) {
+                // TODO: open url http://localhost:port/
+                vscode.window.showInformationMessage("App is running on port: "+port);
+            } else {
+                let err = await readAll(javaProcess.stderr);
+                console.log(err);
+                vscode.window.showErrorMessage("Couldn't determine port app is running on");
+            }
         } else {
             throw new Error("Couldn't fina a JVM to run Java code");
         }
-        // TODO: How to find out the port?
         vscode.window.showInformationMessage("Not implemented.");
     }
 
