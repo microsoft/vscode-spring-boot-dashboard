@@ -13,7 +13,7 @@ let localAppManager: BootAppManager;
 export function activate(context: vscode.ExtensionContext) {
     localAppManager = new BootAppManager();
     const localTree: LocalAppTreeProvider = new LocalAppTreeProvider(context, localAppManager);
-    const controller: Controller = new Controller(localAppManager);
+    const controller: Controller = new Controller(localAppManager, context);
 
     context.subscriptions.push(vscode.window.registerTreeDataProvider('spring-boot-dashboard', localTree));
     context.subscriptions.push(vscode.commands.registerCommand("spring-boot-dashboard.refresh", () => {

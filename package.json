@@ -94,7 +94,7 @@
         "vscode:prepublish": "npm run compile",
         "compile": "tsc -p ./",
         "watch": "tsc -watch -p ./",
-        "postinstall": "node ./node_modules/vscode/bin/install",
+        "postinstall": "node ./node_modules/vscode/bin/install && scripts/build-java-extension.sh",
         "test": "npm run compile && node ./node_modules/vscode/bin/test",
         "tslint": "tslint -t verbose src/**/*.ts"
     },
@@ -112,6 +112,7 @@
         "vscjava.vscode-java-debug"
     ],
     "dependencies": {
+        "@pivotal-tools/jvm-launch-utils": "0.0.11",
         "uuid": "^3.3.2"
     }
 }
