@@ -6,6 +6,7 @@ export const STATE_RUNNING = 'running';
 
 export class BootApp {
     private _activeSessionName?: string;
+    private _jmxPort?: number;
 
     constructor(
         private _path: string,
@@ -35,6 +36,13 @@ export class BootApp {
         this._name = name;
     }
 
+    public set jmxPort(port: number | undefined) {
+        this._jmxPort = port;
+    }
+
+    public get jmxPort() : number | undefined {
+        return this._jmxPort;
+    }
 
     public get classpath(): ClassPathData {
         return this._classpath;

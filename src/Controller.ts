@@ -7,6 +7,8 @@ import { BootApp, STATE_RUNNING, STATE_INACTIVE } from "./BootApp";
 import { findJvm } from "@pivotal-tools/jvm-launch-utils";
 import * as path from "path";
 import { readAll } from "./stream-util";
+import opn = require('opn')
+import getPort = require('get-port');
 
 export class Controller {
     private _outputChannels: Map<string, vscode.OutputChannel>;
@@ -38,9 +40,24 @@ export class Controller {
             debug ? await this._enableAllBPs() : await this._disableAllBPs();
 
             app.activeSessionName = targetConfig.name;
+            let jmxport = await(getPort());
+            app.jmxPort = jmxport;
+            let vmArgs = '-Dcom.sun.management.jmxremote ' +
+                `-Dcom.sun.management.jmxremote.port=${jmxport} `+ 
+                '-Dcom.sun.management.jmxremote.authenticate=false ' + 
+                '-Dcom.sun.management.jmxremote.ssl=false ' +
+                '-Djava.rmi.server.hostname=localhost '+ 
+                '-Dspring.application.admin.enabled=true';
+            if (targetConfig.vmArgs) {
+                //TODO: smarter merge? What if user is trying to enable jmx themselves on a specific port they choose, for example?
+                vmArgs = vmArgs + ' ' +targetConfig.vmArgs;
+            }
             const ok: boolean = await vscode.debug.startDebugging(
                 vscode.workspace.getWorkspaceFolder(vscode.Uri.parse(app.path)),
-                Object.assign({}, targetConfig, { noDebug: !debug })
+                Object.assign({}, targetConfig, { 
+                    noDebug: !debug,
+                    vmArgs: vmArgs
+                })
             );
             if (ok) {
                 // Cannot determine status. It always returns true now. 
@@ -78,35 +95,28 @@ export class Controller {
 
     public async openBootApp(app: BootApp): Promise<void> {
         let jvm = await findJvm();
-        let jmxport = 9999; // TODO: determine port from boot app (by parsing and extracting from launch.json?)
-        //TODO: upon launch we must somehow ensure that the folowing vmargs are added:
-        //  -Dcom.sun.management.jmxremote 
-        //  -Dcom.sun.management.jmxremote.port=${jmxport} 
-        //  -Dcom.sun.management.jmxremote.authenticate=false 
-        //  -Dcom.sun.management.jmxremote.ssl=false 
-        //  -Djava.rmi.server.hostname=localhost 
-        //  -Dspring.application.admin.enabled=true 
-        let jmxurl = `service:jmx:rmi:///jndi/rmi://localhost:${jmxport}/jmxrmi`;
-        if (jvm) {
-            let javaProcess = jvm.jarLaunch(
-                path.resolve(this._context.extensionPath, "lib", "java-extension.jar"),
-                [
-                    "-Djmxurl="+jmxurl
-                ]
-            );
-            let port = parseInt(await readAll(javaProcess.stdout));
-            if (port>0) {
-                // TODO: open url http://localhost:port/
-                vscode.window.showInformationMessage("App is running on port: "+port);
+        let jmxport = app.jmxPort;
+        if (jmxport) {
+            let jmxurl = `service:jmx:rmi:///jndi/rmi://localhost:${jmxport}/jmxrmi`;
+            if (jvm) {
+                let javaProcess = jvm.jarLaunch(
+                    path.resolve(this._context.extensionPath, "lib", "java-extension.jar"),
+                    [
+                        "-Djmxurl="+jmxurl
+                    ]
+                );
+                let port = parseInt(await readAll(javaProcess.stdout));
+                if (port>0) {
+                    opn(`http://localhost:${port}/`);
+                } else {
+                    let err = await readAll(javaProcess.stderr);
+                    console.log(err);
+                    vscode.window.showErrorMessage("Couldn't determine port app is running on");
+                }
             } else {
-                let err = await readAll(javaProcess.stderr);
-                console.log(err);
-                vscode.window.showErrorMessage("Couldn't determine port app is running on");
+                throw new Error("Couldn't find a JVM to run Java code");
             }
-        } else {
-            throw new Error("Couldn't fina a JVM to run Java code");
         }
-        vscode.window.showInformationMessage("Not implemented.");
     }
 
     private _setState(app: BootApp, state: string): void {

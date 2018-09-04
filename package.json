@@ -99,12 +99,14 @@
         "tslint": "tslint -t verbose src/**/*.ts"
     },
     "devDependencies": {
-        "typescript": "^2.6.1",
-        "vscode": "^1.1.21",
-        "tslint": "^5.8.0",
-        "@types/node": "^7.0.43",
+        "@types/get-port": "^4.0.0",
         "@types/mocha": "^2.2.42",
-        "@types/uuid": "^3.4.3"
+        "@types/node": "^7.0.43",
+        "@types/opn": "^5.1.0",
+        "@types/uuid": "^3.4.3",
+        "tslint": "^5.8.0",
+        "typescript": "^2.6.1",
+        "vscode": "^1.1.21"
     },
     "extensionDependencies": [
         "Pivotal.vscode-spring-boot",
@@ -113,6 +115,8 @@
     ],
     "dependencies": {
         "@pivotal-tools/jvm-launch-utils": "0.0.11",
+        "get-port": "^4.0.0",
+        "opn": "^5.3.0",
         "uuid": "^3.3.2"
     }
 }
