@@ -31,7 +31,6 @@ public class JmxService {
 	public static void main(String[] args) {
 		try {
 			String jmxurl = System.getProperty("jmxurl");
-			System.err.println("jmxurl='"+jmxurl+"'");
 			try (JMXConnector jmxConnector = JMXConnectorFactory.connect(new JMXServiceURL(jmxurl), null)) {
 				MBeanServerConnection connection = jmxConnector.getMBeanServerConnection();
 				String port = getPortViaAdmin(connection);
