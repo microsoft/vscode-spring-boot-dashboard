@@ -7,8 +7,8 @@ import { BootApp, STATE_RUNNING, STATE_INACTIVE } from "./BootApp";
 import { findJvm } from "@pivotal-tools/jvm-launch-utils";
 import * as path from "path";
 import { readAll } from "./stream-util";
-import opn = require('opn')
-import getPort = require('get-port');
+import opn = require('opn');
+import * as getPort from "get-port";
 
 export class Controller {
     private _outputChannels: Map<string, vscode.OutputChannel>;
