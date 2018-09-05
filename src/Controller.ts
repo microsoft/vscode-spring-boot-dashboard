@@ -56,7 +56,7 @@ export class Controller {
                 vscode.workspace.getWorkspaceFolder(vscode.Uri.parse(app.path)),
                 Object.assign({}, targetConfig, { 
                     noDebug: !debug,
-                    vmArgs: vmArgs
+                    vmArgs
                 })
             );
             if (ok) {
