@@ -50,7 +50,7 @@ export class Controller {
                 '-Dspring.application.admin.enabled=true';
             if (targetConfig.vmArgs) {
                 //TODO: smarter merge? What if user is trying to enable jmx themselves on a specific port they choose, for example?
-                vmArgs = vmArgs + ' ' +targetConfig.vmArgs;
+                vmArgs = vmArgs + ' ' + targetConfig.vmArgs;
             }
             const ok: boolean = await vscode.debug.startDebugging(
                 vscode.workspace.getWorkspaceFolder(vscode.Uri.parse(app.path)),
@@ -95,6 +95,9 @@ export class Controller {
 
     public async openBootApp(app: BootApp): Promise<void> {
         let jvm = await findJvm();
+        if (!jvm) {
+            throw new Error("Couldn't find a JVM to run Java code");
+        }
         let jmxport = app.jmxPort;
         if (jmxport) {
             let jmxurl = `service:jmx:rmi:///jndi/rmi://localhost:${jmxport}/jmxrmi`;
@@ -113,8 +116,6 @@ export class Controller {
                     console.log(err);
                     vscode.window.showErrorMessage("Couldn't determine port app is running on");
                 }
-            } else {
-                throw new Error("Couldn't find a JVM to run Java code");
             }
         }
     }
