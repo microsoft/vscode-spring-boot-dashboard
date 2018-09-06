@@ -94,7 +94,7 @@
         "vscode:prepublish": "npm run compile",
         "compile": "tsc -p ./",
         "watch": "tsc -watch -p ./",
-        "postinstall": "node ./node_modules/vscode/bin/install && scripts/build-java-extension.sh",
+        "postinstall": "node ./node_modules/vscode/bin/install && sh -c scripts/build-java-extension.sh",
         "test": "npm run compile && node ./node_modules/vscode/bin/test",
         "tslint": "tslint -t verbose src/**/*.ts"
     },
