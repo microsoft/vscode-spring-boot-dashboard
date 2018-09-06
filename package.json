@@ -49,7 +49,7 @@
             },
             {
                 "command": "spring-boot-dashboard.localapp.open",
-                "title": "Open",
+                "title": "Open In Browser",
                 "category": "Spring-Boot Dashboard"
             },
             {
@@ -84,7 +84,7 @@
                 },
                 {
                     "command": "spring-boot-dashboard.localapp.open",
-                    "when": "view == spring-boot-dashboard && viewItem =~ /BootApp_.*/",
+                    "when": "view == spring-boot-dashboard && viewItem != BootApp_inactive",
                     "group": "action@a"
                 }
             ]
