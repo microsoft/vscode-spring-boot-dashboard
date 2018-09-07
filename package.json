@@ -49,7 +49,7 @@
             },
             {
                 "command": "spring-boot-dashboard.localapp.open",
-                "title": "Open",
+                "title": "Open In Browser",
                 "category": "Spring-Boot Dashboard"
             },
             {
@@ -84,7 +84,7 @@
                 },
                 {
                     "command": "spring-boot-dashboard.localapp.open",
-                    "when": "view == spring-boot-dashboard && viewItem =~ /BootApp_.*/",
+                    "when": "view == spring-boot-dashboard && viewItem != BootApp_inactive",
                     "group": "action@a"
                 }
             ]
@@ -94,7 +94,7 @@
         "vscode:prepublish": "npm run compile",
         "compile": "tsc -p ./",
         "watch": "tsc -watch -p ./",
-        "postinstall": "node ./node_modules/vscode/bin/install && scripts/build-java-extension.sh",
+        "postinstall": "node ./node_modules/vscode/bin/install && sh -c scripts/build-java-extension.sh",
         "test": "npm run compile && node ./node_modules/vscode/bin/test",
         "tslint": "tslint -t verbose src/**/*.ts"
     },

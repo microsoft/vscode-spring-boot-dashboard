@@ -1,8 +1,11 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT license.
 
-export const STATE_INACTIVE = 'inactive';
-export const STATE_RUNNING = 'running';
+export enum AppState {
+    INACTIVE = 'inactive',
+    RUNNING = 'running',
+    LAUNCHING = "launching" // TODO: Distinguish launching & running via JMX. 
+}
 
 export class BootApp {
     private _activeSessionName?: string;
@@ -12,7 +15,7 @@ export class BootApp {
         private _path: string,
         private _name: string,
         private _classpath: ClassPathData,
-        private _state: string
+        private _state: AppState
     ) { }
 
     public get activeSessionName() : string | undefined {
@@ -52,11 +55,11 @@ export class BootApp {
         this._classpath = classpath;
     }
 
-    public get state(): string {
+    public get state(): AppState {
         return this._state;
     }
 
-    public set state(state: string) {
+    public set state(state: AppState) {
         this._state = state;
     }
 }

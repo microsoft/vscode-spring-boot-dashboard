@@ -1,7 +1,7 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT license.
 
-import { BootApp, STATE_INACTIVE, ClassPathData } from "./BootApp";
+import { BootApp, ClassPathData, AppState } from "./BootApp";
 
 import * as vscode from 'vscode';
 import * as uuid from 'uuid';
@@ -89,7 +89,7 @@ export class BootAppManager {
                         current.name = name;
                         current.classpath = entries;
                     } else {
-                        this._boot_projects.set(location, new BootApp(location, name, entries, STATE_INACTIVE));
+                        this._boot_projects.set(location, new BootApp(location, name, entries, AppState.INACTIVE));
                     }
                 } else {
                     this._boot_projects.delete(location);

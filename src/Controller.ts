@@ -3,7 +3,7 @@
 
 import * as vscode from "vscode";
 import { BootAppManager } from "./BootAppManager";
-import { BootApp, STATE_RUNNING, STATE_INACTIVE } from "./BootApp";
+import { BootApp, AppState } from "./BootApp";
 import { findJvm } from "@pivotal-tools/jvm-launch-utils";
 import * as path from "path";
 import { readAll } from "./stream-util";
@@ -66,7 +66,7 @@ export class Controller {
         const app: BootApp | undefined = this._manager.getAppList().find((elem: BootApp) => elem.activeSessionName === session.name);
         if (app) {
             this._manager.bindDebugSession(app, session);
-            this._setState(app, STATE_RUNNING);
+            this._setState(app, AppState.RUNNING);
         }
     }
 
@@ -83,7 +83,7 @@ export class Controller {
     public onDidStopBootApp(session: vscode.DebugSession): void {
         const app = this._manager.getAppBySession(session);
             if (app) {
-                this._setState(app, STATE_INACTIVE);
+                this._setState(app, AppState.INACTIVE);
             }
     }
 
@@ -114,7 +114,7 @@ export class Controller {
         }
     }
 
-    private _setState(app: BootApp, state: string): void {
+    private _setState(app: BootApp, state: AppState): void {
         const output: vscode.OutputChannel = this._getOutput(app);
         app.state = state;
         output.appendLine(`${app.name} is ${state} now.`);
