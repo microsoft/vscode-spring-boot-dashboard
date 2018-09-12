@@ -175,7 +175,7 @@ export class Controller {
         const launchConfigurations: vscode.WorkspaceConfiguration = vscode.workspace.getConfiguration("launch", vscode.Uri.file(mainClasData.filePath));
         const configs: vscode.DebugConfiguration[] = launchConfigurations.configurations;
         configs.push(newConfig);
-        await launchConfigurations.update("configurations", configs);
+        await launchConfigurations.update("configurations", configs, vscode.ConfigurationTarget.WorkspaceFolder);
         return newConfig;
     }
 }
