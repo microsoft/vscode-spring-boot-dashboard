@@ -12,8 +12,8 @@ Spring Boot Dashboard is a lightweight extension in Visual Studio Code (VS Code)
 * Open a Spring Boot app in browser 
 
 ## Prerequisites  
-- VS Code (version 1.19.0 or later)
 - JDK (version 1.8.0 or later)
+- VS Code (version 1.19.0 or later)
 
 ## How to install 
 
@@ -23,6 +23,7 @@ Or launch VS Code Quick Open (`Ctrl + P`), paste the following command, and pres
 ```bash
 ext install vscode-spring-boot-dashboard
 ```
+> Note: this extension has a dependency on VS Code extensions of [Debugger for Java](https://marketplace.visualstudio.com/items?itemName=vscjava.vscode-java-debug) and [Spring Boot Tools](https://marketplace.visualstudio.com/items?itemName=Pivotal.vscode-spring-boot).  
 
 ## How to get started 
 
