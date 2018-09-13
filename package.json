@@ -61,6 +61,28 @@
             }
         ],
         "menus": {
+            "commandPalette": [
+                {
+                    "command": "spring-boot-dashboard.localapp.start",
+                    "when": "never"
+                },
+                {
+                    "command": "spring-boot-dashboard.localapp.stop",
+                    "when": "never"
+                },
+                {
+                    "command": "spring-boot-dashboard.localapp.open",
+                    "when": "never"
+                },
+                {
+                    "command": "spring-boot-dashboard.localapp.debug",
+                    "when": "never"
+                },
+                {
+                    "command": "spring-boot-dashboard.localapp.refresh",
+                    "when": "never"
+                }
+            ],
             "view/title": [
                 {
                     "command": "spring-boot-dashboard.refresh",
