@@ -3,6 +3,7 @@
     "displayName": "Spring Boot Dashboard",
     "description": "Spring Boot Dashboard for VS Code",
     "version": "0.0.1",
+    "icon": "resources/logo.png",
     "publisher": "vscjava",
     "preview": true,
     "repository": {
