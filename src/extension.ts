@@ -3,6 +3,7 @@
 
 'use strict';
 import * as vscode from 'vscode';
+import { initializeFromJsonFile, instrumentOperation } from "vscode-extension-telemetry-wrapper";
 import { LocalAppTreeProvider } from './LocalAppTree';
 import { BootAppManager } from './BootAppManager';
 import { BootApp } from './BootApp';
@@ -10,26 +11,31 @@ import { Controller } from './Controller';
 
 let localAppManager: BootAppManager;
 
-export function activate(context: vscode.ExtensionContext) {
+export async function activate(context: vscode.ExtensionContext) {
+    await initializeFromJsonFile(context.asAbsolutePath("./package.json"));
+    await instrumentOperation("activation", initializeExtension)(context);
+}
+
+export async function initializeExtension(oprationId: string, context: vscode.ExtensionContext) {
     localAppManager = new BootAppManager();
     const localTree: LocalAppTreeProvider = new LocalAppTreeProvider(context, localAppManager);
     const controller: Controller = new Controller(localAppManager, context);
 
     context.subscriptions.push(vscode.window.registerTreeDataProvider('spring-boot-dashboard', localTree));
-    context.subscriptions.push(vscode.commands.registerCommand("spring-boot-dashboard.refresh", () => {
+    context.subscriptions.push(instrumentAndRegisterCommand("spring-boot-dashboard.refresh", () => {
         localAppManager.fireDidChangeApps();
     }));
-    context.subscriptions.push(vscode.commands.registerCommand("spring-boot-dashboard.localapp.start", (app: BootApp) => {
-        controller.startBootApp(app);
+    context.subscriptions.push(instrumentAndRegisterCommand("spring-boot-dashboard.localapp.start", async (app: BootApp) => {
+        await controller.startBootApp(app);
     }));
-    context.subscriptions.push(vscode.commands.registerCommand("spring-boot-dashboard.localapp.debug", (app: BootApp) => {
-        controller.startBootApp(app, true);
+    context.subscriptions.push(instrumentAndRegisterCommand("spring-boot-dashboard.localapp.debug", async (app: BootApp) => {
+        await controller.startBootApp(app, true);
     }));
-    context.subscriptions.push(vscode.commands.registerCommand("spring-boot-dashboard.localapp.stop", (app: BootApp) => {
-        controller.stopBootApp(app);
+    context.subscriptions.push(instrumentAndRegisterCommand("spring-boot-dashboard.localapp.stop", async (app: BootApp) => {
+        await controller.stopBootApp(app);
     }));
-    context.subscriptions.push(vscode.commands.registerCommand("spring-boot-dashboard.localapp.open", (app: BootApp) => {
-        controller.openBootApp(app);
+    context.subscriptions.push(instrumentAndRegisterCommand("spring-boot-dashboard.localapp.open", async (app: BootApp) => {
+        await controller.openBootApp(app);
     }));
     vscode.debug.onDidStartDebugSession((session: vscode.DebugSession) => {
         if (session.type === "java") {
@@ -45,4 +51,9 @@ export function activate(context: vscode.ExtensionContext) {
 
 // this method is called when your extension is deactivated
 export function deactivate() {
+}
+
+function instrumentAndRegisterCommand(name: string, cb: (...args: any[]) => any) {
+    const instrumented = instrumentOperation(name, async (_operationId, myargs) => await cb(myargs));
+    return vscode.commands.registerCommand(name, instrumented);
 }
