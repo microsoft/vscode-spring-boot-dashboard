@@ -4,6 +4,7 @@
     "description": "Spring Boot Dashboard for VS Code",
     "version": "0.0.1",
     "publisher": "vscjava",
+    "preview": true,
     "repository": {
         "type": "git",
         "url": "https://github.com/Microsoft/vscode-spring-boot-dashboard.git"
