@@ -4,6 +4,8 @@
 
 Spring Boot Dashboard is a lightweight extension in Visual Studio Code (VS Code). With an explorer in the side bar, you can view and manage all available Spring Boot projects in your workspace. It also supports the features to quickly start, stop or debug a Spring Boot project. For more advanced Spring support in VS Code, please check the [Spring Boot Extension Pack](https://marketplace.visualstudio.com/items?itemName=Pivotal.vscode-boot-dev-pack). 
 
+![Screenshot](images/boot-dashboard-vsc.gif) 
+
 ## Feature List 
 
 * View Spring Boot apps in workspace 
