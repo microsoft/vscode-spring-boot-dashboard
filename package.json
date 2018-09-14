@@ -18,6 +18,7 @@
         "Other"
     ],
     "activationEvents": [
+        "onCommand:spring-boot-dashboard.refresh",
         "onView:spring-boot-dashboard"
     ],
     "main": "./out/extension",
@@ -80,7 +81,7 @@
                     "when": "never"
                 },
                 {
-                    "command": "spring-boot-dashboard.localapp.refresh",
+                    "command": "spring-boot-dashboard.refresh",
                     "when": "never"
                 }
             ],
@@ -109,7 +110,7 @@
                 },
                 {
                     "command": "spring-boot-dashboard.localapp.open",
-                    "when": "view == spring-boot-dashboard && viewItem != BootApp_inactive",
+                    "when": "view == spring-boot-dashboard && viewItem == BootApp_running",
                     "group": "action@a"
                 }
             ]
