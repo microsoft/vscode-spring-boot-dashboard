@@ -26,7 +26,10 @@ export class Controller {
     }
 
     public async startBootApp(app: BootApp, debug?: boolean): Promise<void> {
-        const mainClasData = await this._getMainClass(app.path);
+        const mainClasData = await vscode.window.withProgress(
+            { location: vscode.ProgressLocation.Window, title: `Resolving main classes for ${app.name}...` },
+            () => { return this._getMainClass(app.path); }
+        );
 
         if (mainClasData) {
             let targetConfig = this._getLaunchConfig(mainClasData);
@@ -34,13 +37,13 @@ export class Controller {
                 targetConfig = await this._createNewLaunchConfig(mainClasData);
             }
             app.activeSessionName = targetConfig.name;
-            let jmxport = await(getPort());
+            let jmxport = await (getPort());
             app.jmxPort = jmxport;
             let vmArgs = '-Dcom.sun.management.jmxremote ' +
-                `-Dcom.sun.management.jmxremote.port=${jmxport} `+ 
-                '-Dcom.sun.management.jmxremote.authenticate=false ' + 
+                `-Dcom.sun.management.jmxremote.port=${jmxport} ` +
+                '-Dcom.sun.management.jmxremote.authenticate=false ' +
                 '-Dcom.sun.management.jmxremote.ssl=false ' +
-                '-Djava.rmi.server.hostname=localhost '+ 
+                '-Djava.rmi.server.hostname=localhost ' +
                 '-Dspring.application.admin.enabled=true';
             if (targetConfig.vmArgs) {
                 //TODO: smarter merge? What if user is trying to enable jmx themselves on a specific port they choose, for example?
@@ -48,7 +51,7 @@ export class Controller {
             }
             const ok: boolean = await vscode.debug.startDebugging(
                 vscode.workspace.getWorkspaceFolder(vscode.Uri.parse(app.path)),
-                Object.assign({}, targetConfig, { 
+                Object.assign({}, targetConfig, {
                     noDebug: !debug,
                     vmArgs
                 })
@@ -82,9 +85,9 @@ export class Controller {
 
     public onDidStopBootApp(session: vscode.DebugSession): void {
         const app = this._manager.getAppBySession(session);
-            if (app) {
-                this._setState(app, AppState.INACTIVE);
-            }
+        if (app) {
+            this._setState(app, AppState.INACTIVE);
+        }
     }
 
     public async openBootApp(app: BootApp): Promise<void> {
@@ -99,11 +102,11 @@ export class Controller {
                 let javaProcess = jvm.jarLaunch(
                     path.resolve(this._context.extensionPath, "lib", "java-extension.jar"),
                     [
-                        "-Djmxurl="+jmxurl
+                        "-Djmxurl=" + jmxurl
                     ]
                 );
                 let port = parseInt(await readAll(javaProcess.stdout));
-                if (port>0) {
+                if (port > 0) {
                     opn(`http://localhost:${port}/`);
                 } else {
                     let err = await readAll(javaProcess.stderr);
@@ -148,7 +151,6 @@ export class Controller {
     private _getLaunchConfig(mainClasData: MainClassData) {
         const launchConfigurations: vscode.WorkspaceConfiguration = vscode.workspace.getConfiguration("launch", vscode.Uri.file(mainClasData.filePath));
         const rawConfigs: vscode.DebugConfiguration[] = launchConfigurations.configurations;
-        console.log(rawConfigs);
         return rawConfigs.find(conf => conf.type === "java" && conf.request === "launch" && conf.mainClass === mainClasData.mainClass);
     }
 
