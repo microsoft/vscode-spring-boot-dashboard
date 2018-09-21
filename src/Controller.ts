@@ -37,7 +37,7 @@ export class Controller {
                 targetConfig = await this._createNewLaunchConfig(mainClasData);
             }
             app.activeSessionName = targetConfig.name;
-            let jmxport = await (getPort());
+            let jmxport = await getPort();
             app.jmxPort = jmxport;
             let vmArgs = '-Dcom.sun.management.jmxremote ' +
                 `-Dcom.sun.management.jmxremote.port=${jmxport} ` +
@@ -57,7 +57,7 @@ export class Controller {
                 })
             );
             if (ok) {
-                // Cannot determine status. It always returns true now. 
+                // Cannot determine status. It always returns true now.
                 // See: https://github.com/Microsoft/vscode/issues/54214
             }
         } else {

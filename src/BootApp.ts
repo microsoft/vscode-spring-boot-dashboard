@@ -4,7 +4,7 @@
 export enum AppState {
     INACTIVE = 'inactive',
     RUNNING = 'running',
-    LAUNCHING = "launching" // TODO: Distinguish launching & running via JMX. 
+    LAUNCHING = "launching" // TODO: Distinguish launching & running via JMX.
 }
 
 export class BootApp {
