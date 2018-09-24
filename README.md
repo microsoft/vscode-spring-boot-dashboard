@@ -1,4 +1,6 @@
 # Spring Boot Dashboard for VS Code
+[![Marketplace Version](https://vsmarketplacebadge.apphb.com/version-short/vscjava.vscode-spring-boot-dashboard.svg)](https://marketplace.visualstudio.com/items?itemName=vscjava.vscode-spring-boot-dashboard)
+[![Installs](https://vsmarketplacebadge.apphb.com/installs-short/vscjava.vscode-spring-boot-dashboard.svg)](https://marketplace.visualstudio.com/items?itemName=vscjava.vscode-spring-boot-dashboard)
 [![Travis CI](https://travis-ci.org/Microsoft/vscode-spring-boot-dashboard.svg?branch=master)](https://travis-ci.org/Microsoft/vscode-spring-boot-dashboard/)
 [![MIT License](https://img.shields.io/badge/license-MIT-green.svg)](https://github.com/Microsoft/vscode-spring-boot-dashboard/blob/master/LICENSE)
 
