@@ -3,7 +3,7 @@
 
 'use strict';
 import * as vscode from 'vscode';
-import { initializeFromJsonFile, instrumentOperation } from "vscode-extension-telemetry-wrapper";
+import { dispose as disposeTelemetryWrapper, initializeFromJsonFile, instrumentOperation } from "vscode-extension-telemetry-wrapper";
 import { LocalAppTreeProvider } from './LocalAppTree';
 import { BootAppManager } from './BootAppManager';
 import { BootApp } from './BootApp';
@@ -50,7 +50,8 @@ export async function initializeExtension(oprationId: string, context: vscode.Ex
 }
 
 // this method is called when your extension is deactivated
-export function deactivate() {
+export async function deactivate() {
+    await disposeTelemetryWrapper();
 }
 
 function instrumentAndRegisterCommand(name: string, cb: (...args: any[]) => any) {
