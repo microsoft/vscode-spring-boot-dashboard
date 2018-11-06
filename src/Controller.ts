@@ -151,7 +151,7 @@ export class Controller {
     private _getLaunchConfig(mainClasData: MainClassData) {
         const launchConfigurations: vscode.WorkspaceConfiguration = vscode.workspace.getConfiguration("launch", vscode.Uri.file(mainClasData.filePath));
         const rawConfigs: vscode.DebugConfiguration[] = launchConfigurations.configurations;
-        return rawConfigs.find(conf => conf.type === "java" && conf.request === "launch" && conf.mainClass === mainClasData.mainClass);
+        return rawConfigs.find(conf => conf.type === "java" && conf.request === "launch" && conf.mainClass === mainClasData.mainClass && conf.projectName === mainClasData.projectName);
     }
 
     private _constructLaunchConfigName(mainClass: string, projectName: string) {
