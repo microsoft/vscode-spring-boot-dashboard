@@ -3,6 +3,7 @@
     "displayName": "Spring Boot Dashboard",
     "description": "Spring Boot Dashboard for VS Code",
     "version": "0.1.3",
+    "license": "MIT",
     "icon": "resources/logo.png",
     "publisher": "vscjava",
     "aiKey": "f934e884-8ca2-453e-914d-eee9e8f179c4",
