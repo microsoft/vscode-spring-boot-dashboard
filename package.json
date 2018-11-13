@@ -61,6 +61,16 @@
                 "command": "spring-boot-dashboard.localapp.debug",
                 "title": "Debug",
                 "category": "Spring-Boot Dashboard"
+            },
+            {
+                "command": "spring-boot-dashboard.localapp.start-multiple",
+                "title": "Start ...",
+                "category": "Spring-Boot Dashboard"
+            },
+            {
+                "command": "spring-boot-dashboard.localapp.debug-multiple",
+                "title": "Debug ...",
+                "category": "Spring-Boot Dashboard"
             }
         ],
         "menus": {
@@ -113,6 +123,16 @@
                     "command": "spring-boot-dashboard.localapp.open",
                     "when": "view == spring-boot-dashboard && viewItem == BootApp_running",
                     "group": "action@a"
+                },
+                {
+                    "command": "spring-boot-dashboard.localapp.start-multiple",
+                    "when": "view == spring-boot-dashboard && !viewItem",
+                    "group": "action@11"
+                },
+                {
+                    "command": "spring-boot-dashboard.localapp.debug-multiple",
+                    "when": "view == spring-boot-dashboard && !viewItem",
+                    "group": "action@12"
                 }
             ]
         }

@@ -25,6 +25,17 @@ export class Controller {
         return this._manager.getAppList();
     }
 
+    public async startBootApps(debug?: boolean) {
+        const appsToStart = await vscode.window.showQuickPick(
+            this.getAppList().filter(app => app.state !== AppState.RUNNING).map(app => ({ label: app.name, path: app.path })), /** items */
+            { canPickMany: true, placeHolder: `Select apps to ${debug ? "debug" : "start"}.` } /** options */
+        );
+        if (appsToStart !== undefined) {
+            const appPaths = appsToStart.map(elem => elem.path);
+            await Promise.all(this.getAppList().filter(app => appPaths.indexOf(app.path) > -1).map(app => this.startBootApp(app)));
+        }
+    }
+
     public async startBootApp(app: BootApp, debug?: boolean): Promise<void> {
         const mainClasData = await vscode.window.withProgress(
             { location: vscode.ProgressLocation.Window, title: `Resolving main classes for ${app.name}...` },
