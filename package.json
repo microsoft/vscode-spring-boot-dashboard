@@ -165,6 +165,6 @@
         "get-port": "^4.0.0",
         "opn": "^5.3.0",
         "uuid": "^3.3.2",
-        "vscode-extension-telemetry-wrapper": "^0.3.3"
+        "vscode-extension-telemetry-wrapper": "0.3.5"
     }
 }
