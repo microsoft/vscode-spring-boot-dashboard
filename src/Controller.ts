@@ -41,9 +41,11 @@ export class Controller {
             { location: vscode.ProgressLocation.Window, title: `Resolving main classes for ${app.name}...` },
             () => { return this._getMainClass(app); }
         );
-        if (!mainClasData) {
-            vscode.window.showWarningMessage(mainClasData === null ?
-                "No main class is found." : "No main class is selected.");
+        if (mainClasData === null) {
+            vscode.window.showWarningMessage("No main class is found.");
+            return;
+        }
+        if (mainClasData === undefined) {
             return;
         }
 
