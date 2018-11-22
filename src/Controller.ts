@@ -64,18 +64,13 @@ export class Controller {
             //TODO: smarter merge? What if user is trying to enable jmx themselves on a specific port they choose, for example?
             vmArgs = vmArgs + ' ' + targetConfig.vmArgs;
         }
-        const ok: boolean = await vscode.debug.startDebugging(
+        await vscode.debug.startDebugging(
             vscode.workspace.getWorkspaceFolder(vscode.Uri.parse(app.path)),
             Object.assign({}, targetConfig, {
                 noDebug: !debug,
                 vmArgs
             })
         );
-        if (ok) {
-            // Cannot determine status. It always returns true now.
-            // See: https://github.com/Microsoft/vscode/issues/54214
-        }
-
     }
 
     public onDidStartBootApp(session: vscode.DebugSession): void {
