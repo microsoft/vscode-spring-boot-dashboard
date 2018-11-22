@@ -39,41 +39,40 @@ export class Controller {
     public async startBootApp(app: BootApp, debug?: boolean): Promise<void> {
         const mainClasData = await vscode.window.withProgress(
             { location: vscode.ProgressLocation.Window, title: `Resolving main classes for ${app.name}...` },
-            () => { return this._getMainClass(app.path); }
+            () => { return this._getMainClass(app); }
         );
-
-        if (mainClasData) {
-            let targetConfig = this._getLaunchConfig(mainClasData);
-            if (!targetConfig) {
-                targetConfig = await this._createNewLaunchConfig(mainClasData);
-            }
-            app.activeSessionName = targetConfig.name;
-            let jmxport = await getPort();
-            app.jmxPort = jmxport;
-            let vmArgs = '-Dcom.sun.management.jmxremote ' +
-                `-Dcom.sun.management.jmxremote.port=${jmxport} ` +
-                '-Dcom.sun.management.jmxremote.authenticate=false ' +
-                '-Dcom.sun.management.jmxremote.ssl=false ' +
-                '-Djava.rmi.server.hostname=localhost ' +
-                '-Dspring.application.admin.enabled=true';
-            if (targetConfig.vmArgs) {
-                //TODO: smarter merge? What if user is trying to enable jmx themselves on a specific port they choose, for example?
-                vmArgs = vmArgs + ' ' + targetConfig.vmArgs;
-            }
-            const ok: boolean = await vscode.debug.startDebugging(
-                vscode.workspace.getWorkspaceFolder(vscode.Uri.parse(app.path)),
-                Object.assign({}, targetConfig, {
-                    noDebug: !debug,
-                    vmArgs
-                })
-            );
-            if (ok) {
-                // Cannot determine status. It always returns true now.
-                // See: https://github.com/Microsoft/vscode/issues/54214
-            }
-        } else {
-            vscode.window.showWarningMessage("Found no Main Class.");
+        if (mainClasData === null) {
+            vscode.window.showWarningMessage("No main class is found.");
+            return;
         }
+        if (mainClasData === undefined) {
+            return;
+        }
+
+        let targetConfig = this._getLaunchConfig(mainClasData);
+        if (!targetConfig) {
+            targetConfig = await this._createNewLaunchConfig(mainClasData);
+        }
+        app.activeSessionName = targetConfig.name;
+        let jmxport = await getPort();
+        app.jmxPort = jmxport;
+        let vmArgs = '-Dcom.sun.management.jmxremote ' +
+            `-Dcom.sun.management.jmxremote.port=${jmxport} ` +
+            '-Dcom.sun.management.jmxremote.authenticate=false ' +
+            '-Dcom.sun.management.jmxremote.ssl=false ' +
+            '-Djava.rmi.server.hostname=localhost ' +
+            '-Dspring.application.admin.enabled=true';
+        if (targetConfig.vmArgs) {
+            //TODO: smarter merge? What if user is trying to enable jmx themselves on a specific port they choose, for example?
+            vmArgs = vmArgs + ' ' + targetConfig.vmArgs;
+        }
+        await vscode.debug.startDebugging(
+            vscode.workspace.getWorkspaceFolder(vscode.Uri.parse(app.path)),
+            Object.assign({}, targetConfig, {
+                noDebug: !debug,
+                vmArgs
+            })
+        );
     }
 
     public onDidStartBootApp(session: vscode.DebugSession): void {
@@ -149,12 +148,12 @@ export class Controller {
         return output;
     }
 
-    private async _getMainClass(folder: string): Promise<MainClassData | null> {
+    private async _getMainClass(app: BootApp): Promise<MainClassData | null> {
         // Note: Command `vscode.java.resolveMainClass` is implemented in extension `vscode.java.resolveMainClass`
-        const mainClassList = await vscode.commands.executeCommand('java.execute.workspaceCommand', 'vscode.java.resolveMainClass', folder);
+        const mainClassList = await vscode.commands.executeCommand('java.execute.workspaceCommand', 'vscode.java.resolveMainClass', app.path);
         if (mainClassList && mainClassList instanceof Array && mainClassList.length > 0) {
             return mainClassList.length === 1 ? mainClassList[0] :
-                await vscode.window.showQuickPick(mainClassList.map(x => Object.assign({ label: x.mainClass }, x)));
+                await vscode.window.showQuickPick(mainClassList.map(x => Object.assign({ label: x.mainClass }, x)), { placeHolder: `Specify the main class for ${app.name}` });
         }
         return Promise.resolve(null);
     }
