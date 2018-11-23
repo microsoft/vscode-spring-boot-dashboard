@@ -2,7 +2,7 @@
     "name": "vscode-spring-boot-dashboard",
     "displayName": "Spring Boot Dashboard",
     "description": "Spring Boot Dashboard for VS Code",
-    "version": "0.1.3",
+    "version": "0.1.4",
     "license": "MIT",
     "icon": "resources/logo.png",
     "publisher": "vscjava",
@@ -12,6 +12,7 @@
         "type": "git",
         "url": "https://github.com/Microsoft/vscode-spring-boot-dashboard.git"
     },
+    "homepage": "https://github.com/Microsoft/vscode-spring-boot-dashboard/blob/v0.1.4/README.md",
     "engines": {
         "vscode": "^1.24.0"
     },
