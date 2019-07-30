@@ -149,21 +149,22 @@
     },
     "scripts": {
         "vscode:prepublish": "npm run compile",
-        "compile": "tsc -p ./",
-        "watch": "tsc -watch -p ./",
-        "postinstall": "node ./node_modules/vscode/bin/install && sh -c scripts/build-java-extension.sh",
-        "test": "npm run compile && node ./node_modules/vscode/bin/test",
+        "compile": "tsc -p .",
+        "watch": "tsc -watch -p .",
+        "prepare": "sh -c scripts/build-java-extension.sh",
+        "test": "npm run compile && node ./out/test/runTest.js",
         "tslint": "tslint -t verbose src/**/*.ts"
     },
     "devDependencies": {
-        "@types/get-port": "^4.0.0",
-        "@types/mocha": "^2.2.42",
-        "@types/node": "^7.0.43",
-        "@types/opn": "^5.1.0",
-        "@types/uuid": "^3.4.3",
-        "tslint": "^5.11.0",
-        "typescript": "^2.6.1",
-        "vscode": "^1.1.22"
+        "@types/glob": "^7.1.1",
+        "@types/mocha": "^5.2.7",
+        "@types/node": "^7.10.7",
+        "@types/uuid": "^3.4.5",
+        "@types/vscode": "1.24.0",
+        "mocha": "^6.2.0",
+        "tslint": "^5.18.0",
+        "typescript": "^2.9.2",
+        "vscode-test": "^1.0.2"
     },
     "extensionDependencies": [
         "Pivotal.vscode-spring-boot",
@@ -172,9 +173,8 @@
     ],
     "dependencies": {
         "@pivotal-tools/jvm-launch-utils": "0.0.11",
-        "get-port": "^4.0.0",
-        "opn": "^5.3.0",
+        "get-port": "^5.0.0",
         "uuid": "^3.3.2",
-        "vscode-extension-telemetry-wrapper": "0.3.5"
+        "vscode-extension-telemetry-wrapper": "0.4.0"
     }
 }

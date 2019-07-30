@@ -7,8 +7,7 @@ import { BootApp, AppState } from "./BootApp";
 import { findJvm } from "@pivotal-tools/jvm-launch-utils";
 import * as path from "path";
 import { readAll } from "./stream-util";
-import opn = require('opn');
-import * as getPort from "get-port";
+const getPort = require("get-port");
 
 export class Controller {
     private _outputChannels: Map<string, vscode.OutputChannel>;
@@ -117,7 +116,7 @@ export class Controller {
                 );
                 let port = parseInt(await readAll(javaProcess.stdout));
                 if (port > 0) {
-                    opn(`http://localhost:${port}/`);
+                    vscode.commands.executeCommand("vscode.open", vscode.Uri.parse(`http://localhost:${port}/`));
                 } else {
                     let err = await readAll(javaProcess.stderr);
                     console.log(err);
