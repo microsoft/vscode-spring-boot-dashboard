@@ -10,3 +10,6 @@ vsc-extension-quickstart.md
 tslint.json
 images/**
 scripts/**
+
+# Ignore output of code sign
+lib/*.md
