@@ -65,10 +65,12 @@ export class Controller {
             //TODO: smarter merge? What if user is trying to enable jmx themselves on a specific port they choose, for example?
             vmArgs = vmArgs + ' ' + targetConfig.vmArgs;
         }
+        const cwdUri: vscode.Uri = vscode.Uri.parse(app.path);
         await vscode.debug.startDebugging(
-            vscode.workspace.getWorkspaceFolder(vscode.Uri.parse(app.path)),
+            vscode.workspace.getWorkspaceFolder(cwdUri),
             Object.assign({}, targetConfig, {
                 noDebug: !debug,
+                cwd: cwdUri.fsPath,
                 vmArgs
             })
         );
