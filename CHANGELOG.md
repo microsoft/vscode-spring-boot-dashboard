@@ -4,6 +4,10 @@ All notable changes to the "vscode-spring-boot-dashboard" extension will be docu
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
+## 0.1.6
+### Fixed
+- Wrong `cwd` for starting submodule apps. [#71](https://github.com/microsoft/vscode-spring-boot-dashboard/issues/71)
+
 ## 0.1.5
 ### Fixed
 - Fix vulnerability issue of event-stream. [#PR61](https://github.com/Microsoft/vscode-spring-boot-dashboard/pull/61)
