@@ -25,13 +25,18 @@ export class Controller {
     }
 
     public async startBootApps(debug?: boolean) {
-        const appsToStart = await vscode.window.showQuickPick(
-            this.getAppList().filter(app => app.state !== AppState.RUNNING).map(app => ({ label: app.name, path: app.path })), /** items */
-            { canPickMany: true, placeHolder: `Select apps to ${debug ? "debug" : "start"}.` } /** options */
-        );
-        if (appsToStart !== undefined) {
-            const appPaths = appsToStart.map(elem => elem.path);
-            await Promise.all(this.getAppList().filter(app => appPaths.indexOf(app.path) > -1).map(app => this.startBootApp(app)));
+        const appList = this.getAppList();
+        if (appList.length === 1 && appList[0].state !== AppState.RUNNING) {
+            this.startBootApp(appList[0]);
+        } else {
+            const appsToStart = await vscode.window.showQuickPick(
+                appList.filter(app => app.state !== AppState.RUNNING).map(app => ({ label: app.name, path: app.path })), /** items */
+                { canPickMany: true, placeHolder: `Select apps to ${debug ? "debug" : "start"}.` } /** options */
+            );
+            if (appsToStart !== undefined) {
+                const appPaths = appsToStart.map(elem => elem.path);
+                await Promise.all(appList.filter(app => appPaths.indexOf(app.path) > -1).map(app => this.startBootApp(app)));
+            }
         }
     }
 
