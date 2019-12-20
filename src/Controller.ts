@@ -60,12 +60,15 @@ export class Controller {
         app.activeSessionName = targetConfig.name;
         let jmxport = await getPort();
         app.jmxPort = jmxport;
-        let vmArgs = '-Dcom.sun.management.jmxremote ' +
-            `-Dcom.sun.management.jmxremote.port=${jmxport} ` +
-            '-Dcom.sun.management.jmxremote.authenticate=false ' +
-            '-Dcom.sun.management.jmxremote.ssl=false ' +
-            '-Djava.rmi.server.hostname=localhost ' +
-            '-Dspring.application.admin.enabled=true';
+        let vmArgs = [
+            '-Dcom.sun.management.jmxremote',
+            `-Dcom.sun.management.jmxremote.port=${jmxport}`,
+            '-Dcom.sun.management.jmxremote.authenticate=false',
+            '-Dcom.sun.management.jmxremote.ssl=false',
+            '-Djava.rmi.server.hostname=localhost',
+            '-Dspring.application.admin.enabled=true',
+            '-Dspring.jmx.enabled=true'
+        ].join(' ');
         if (targetConfig.vmArgs) {
             //TODO: smarter merge? What if user is trying to enable jmx themselves on a specific port they choose, for example?
             vmArgs = vmArgs + ' ' + targetConfig.vmArgs;
