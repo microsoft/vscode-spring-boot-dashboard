@@ -4,6 +4,11 @@ All notable changes to the "vscode-spring-boot-dashboard" extension will be docu
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
+## 0.1.7
+### Changed
+- Enable JMX by default for launched apps. [#93](https://github.com/microsoft/vscode-spring-boot-dashboard/issues/93)
+- No need to select when there is only one app. [#90](https://github.com/microsoft/vscode-spring-boot-dashboard/issues/90)
+
 ## 0.1.6
 ### Fixed
 - Wrong `cwd` for starting submodule apps. [#71](https://github.com/microsoft/vscode-spring-boot-dashboard/issues/71)
