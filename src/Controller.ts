@@ -70,11 +70,11 @@ export class Controller {
             '-Dspring.jmx.enabled=true'
         ];
         if (targetConfig.vmArgs) {
-            var mergeArgs; 
-            //TODO: smarter merge? What if user is trying to enable jmx themselves on a specific port they choose, for example?
+            var mergeArgs;
+            // TODO: smarter merge? What if user is trying to enable jmx themselves on a specific port they choose, for example?
             if (typeof targetConfig.vmArgs === 'string') {
                 mergeArgs = targetConfig.vmArgs.split(/\s+/);
-            } else { //array case 
+            } else { // array case
                 mergeArgs = targetConfig.vmArgs;
             }
             vmArgs.splice(vmArgs.length, 0, ...mergeArgs);
