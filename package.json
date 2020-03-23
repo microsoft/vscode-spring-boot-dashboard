@@ -161,8 +161,8 @@
         "@types/node": "^7.10.7",
         "@types/uuid": "^3.4.5",
         "@types/vscode": "1.24.0",
-        "mocha": "^6.2.0",
-        "tslint": "^5.18.0",
+        "mocha": "^7.1.1",
+        "tslint": "^6.1.0",
         "typescript": "^2.9.2",
         "vscode-test": "^1.0.2"
     },
