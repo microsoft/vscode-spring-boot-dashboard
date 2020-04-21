@@ -27,7 +27,7 @@ export class Controller {
     public async startBootApps(debug?: boolean) {
         const appList = this.getAppList();
         if (appList.length === 1 && appList[0].state !== AppState.RUNNING) {
-            this.startBootApp(appList[0]);
+            this.startBootApp(appList[0], debug);
         } else {
             const appsToStart = await vscode.window.showQuickPick(
                 appList.filter(app => app.state !== AppState.RUNNING).map(app => ({ label: app.name, path: app.path })), /** items */
@@ -35,7 +35,7 @@ export class Controller {
             );
             if (appsToStart !== undefined) {
                 const appPaths = appsToStart.map(elem => elem.path);
-                await Promise.all(appList.filter(app => appPaths.indexOf(app.path) > -1).map(app => this.startBootApp(app)));
+                await Promise.all(appList.filter(app => appPaths.indexOf(app.path) > -1).map(app => this.startBootApp(app, debug)));
             }
         }
     }
