@@ -12,7 +12,7 @@ import { Controller } from './Controller';
 let localAppManager: BootAppManager;
 
 export async function activate(context: vscode.ExtensionContext) {
-    await initializeFromJsonFile(context.asAbsolutePath("./package.json"));
+    await initializeFromJsonFile(context.asAbsolutePath("./package.json"), { firstParty: true });
     await instrumentOperation("activation", initializeExtension)(context);
 }
 
