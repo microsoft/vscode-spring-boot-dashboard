@@ -4,6 +4,10 @@ All notable changes to the "vscode-spring-boot-dashboard" extension will be docu
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
+## 0.1.9
+### Fixed
+- Cannot debug from command palette. [#101](https://github.com/microsoft/vscode-spring-boot-dashboard/issues/101)
+
 ## 0.1.8
 ### Fixed
 - Invalid vmArgument merging when `launch.json` has a list of `vmArgs`. [#95](https://github.com/microsoft/vscode-spring-boot-dashboard/issues/95)
