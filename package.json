@@ -2,7 +2,7 @@
     "name": "vscode-spring-boot-dashboard",
     "displayName": "Spring Boot Dashboard",
     "description": "Spring Boot Dashboard for VS Code",
-    "version": "0.1.9",
+    "version": "0.1.10",
     "license": "MIT",
     "icon": "resources/logo.png",
     "publisher": "vscjava",
@@ -175,6 +175,6 @@
         "@pivotal-tools/jvm-launch-utils": "0.0.11",
         "get-port": "^5.1.1",
         "uuid": "^3.4.0",
-        "vscode-extension-telemetry-wrapper": "0.7.1"
+        "vscode-extension-telemetry-wrapper": "^0.8.0"
     }
 }
