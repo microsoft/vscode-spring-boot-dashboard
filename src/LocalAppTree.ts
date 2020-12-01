@@ -2,7 +2,6 @@
 // Licensed under the MIT license.
 
 import * as vscode from "vscode";
-import * as path from "path";
 import { BootApp } from "./BootApp";
 import { BootAppManager } from "./BootAppManager";
 
@@ -19,8 +18,9 @@ export class BootAppItem implements vscode.TreeItem {
         return this._app.name;
     }
 
-    public get iconPath(): string {
-        return this._context.asAbsolutePath(path.join('resources', `${this.state}.svg`));
+    public get iconPath(): string | vscode.ThemeIcon {
+        const color = this.state === "running" ? new vscode.ThemeColor("charts.green") : undefined;
+        return new vscode.ThemeIcon("circle-filled", color);
     }
 
     public get state(): string {

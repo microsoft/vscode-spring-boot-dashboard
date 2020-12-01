@@ -14,7 +14,7 @@
     },
     "homepage": "https://github.com/Microsoft/vscode-spring-boot-dashboard",
     "engines": {
-        "vscode": "^1.24.0"
+        "vscode": "^1.51.0"
     },
     "categories": [
         "Other"
@@ -41,44 +41,44 @@
                 "command": "spring-boot-dashboard.refresh",
                 "title": "Refresh",
                 "category": "Spring Boot Dashboard",
-                "icon": {
-                    "light": "resources/light/refresh.svg",
-                    "dark": "resources/dark/refresh.svg"
-                }
+                "icon": "$(refresh)"
             },
             {
                 "command": "spring-boot-dashboard.localapp.start",
                 "title": "Start",
-                "category": "Spring Boot Dashboard"
+                "category": "Spring Boot Dashboard",
+                "icon": "$(play)"
             },
             {
                 "command": "spring-boot-dashboard.localapp.stop",
                 "title": "Stop",
-                "category": "Spring Boot Dashboard"
+                "category": "Spring Boot Dashboard",
+                "icon": "$(debug-stop)"
+
             },
             {
                 "command": "spring-boot-dashboard.localapp.open",
                 "title": "Open In Browser",
-                "category": "Spring Boot Dashboard"
+                "category": "Spring Boot Dashboard",
+                "icon": "$(globe)"
             },
             {
                 "command": "spring-boot-dashboard.localapp.debug",
                 "title": "Debug",
-                "category": "Spring Boot Dashboard"
+                "category": "Spring Boot Dashboard",
+                "icon": "$(debug-alt-small)"
             },
             {
                 "command": "spring-boot-dashboard.localapp.start-multiple",
                 "title": "Start ...",
                 "category": "Spring Boot Dashboard",
-                "icon": {
-                    "light": "resources/light/start.svg",
-                    "dark": "resources/dark/start.svg"
-                }
+                "icon": "$(run-all)"
             },
             {
                 "command": "spring-boot-dashboard.localapp.debug-multiple",
                 "title": "Debug ...",
-                "category": "Spring Boot Dashboard"
+                "category": "Spring Boot Dashboard",
+                "icon": "$(debug)"
             }
         ],
         "menus": {
@@ -138,6 +138,26 @@
                     "group": "action@a"
                 },
                 {
+                    "command": "spring-boot-dashboard.localapp.start",
+                    "when": "view == spring-boot-dashboard && viewItem == BootApp_inactive",
+                    "group": "inline@5"
+                },
+                {
+                    "command": "spring-boot-dashboard.localapp.debug",
+                    "when": "view == spring-boot-dashboard && viewItem == BootApp_inactive",
+                    "group": "inline@6"
+                },
+                {
+                    "command": "spring-boot-dashboard.localapp.stop",
+                    "when": "view == spring-boot-dashboard && viewItem == BootApp_running",
+                    "group": "inline@8"
+                },
+                {
+                    "command": "spring-boot-dashboard.localapp.open",
+                    "when": "view == spring-boot-dashboard && viewItem == BootApp_running",
+                    "group": "inline@a"
+                },
+                {
                     "command": "spring-boot-dashboard.localapp.start-multiple",
                     "when": "view == spring-boot-dashboard && !viewItem",
                     "group": "action@11"
@@ -163,7 +183,7 @@
         "@types/mocha": "^5.2.7",
         "@types/node": "^7.10.10",
         "@types/uuid": "^3.4.9",
-        "@types/vscode": "1.24.0",
+        "@types/vscode": "1.51.0",
         "mocha": "^7.1.1",
         "tslint": "^6.1.0",
         "typescript": "^2.9.2",

@@ -46,7 +46,7 @@ export class BootAppManager {
     }
 
     public fireDidChangeApps(): void {
-        this._onDidChangeApps.fire();
+        this._onDidChangeApps.fire(undefined);
     }
 
     public getAppList(): BootApp[] {
