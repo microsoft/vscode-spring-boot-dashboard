@@ -2,16 +2,13 @@
 // Licensed under the MIT license.
 
 import * as vscode from "vscode";
-import * as path from "path";
 import { BootApp } from "./BootApp";
 import { BootAppManager } from "./BootAppManager";
 
-export class BootAppItem implements vscode.TreeItem {
+class BootAppItem implements vscode.TreeItem {
     public readonly _app: BootApp;
-    private _context: vscode.ExtensionContext;
 
-    constructor(context: vscode.ExtensionContext, app: BootApp) {
-        this._context = context;
+    constructor(app: BootApp) {
         this._app = app;
     }
 
@@ -19,8 +16,9 @@ export class BootAppItem implements vscode.TreeItem {
         return this._app.name;
     }
 
-    public get iconPath(): string {
-        return this._context.asAbsolutePath(path.join('resources', `${this.state}.svg`));
+    public get iconPath(): string | vscode.ThemeIcon {
+        const color = this.state === "running" ? new vscode.ThemeColor("charts.green") : undefined;
+        return new vscode.ThemeIcon("circle-filled", color);
     }
 
     public get state(): string {
@@ -35,18 +33,16 @@ export class BootAppItem implements vscode.TreeItem {
 export class LocalAppTreeProvider implements vscode.TreeDataProvider<BootApp> {
 
     private _manager: BootAppManager;
-    private _context: vscode.ExtensionContext;
     public readonly onDidChangeTreeData: vscode.Event<BootApp | undefined>;
 
-    constructor(context: vscode.ExtensionContext, manager: BootAppManager) {
+    constructor(manager: BootAppManager) {
         this._manager = manager;
-        this._context = context;
         this.onDidChangeTreeData = this._manager.onDidChangeApps;
         this._manager.fireDidChangeApps();
     }
 
     getTreeItem(element: BootApp): vscode.TreeItem | Thenable<vscode.TreeItem> {
-        return new BootAppItem(this._context, element);
+        return new BootAppItem(element);
     }
     getChildren(element?: BootApp | undefined): vscode.ProviderResult<BootApp[]> {
         if (!element) {

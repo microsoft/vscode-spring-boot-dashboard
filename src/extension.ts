@@ -16,9 +16,9 @@ export async function activate(context: vscode.ExtensionContext) {
     await instrumentOperation("activation", initializeExtension)(context);
 }
 
-export async function initializeExtension(oprationId: string, context: vscode.ExtensionContext) {
+export async function initializeExtension(_oprationId: string, context: vscode.ExtensionContext) {
     localAppManager = new BootAppManager();
-    const localTree: LocalAppTreeProvider = new LocalAppTreeProvider(context, localAppManager);
+    const localTree: LocalAppTreeProvider = new LocalAppTreeProvider(localAppManager);
     const controller: Controller = new Controller(localAppManager, context);
 
     context.subscriptions.push(vscode.window.registerTreeDataProvider('spring-boot-dashboard', localTree));

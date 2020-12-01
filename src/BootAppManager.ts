@@ -46,7 +46,7 @@ export class BootAppManager {
     }
 
     public fireDidChangeApps(): void {
-        this._onDidChangeApps.fire();
+        this._onDidChangeApps.fire(undefined);
     }
 
     public getAppList(): BootApp[] {
@@ -79,7 +79,7 @@ export class BootAppManager {
         //  How should we deal with that?
         const callbackId = uuid.v4();
 
-        vscode.commands.registerCommand(callbackId, (location: string, name: string, isDeleted: boolean, entries: ClassPathData, ...args: any[]) => {
+        vscode.commands.registerCommand(callbackId, (location: string, name: string, isDeleted: boolean, entries: ClassPathData, ..._args: any[]) => {
             if (isDeleted) {
                 this._boot_projects.delete(location);
             } else {
