@@ -29,7 +29,10 @@
             "explorer": [
                 {
                     "id": "spring-boot-dashboard",
-                    "name": "Spring-Boot Dashboard"
+                    "name": "Spring Boot Dashboard",
+                    "when": "java:serverMode",
+                    "contextualTitle": "Java",
+                    "icon": "resources/logo.png"
                 }
             ]
         },
@@ -37,7 +40,7 @@
             {
                 "command": "spring-boot-dashboard.refresh",
                 "title": "Refresh",
-                "category": "Spring-Boot Dashboard",
+                "category": "Spring Boot Dashboard",
                 "icon": {
                     "light": "resources/light/refresh.svg",
                     "dark": "resources/dark/refresh.svg"
@@ -46,27 +49,27 @@
             {
                 "command": "spring-boot-dashboard.localapp.start",
                 "title": "Start",
-                "category": "Spring-Boot Dashboard"
+                "category": "Spring Boot Dashboard"
             },
             {
                 "command": "spring-boot-dashboard.localapp.stop",
                 "title": "Stop",
-                "category": "Spring-Boot Dashboard"
+                "category": "Spring Boot Dashboard"
             },
             {
                 "command": "spring-boot-dashboard.localapp.open",
                 "title": "Open In Browser",
-                "category": "Spring-Boot Dashboard"
+                "category": "Spring Boot Dashboard"
             },
             {
                 "command": "spring-boot-dashboard.localapp.debug",
                 "title": "Debug",
-                "category": "Spring-Boot Dashboard"
+                "category": "Spring Boot Dashboard"
             },
             {
                 "command": "spring-boot-dashboard.localapp.start-multiple",
                 "title": "Start ...",
-                "category": "Spring-Boot Dashboard",
+                "category": "Spring Boot Dashboard",
                 "icon": {
                     "light": "resources/light/start.svg",
                     "dark": "resources/dark/start.svg"
@@ -75,7 +78,7 @@
             {
                 "command": "spring-boot-dashboard.localapp.debug-multiple",
                 "title": "Debug ...",
-                "category": "Spring-Boot Dashboard"
+                "category": "Spring Boot Dashboard"
             }
         ],
         "menus": {
