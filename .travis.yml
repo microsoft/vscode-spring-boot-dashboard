@@ -5,7 +5,7 @@ node_js:
 
 branches:
   only:
-    - master
+    - main
 
 before_install:
 - if [ $TRAVIS_OS_NAME == "linux" ]; then
