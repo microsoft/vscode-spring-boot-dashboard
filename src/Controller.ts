@@ -198,6 +198,7 @@ export class Controller {
             mainClass: mainClasData.mainClass,
             projectName: mainClasData.projectName,
             args: "",
+            envFile: "${workspaceFolder}/.env"
         };
         const launchConfigurations: vscode.WorkspaceConfiguration = vscode.workspace.getConfiguration("launch", vscode.Uri.file(mainClasData.filePath));
         const configs: vscode.DebugConfiguration[] = launchConfigurations.configurations;
