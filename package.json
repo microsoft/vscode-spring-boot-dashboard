@@ -23,6 +23,9 @@
         "onCommand:spring-boot-dashboard.refresh",
         "onView:spring-boot-dashboard"
     ],
+    "capabilities": {
+      "virtualWorkspaces": false
+    },
     "main": "./out/extension",
     "contributes": {
         "views": {
