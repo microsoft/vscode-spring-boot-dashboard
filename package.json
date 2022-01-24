@@ -24,7 +24,7 @@
         "onView:spring-boot-dashboard"
     ],
     "capabilities": {
-      "virtualWorkspaces": false
+        "virtualWorkspaces": false
     },
     "main": "./out/extension",
     "contributes": {
@@ -57,7 +57,6 @@
                 "title": "Stop",
                 "category": "Spring Boot Dashboard",
                 "icon": "$(debug-stop)"
-
             },
             {
                 "command": "spring-boot-dashboard.localapp.open",
@@ -177,21 +176,21 @@
         "vscode:prepublish": "npm run compile",
         "compile": "tsc -p .",
         "watch": "tsc -watch -p .",
-        "prepare": "node scripts/build-java-ext.js",
+        "prepublish": "node scripts/build-java-ext.js",
         "test": "npm run compile && node ./out/test/runTest.js",
         "tslint": "tslint -t verbose src/**/*.ts",
         "update-tpn": "node scripts/update-third-party-notice.js"
     },
     "devDependencies": {
-        "@types/glob": "^7.1.1",
+        "@types/glob": "^7.2.0",
         "@types/mocha": "^5.2.7",
-        "@types/node": "^7.10.10",
-        "@types/uuid": "^3.4.9",
+        "@types/node": "^14.18.9",
+        "@types/uuid": "^3.4.10",
         "@types/vscode": "1.51.0",
-        "mocha": "^7.1.1",
-        "tslint": "^6.1.0",
-        "typescript": "^2.9.2",
-        "vscode-test": "^1.3.0"
+        "mocha": "^9.1.4",
+        "tslint": "^6.1.3",
+        "typescript": "^4.5.5",
+        "vscode-test": "^1.6.1"
     },
     "extensionDependencies": [
         "Pivotal.vscode-spring-boot",
@@ -202,6 +201,6 @@
         "@pivotal-tools/jvm-launch-utils": "0.0.11",
         "get-port": "^5.1.1",
         "uuid": "^3.4.0",
-        "vscode-extension-telemetry-wrapper": "^0.10.0"
+        "vscode-extension-telemetry-wrapper": "^0.11.0"
     }
 }
