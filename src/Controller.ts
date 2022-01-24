@@ -130,12 +130,14 @@ export class Controller {
                         "-Djmxurl=" + jmxurl
                     ]
                 );
-                let port = parseInt(await readAll(javaProcess.stdout));
+                let port = javaProcess.stdout ? parseInt(await readAll(javaProcess.stdout)) : 0;
                 if (port > 0) {
                     vscode.commands.executeCommand("vscode.open", vscode.Uri.parse(`http://localhost:${port}/`));
                 } else {
-                    let err = await readAll(javaProcess.stderr);
-                    console.log(err);
+                    if (javaProcess.stderr) {
+                        let err = await readAll(javaProcess.stderr);
+                        console.log(err);
+                    }
                     vscode.window.showErrorMessage("Couldn't determine port app is running on");
                 }
             }
