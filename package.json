@@ -170,6 +170,25 @@
                     "group": "action@12"
                 }
             ]
+        },
+        "configuration": {
+            "title": "Spring Boot Dashboard",
+            "properties": {
+                "spring.dashboard.openWith": {
+                    "default": "integrated",
+                    "type": "string",
+                    "enum": [
+                        "integrated",
+                        "external"
+                    ],
+                    "enumDescriptions": [
+                        "VS Code's integrated browser",
+                        "External default browser"
+                    ],
+                    "scope": "window",
+                    "description": "Defines which browser to use when opening Spring Boot apps."
+                }
+            }
         }
     },
     "scripts": {
