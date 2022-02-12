@@ -24,23 +24,23 @@ export class Controller {
         return this._manager.getAppList();
     }
 
-    public async startBootApps(debug?: boolean) {
+    public async runBootApps(debug?: boolean) {
         const appList = this.getAppList();
         if (appList.length === 1 && appList[0].state !== AppState.RUNNING) {
-            this.startBootApp(appList[0], debug);
+            this.runBootApp(appList[0], debug);
         } else {
-            const appsToStart = await vscode.window.showQuickPick(
+            const appsToRun = await vscode.window.showQuickPick(
                 appList.filter(app => app.state !== AppState.RUNNING).map(app => ({ label: app.name, path: app.path })), /** items */
-                { canPickMany: true, placeHolder: `Select apps to ${debug ? "debug" : "start"}.` } /** options */
+                { canPickMany: true, placeHolder: `Select apps to ${debug ? "debug" : "run"}.` } /** options */
             );
-            if (appsToStart !== undefined) {
-                const appPaths = appsToStart.map(elem => elem.path);
-                await Promise.all(appList.filter(app => appPaths.indexOf(app.path) > -1).map(app => this.startBootApp(app, debug)));
+            if (appsToRun !== undefined) {
+                const appPaths = appsToRun.map(elem => elem.path);
+                await Promise.all(appList.filter(app => appPaths.indexOf(app.path) > -1).map(app => this.runBootApp(app, debug)));
             }
         }
     }
 
-    public async startBootApp(app: BootApp, debug?: boolean): Promise<void> {
+    public async runBootApp(app: BootApp, debug?: boolean): Promise<void> {
         const mainClasData = await vscode.window.withProgress(
             { location: vscode.ProgressLocation.Window, title: `Resolving main classes for ${app.name}...` },
             () => { return this._getMainClass(app); }
