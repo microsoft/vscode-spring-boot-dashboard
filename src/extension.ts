@@ -43,6 +43,9 @@ export async function initializeExtension(_oprationId: string, context: vscode.E
     context.subscriptions.push(instrumentAndRegisterCommand("spring-boot-dashboard.localapp.debug-multiple", async () => {
         await controller.startBootApps(true);
     }));
+    context.subscriptions.push(instrumentAndRegisterCommand("spring-boot-dashboard.localapp.stop-multiple", async () => {
+        await controller.stopBootApps();
+    }))
     vscode.debug.onDidStartDebugSession((session: vscode.DebugSession) => {
         if (session.type === "java") {
             controller.onDidStartBootApp(session);
