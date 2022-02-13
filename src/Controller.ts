@@ -132,7 +132,10 @@ export class Controller {
                 );
                 let port = javaProcess.stdout ? parseInt(await readAll(javaProcess.stdout)) : 0;
                 if (port > 0) {
-                    vscode.commands.executeCommand("vscode.open", vscode.Uri.parse(`http://localhost:${port}/`));
+                    const openWithExternalBrowser: boolean = vscode.workspace.getConfiguration("spring.dashboard").get("openWith") === "external";
+                    const browserCommand: string = openWithExternalBrowser ? "vscode.open" : "simpleBrowser.api.open";
+                    
+                    vscode.commands.executeCommand(browserCommand, vscode.Uri.parse(`http://localhost:${port}/`));
                 } else {
                     if (javaProcess.stderr) {
                         let err = await readAll(javaProcess.stderr);
