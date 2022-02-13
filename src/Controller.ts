@@ -98,6 +98,22 @@ export class Controller {
         }
     }
 
+    public async stopBootApps() {
+        const appList = this.getAppList();
+        if (appList.length === 1 && appList[0].state !== AppState.INACTIVE) {
+            this.stopBootApp(appList[0]);
+        } else {
+            const appsToStop = await vscode.window.showQuickPick(
+                appList.filter(app => app.state !== AppState.INACTIVE).map(app => ({ label: app.name, path: app.path })), /** items */
+                { canPickMany: true, placeHolder: "Select apps to stop." } /** options */
+            );
+            if (appsToStop !== undefined) {
+                const appPaths = appsToStop.map(elem => elem.path);
+                await Promise.all(appList.filter(app => appPaths.indexOf(app.path) > -1).map(app => this.stopBootApp(app)));
+            }
+        }
+    }
+
     public async stopBootApp(app: BootApp, restart?: boolean): Promise<void> {
         // TODO: How to send a shutdown signal to the app instead of killing the process directly?
         const session: vscode.DebugSession | undefined = this._manager.getSessionByApp(app);

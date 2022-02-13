@@ -77,6 +77,12 @@
                 "icon": "$(run-all)"
             },
             {
+                "command": "spring-boot-dashboard.localapp.stop-multiple",
+                "title": "Stop ...",
+                "category": "Spring Boot Dashboard",
+                "icon": "$(debug-stop)"
+            },
+            {
                 "command": "spring-boot-dashboard.localapp.debug-multiple",
                 "title": "Debug ...",
                 "category": "Spring Boot Dashboard",
@@ -111,6 +117,11 @@
                     "command": "spring-boot-dashboard.localapp.run-multiple",
                     "when": "view == spring-boot-dashboard",
                     "group": "navigation@2"
+                },
+                {
+                    "command": "spring-boot-dashboard.localapp.stop-multiple",
+                    "when": "view == spring-boot-dashboard",
+                    "group": "navigation@3"
                 },
                 {
                     "command": "spring-boot-dashboard.refresh",
@@ -168,6 +179,11 @@
                     "command": "spring-boot-dashboard.localapp.debug-multiple",
                     "when": "view == spring-boot-dashboard && !viewItem",
                     "group": "action@12"
+                },
+                {
+                    "command": "spring-boot-dashboard.localapp.stop-multiple",
+                    "when": "view == spring-boot-dashboard && !viewItem",
+                    "group": "action@13"
                 }
             ]
         },
