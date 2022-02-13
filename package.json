@@ -47,8 +47,8 @@
                 "icon": "$(refresh)"
             },
             {
-                "command": "spring-boot-dashboard.localapp.start",
-                "title": "Start",
+                "command": "spring-boot-dashboard.localapp.run",
+                "title": "Run",
                 "category": "Spring Boot Dashboard",
                 "icon": "$(play)"
             },
@@ -71,8 +71,8 @@
                 "icon": "$(debug-alt-small)"
             },
             {
-                "command": "spring-boot-dashboard.localapp.start-multiple",
-                "title": "Start ...",
+                "command": "spring-boot-dashboard.localapp.run-multiple",
+                "title": "Run ...",
                 "category": "Spring Boot Dashboard",
                 "icon": "$(run-all)"
             },
@@ -86,7 +86,7 @@
         "menus": {
             "commandPalette": [
                 {
-                    "command": "spring-boot-dashboard.localapp.start",
+                    "command": "spring-boot-dashboard.localapp.run",
                     "when": "never"
                 },
                 {
@@ -108,7 +108,7 @@
             ],
             "view/title": [
                 {
-                    "command": "spring-boot-dashboard.localapp.start-multiple",
+                    "command": "spring-boot-dashboard.localapp.run-multiple",
                     "when": "view == spring-boot-dashboard",
                     "group": "navigation@2"
                 },
@@ -120,7 +120,7 @@
             ],
             "view/item/context": [
                 {
-                    "command": "spring-boot-dashboard.localapp.start",
+                    "command": "spring-boot-dashboard.localapp.run",
                     "when": "view == spring-boot-dashboard && viewItem == BootApp_inactive",
                     "group": "action@5"
                 },
@@ -140,7 +140,7 @@
                     "group": "action@a"
                 },
                 {
-                    "command": "spring-boot-dashboard.localapp.start",
+                    "command": "spring-boot-dashboard.localapp.run",
                     "when": "view == spring-boot-dashboard && viewItem == BootApp_inactive",
                     "group": "inline@5"
                 },
@@ -160,7 +160,7 @@
                     "group": "inline@a"
                 },
                 {
-                    "command": "spring-boot-dashboard.localapp.start-multiple",
+                    "command": "spring-boot-dashboard.localapp.run-multiple",
                     "when": "view == spring-boot-dashboard && !viewItem",
                     "group": "action@11"
                 },
