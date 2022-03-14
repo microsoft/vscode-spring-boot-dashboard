@@ -7,7 +7,7 @@ export function readAll(input: Readable) : Promise<string> {
     let buffer = "";
     return new Promise<string>((resolve, reject) => {
         input.on('data', data => {
-            buffer += data;
+            buffer += data + "\r\n";
         });
         input.on('error', error => {
             reject(error);

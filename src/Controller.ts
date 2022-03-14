@@ -7,6 +7,7 @@ import { BootApp, AppState } from "./BootApp";
 import { findJvm } from "@pivotal-tools/jvm-launch-utils";
 import * as path from "path";
 import { readAll } from "./stream-util";
+import { Readable } from "stream";
 const getPort = require("get-port");
 
 export class Controller {
@@ -146,12 +147,51 @@ export class Controller {
                         "-Djmxurl=" + jmxurl
                     ]
                 );
-                let port = javaProcess.stdout ? parseInt(await readAll(javaProcess.stdout)) : 0;
+                let stdout = await readAll(javaProcess.stdout as Readable);
+
+                let port: number | null = null;
+                let contextPath: string | null = null;
+
+                if(stdout != null){
+                    let splittedStdout = stdout.split("\r\n");
+                    let stdoutValues = splittedStdout.map(s => s.split(": "));
+
+                    for(let i=0; i<splittedStdout.length; i++){
+                        if(splittedStdout[i].startsWith("local.server.port: ")){
+                            port = parseInt(stdoutValues[i][1]);
+                        }else if(splittedStdout[i].startsWith("server.servlet.context-path: ")){
+                            contextPath = stdoutValues[i][1];
+                        }else{
+                            continue; //unknown output
+                        }
+                    }
+                }
+
+                if(port == null){
+                    port = 0;
+                }
+
+                if(contextPath == null){
+                    contextPath = "/"; //if no context path is defined then fallback to root path
+                }
+
+                const configOpenUrl: string = vscode.workspace.getConfiguration("spring.dashboard").get("openUrl") as string;
+                let openUrl: string;
+
+                if(configOpenUrl == null){
+                    openUrl = `http://localhost:${port}${contextPath}`;
+                }else{
+                    openUrl = configOpenUrl
+                        .replace("{port}", port.toString())
+                        .replace("{contextPath}", contextPath.toString());
+                }
+                
+                
                 if (port > 0) {
                     const openWithExternalBrowser: boolean = vscode.workspace.getConfiguration("spring.dashboard").get("openWith") === "external";
                     const browserCommand: string = openWithExternalBrowser ? "vscode.open" : "simpleBrowser.api.open";
                     
-                    vscode.commands.executeCommand(browserCommand, vscode.Uri.parse(`http://localhost:${port}/`));
+                    vscode.commands.executeCommand(browserCommand, vscode.Uri.parse(openUrl));
                 } else {
                     if (javaProcess.stderr) {
                         let err = await readAll(javaProcess.stderr);
