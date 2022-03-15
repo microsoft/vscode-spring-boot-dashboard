@@ -12,8 +12,13 @@ import javax.management.remote.JMXConnector;
 import javax.management.remote.JMXConnectorFactory;
 import javax.management.remote.JMXServiceURL;
 
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+
 public class JmxService {
 
+	private static final Gson gson = new GsonBuilder().setPrettyPrinting().create();
+	
 	private static final String ADMIN_DEFAULT_OBJECT_NAME = "org.springframework.boot:type=Admin,name=SpringApplication";
 
 	private static String getPropertyViaAdmin(MBeanServerConnection connection, String propertyName, Class<?> propertyType) throws Exception {
@@ -35,32 +40,14 @@ public class JmxService {
 		}
 	}
 
-	static String getPortViaAdmin(MBeanServerConnection connection) throws Exception {
-		try {
-			String DEFAULT_OBJECT_NAME = "org.springframework.boot:type=Admin,name=SpringApplication";
-			ObjectName objectName = new ObjectName(DEFAULT_OBJECT_NAME);
-
-			Object serverPortPropertyObj = connection.invoke(
-					objectName,
-					"getProperty",
-					new String[] { "local.server.port" },
-					new String[] { String.class.getName() }
-
-			);
-
-			return serverPortPropertyObj.toString();
-		} catch (InstanceNotFoundException e) {
-			return null;
-		}
-	}
-
 	/**
-	 * Fetch boot app's port, given a 'jmxurl' for the app. Assumes that 
+	 * Fetch the boot app's properties, given a 'jmxurl' for the app. Assumes that 
 	 * - boot app is running
 	 * - has jmx enabled
 	 * - has spring.boot admin bean enabled
 	 */
 	public static void main(String[] args) {
+		JavaExtensionResponse responseObj = new JavaExtensionResponse();
 		try {
 			String jmxurl = System.getProperty("jmxurl");
 			try (JMXConnector jmxConnector = JMXConnectorFactory.connect(new JMXServiceURL(jmxurl), null)) {
@@ -68,19 +55,24 @@ public class JmxService {
 
 				String port = getPropertyViaAdmin(connection, "local.server.port", String.class);
 				if (port != null) {
-					System.out.println("local.server.port: " + port);
+					responseObj.setPort(Integer.parseInt(port));
 				}
 
 				String contextPath = getPropertyViaAdmin(connection, "server.servlet.context-path", String.class);
 				if(contextPath != null){
-					System.out.println("server.servlet.context-path: " + contextPath);
+					responseObj.setContextPath(contextPath);
 				}
+
+				responseObj.setStatus("ok");
 
 			}
 		} catch (Exception e) {
 			e.printStackTrace(); //prints on System.err
-			System.out.println(-1); // caller expects output on sysout. Use -1 as kind of error code if anything went wrong
+			responseObj.setStatus("failure"); // Use "status":"failure" as kind of error code if anything went wrong
 		}
+
+		final String responseJson = gson.toJson(responseObj);
+		System.out.println(responseJson);
 		 
 	}
 

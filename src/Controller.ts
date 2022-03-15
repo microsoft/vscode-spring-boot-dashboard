@@ -7,7 +7,7 @@ import { BootApp, AppState } from "./BootApp";
 import { findJvm } from "@pivotal-tools/jvm-launch-utils";
 import * as path from "path";
 import { readAll } from "./stream-util";
-import { Readable } from "stream";
+import { ChildProcess } from "child_process";
 const getPort = require("get-port");
 
 export class Controller {
@@ -147,28 +147,34 @@ export class Controller {
                         "-Djmxurl=" + jmxurl
                     ]
                 );
-                let stdout = await readAll(javaProcess.stdout as Readable);
+                let stdout = javaProcess.stdout ? await readAll(javaProcess.stdout) : null;
 
                 let port: number | null = null;
                 let contextPath: string | null = null;
 
+                READ_JMX_EXTENSION_RESPONSE:{
                 if(stdout != null){
-                    let splittedStdout = stdout.split("\r\n");
-                    let stdoutValues = splittedStdout.map(s => s.split(": "));
+                        let jmxExtensionResponse;
 
-                    for(let i=0; i<splittedStdout.length; i++){
-                        if(splittedStdout[i].startsWith("local.server.port: ")){
-                            port = parseInt(stdoutValues[i][1]);
-                        }else if(splittedStdout[i].startsWith("server.servlet.context-path: ")){
-                            contextPath = stdoutValues[i][1];
-                        }else{
-                            continue; //unknown output
+                        try{
+                            jmxExtensionResponse = JSON.parse(stdout);
+                        }catch(ex){
+                            console.log(ex);
+                            break READ_JMX_EXTENSION_RESPONSE;
+                        }
+
+                        if(jmxExtensionResponse['local.server.port'] != null && typeof jmxExtensionResponse['local.server.port'] == 'number'){
+                            port = jmxExtensionResponse['local.server.port'];
+                        }
+
+                        if(jmxExtensionResponse['server.servlet.context-path'] != null){
+                            contextPath = jmxExtensionResponse['server.servlet.context-path'];
+                        }
+
+                        if(jmxExtensionResponse['status'] != null && jmxExtensionResponse['status'] === "failure"){
+                            this._printJavaProcessError(javaProcess);
                         }
                     }
-                }
-
-                if(port == null){
-                    port = 0;
                 }
 
                 if(contextPath == null){
@@ -182,24 +188,28 @@ export class Controller {
                     openUrl = `http://localhost:${port}${contextPath}`;
                 }else{
                     openUrl = configOpenUrl
-                        .replace("{port}", port.toString())
+                        .replace("{port}", String(port))
                         .replace("{contextPath}", contextPath.toString());
                 }
                 
                 
-                if (port > 0) {
+                if (port != null) {
                     const openWithExternalBrowser: boolean = vscode.workspace.getConfiguration("spring.dashboard").get("openWith") === "external";
                     const browserCommand: string = openWithExternalBrowser ? "vscode.open" : "simpleBrowser.api.open";
                     
                     vscode.commands.executeCommand(browserCommand, vscode.Uri.parse(openUrl));
                 } else {
-                    if (javaProcess.stderr) {
-                        let err = await readAll(javaProcess.stderr);
-                        console.log(err);
-                    }
+                    this._printJavaProcessError(javaProcess);
                     vscode.window.showErrorMessage("Couldn't determine port app is running on");
                 }
             }
+        }
+    }
+
+    private async _printJavaProcessError(javaProcess: ChildProcess){
+        if (javaProcess.stderr) {
+            let err = await readAll(javaProcess.stderr);
+            console.log(err);
         }
     }
 
