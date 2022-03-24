@@ -152,51 +152,51 @@ export class Controller {
                 let port: number | null = null;
                 let contextPath: string | null = null;
 
-                READ_JMX_EXTENSION_RESPONSE:{
-                if(stdout != null){
+                READ_JMX_EXTENSION_RESPONSE: {
+                    if (stdout != null) {
                         let jmxExtensionResponse;
 
-                        try{
+                        try {
                             jmxExtensionResponse = JSON.parse(stdout);
-                        }catch(ex){
+                        } catch (ex) {
                             console.log(ex);
                             break READ_JMX_EXTENSION_RESPONSE;
                         }
 
-                        if(jmxExtensionResponse['local.server.port'] != null && typeof jmxExtensionResponse['local.server.port'] == 'number'){
+                        if (jmxExtensionResponse['local.server.port'] != null && typeof jmxExtensionResponse['local.server.port'] == 'number') {
                             port = jmxExtensionResponse['local.server.port'];
                         }
 
-                        if(jmxExtensionResponse['server.servlet.context-path'] != null){
+                        if (jmxExtensionResponse['server.servlet.context-path'] != null) {
                             contextPath = jmxExtensionResponse['server.servlet.context-path'];
                         }
 
-                        if(jmxExtensionResponse['status'] != null && jmxExtensionResponse['status'] === "failure"){
+                        if (jmxExtensionResponse['status'] != null && jmxExtensionResponse['status'] === "failure") {
                             this._printJavaProcessError(javaProcess);
                         }
                     }
                 }
 
-                if(contextPath == null){
+                if (contextPath == null) {
                     contextPath = "/"; //if no context path is defined then fallback to root path
                 }
 
                 const configOpenUrl: string = vscode.workspace.getConfiguration("spring.dashboard").get("openUrl") as string;
                 let openUrl: string;
 
-                if(configOpenUrl == null){
+                if (configOpenUrl == null) {
                     openUrl = `http://localhost:${port}${contextPath}`;
-                }else{
+                } else {
                     openUrl = configOpenUrl
                         .replace("{port}", String(port))
                         .replace("{contextPath}", contextPath.toString());
                 }
-                
-                
+
+
                 if (port != null) {
                     const openWithExternalBrowser: boolean = vscode.workspace.getConfiguration("spring.dashboard").get("openWith") === "external";
                     const browserCommand: string = openWithExternalBrowser ? "vscode.open" : "simpleBrowser.api.open";
-                    
+
                     vscode.commands.executeCommand(browserCommand, vscode.Uri.parse(openUrl));
                 } else {
                     this._printJavaProcessError(javaProcess);
@@ -206,7 +206,7 @@ export class Controller {
         }
     }
 
-    private async _printJavaProcessError(javaProcess: ChildProcess){
+    private async _printJavaProcessError(javaProcess: ChildProcess) {
         if (javaProcess.stderr) {
             let err = await readAll(javaProcess.stderr);
             console.log(err);

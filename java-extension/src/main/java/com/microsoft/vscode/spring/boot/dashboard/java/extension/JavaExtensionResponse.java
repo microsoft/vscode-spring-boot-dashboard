@@ -1,3 +1,6 @@
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT license.
+
 package com.microsoft.vscode.spring.boot.dashboard.java.extension;
 
 import com.google.gson.annotations.SerializedName;
@@ -45,9 +48,4 @@ public class JavaExtensionResponse{
         this.status = status;
     }
 
-    
-
-    
-    
-    
 }
