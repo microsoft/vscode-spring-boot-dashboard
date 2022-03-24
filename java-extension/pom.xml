@@ -6,6 +6,14 @@
 	<artifactId>java-extension</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
 
+	<dependencies>
+		<dependency>
+			<groupId>com.google.code.gson</groupId>
+			<artifactId>gson</artifactId>
+			<version>2.9.0</version>
+		</dependency>
+	</dependencies>
+
 	<build>
 		<plugins>
 			<!-- Set source 1.8 -->

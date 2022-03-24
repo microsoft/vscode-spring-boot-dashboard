@@ -7,6 +7,7 @@ import { BootApp, AppState } from "./BootApp";
 import { findJvm } from "@pivotal-tools/jvm-launch-utils";
 import * as path from "path";
 import { readAll } from "./stream-util";
+import { ChildProcess } from "child_process";
 const getPort = require("get-port");
 
 export class Controller {
@@ -146,20 +147,69 @@ export class Controller {
                         "-Djmxurl=" + jmxurl
                     ]
                 );
-                let port = javaProcess.stdout ? parseInt(await readAll(javaProcess.stdout)) : 0;
-                if (port > 0) {
+                let stdout = javaProcess.stdout ? await readAll(javaProcess.stdout) : null;
+
+                let port: number | null = null;
+                let contextPath: string | null = null;
+
+                READ_JMX_EXTENSION_RESPONSE:{
+                if(stdout != null){
+                        let jmxExtensionResponse;
+
+                        try{
+                            jmxExtensionResponse = JSON.parse(stdout);
+                        }catch(ex){
+                            console.log(ex);
+                            break READ_JMX_EXTENSION_RESPONSE;
+                        }
+
+                        if(jmxExtensionResponse['local.server.port'] != null && typeof jmxExtensionResponse['local.server.port'] == 'number'){
+                            port = jmxExtensionResponse['local.server.port'];
+                        }
+
+                        if(jmxExtensionResponse['server.servlet.context-path'] != null){
+                            contextPath = jmxExtensionResponse['server.servlet.context-path'];
+                        }
+
+                        if(jmxExtensionResponse['status'] != null && jmxExtensionResponse['status'] === "failure"){
+                            this._printJavaProcessError(javaProcess);
+                        }
+                    }
+                }
+
+                if(contextPath == null){
+                    contextPath = "/"; //if no context path is defined then fallback to root path
+                }
+
+                const configOpenUrl: string = vscode.workspace.getConfiguration("spring.dashboard").get("openUrl") as string;
+                let openUrl: string;
+
+                if(configOpenUrl == null){
+                    openUrl = `http://localhost:${port}${contextPath}`;
+                }else{
+                    openUrl = configOpenUrl
+                        .replace("{port}", String(port))
+                        .replace("{contextPath}", contextPath.toString());
+                }
+                
+                
+                if (port != null) {
                     const openWithExternalBrowser: boolean = vscode.workspace.getConfiguration("spring.dashboard").get("openWith") === "external";
                     const browserCommand: string = openWithExternalBrowser ? "vscode.open" : "simpleBrowser.api.open";
                     
-                    vscode.commands.executeCommand(browserCommand, vscode.Uri.parse(`http://localhost:${port}/`));
+                    vscode.commands.executeCommand(browserCommand, vscode.Uri.parse(openUrl));
                 } else {
-                    if (javaProcess.stderr) {
-                        let err = await readAll(javaProcess.stderr);
-                        console.log(err);
-                    }
+                    this._printJavaProcessError(javaProcess);
                     vscode.window.showErrorMessage("Couldn't determine port app is running on");
                 }
             }
+        }
+    }
+
+    private async _printJavaProcessError(javaProcess: ChildProcess){
+        if (javaProcess.stderr) {
+            let err = await readAll(javaProcess.stderr);
+            console.log(err);
         }
     }
 
