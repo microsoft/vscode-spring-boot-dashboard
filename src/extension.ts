@@ -4,10 +4,13 @@
 'use strict';
 import * as vscode from 'vscode';
 import { dispose as disposeTelemetryWrapper, initializeFromJsonFile, instrumentOperation } from "vscode-extension-telemetry-wrapper";
-import { LocalAppTreeProvider } from './LocalAppTree';
-import { BootAppManager } from './BootAppManager';
 import { BootApp } from './BootApp';
+import { BootAppManager } from './BootAppManager';
 import { Controller } from './Controller';
+import { LocalAppTreeProvider } from './LocalAppTree';
+import { initialize } from './stsApi';
+import { BeansDataProvider } from './views/beans';
+import { MappingsDataProvider } from './views/mappings';
 
 let localAppManager: BootAppManager;
 
@@ -56,6 +59,17 @@ export async function initializeExtension(_oprationId: string, context: vscode.E
             controller.onDidStopBootApp(session);
         }
     });
+
+    const beansProvider = new BeansDataProvider();
+    context.subscriptions.push(vscode.window.registerTreeDataProvider('spring.beans', beansProvider));
+
+    const mappingsProvider = new MappingsDataProvider();
+    context.subscriptions.push(vscode.window.registerTreeDataProvider('spring.mappings', mappingsProvider));
+
+    await initialize(beansProvider, mappingsProvider);
+
+    // console.log
+    context.subscriptions.push(vscode.commands.registerCommand("spring.console.log", console.log));
 }
 
 // this method is called when your extension is deactivated
