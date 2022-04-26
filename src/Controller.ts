@@ -68,7 +68,8 @@ export class Controller {
             '-Dcom.sun.management.jmxremote.ssl=false',
             '-Djava.rmi.server.hostname=localhost',
             '-Dspring.application.admin.enabled=true',
-            '-Dspring.jmx.enabled=true'
+            '-Dspring.jmx.enabled=true',
+            `-Dspring.boot.project.name=${targetConfig.projectName}`
         ];
         if (targetConfig.vmArgs) {
             var mergeArgs;
@@ -265,7 +266,6 @@ export class Controller {
             name: this._constructLaunchConfigName(mainClasData.mainClass, mainClasData.projectName),
             request: "launch",
             cwd: "${workspaceFolder}",
-            console: "internalConsole",
             mainClass: mainClasData.mainClass,
             projectName: mainClasData.projectName,
             args: "",
