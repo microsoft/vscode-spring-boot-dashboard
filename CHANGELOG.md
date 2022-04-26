@@ -4,6 +4,9 @@ All notable changes to the "vscode-spring-boot-dashboard" extension will be docu
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
+## 0.3.1
+- Support to use a custom context-path. [#162](https://github.com/microsoft/vscode-spring-boot-dashboard/pull/162)
+
 ## 0.3.0
 - Add "envFile" to default launch configuration. [#142](https://github.com/microsoft/vscode-spring-boot-dashboard/pull/142)
 - Support to open apps in VS Code's integrated browser, controlled by setting `spring.dashboard.openWith`. [#160](https://github.com/microsoft/vscode-spring-boot-dashboard/pull/160)
