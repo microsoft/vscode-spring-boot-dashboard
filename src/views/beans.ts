@@ -2,7 +2,7 @@
 // Licensed under the MIT license.
 
 import * as vscode from "vscode";
-import { beansDependingOn } from "../stsApi";
+import { getBeansDependingOn } from "../models/stsApi";
 
 
 interface Bean {
@@ -11,7 +11,7 @@ interface Bean {
     dependents?: Bean[];
 }
 
-export class BeansDataProvider implements vscode.TreeDataProvider<Bean> {
+class BeansDataProvider implements vscode.TreeDataProvider<Bean> {
     private beans: Bean[] = [];
 
     private onDidRefreshBeans: vscode.EventEmitter<Bean | undefined> = new vscode.EventEmitter<Bean | undefined>();
@@ -35,7 +35,7 @@ export class BeansDataProvider implements vscode.TreeDataProvider<Bean> {
             return this.beans; // all beans
         }
 
-        const beans = await beansDependingOn(element.processKey, element.id);
+        const beans = await getBeansDependingOn(element.processKey, element.id);
         element.dependents = beans.map((b:any) => {return {processKey: element.processKey, ...b}});
         return element.dependents;
 
@@ -47,3 +47,5 @@ export class BeansDataProvider implements vscode.TreeDataProvider<Bean> {
     }
 
 }
+
+export const beansProvider = new BeansDataProvider();

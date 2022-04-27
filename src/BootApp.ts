@@ -1,6 +1,10 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT license.
 
+import * as vscode from "vscode";
+import { ClassPathData, MainClassData } from "./types/jdtls";
+import { appsProvider } from "./views/apps";
+
 export enum AppState {
     INACTIVE = 'inactive',
     RUNNING = 'running',
@@ -11,11 +15,14 @@ export class BootApp {
     private _activeSessionName?: string;
     private _jmxPort?: number;
 
+    public mainClasses: MainClassData[];
+    public pid?: number;
+
     constructor(
         private _path: string,
         private _name: string,
         private _classpath: ClassPathData,
-        private _state: AppState
+        private _state: AppState,
     ) { }
 
     public get activeSessionName() : string | undefined {
@@ -61,18 +68,17 @@ export class BootApp {
 
     public set state(state: AppState) {
         this._state = state;
+        appsProvider.refresh(this);
     }
-}
 
-export interface ClassPathData {
-    entries: CPE[];
-}
-
-interface CPE {
-    kind: string;
-    path: string; // TODO: Change to File, Path or URL?
-    outputFolder: string;
-    sourceContainerUrl: string;
-    javadocContainerUrl: string;
-    isSystem: boolean;
+    public async getMainClasses(): Promise<MainClassData[]> {
+        // Note: Command `vscode.java.resolveMainClass` is implemented in extension java-debugger
+        const mainClassList = await vscode.commands.executeCommand('java.execute.workspaceCommand', 'vscode.java.resolveMainClass', this.path);
+        if (mainClassList && mainClassList instanceof Array) {
+            this.mainClasses = mainClassList;
+            return mainClassList;
+        } else {
+            return [];
+        }
+    }
 }

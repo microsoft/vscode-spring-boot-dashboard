@@ -3,7 +3,7 @@
 // Licensed under the MIT license.
 
 import * as vscode from "vscode";
-import {  } from "../stsApi";
+import {  } from "../models/stsApi";
 
 
 interface Mapping {
@@ -14,7 +14,7 @@ interface Mapping {
     predicate: string;
 }
 
-export class MappingsDataProvider implements vscode.TreeDataProvider<Mapping> {
+class MappingsDataProvider implements vscode.TreeDataProvider<Mapping> {
     private mappings: Mapping[] = [];
 
     private onDidRefreshMappings: vscode.EventEmitter<Mapping | undefined> = new vscode.EventEmitter<Mapping | undefined>();
@@ -32,7 +32,7 @@ export class MappingsDataProvider implements vscode.TreeDataProvider<Mapping> {
         item.tooltip = element.handler;
         item.collapsibleState = vscode.TreeItemCollapsibleState.None;
         item.command = {
-            command: "spring.console.log",
+            command: "_spring.console.log",
             title: "console.log",
             arguments: [element]
         };
@@ -66,3 +66,5 @@ function getLabel(mapping: Mapping): string {
     }
     return label;
 }
+
+export const mappingsProvider = new MappingsDataProvider();

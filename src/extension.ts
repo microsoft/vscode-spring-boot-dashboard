@@ -5,14 +5,11 @@
 import * as vscode from 'vscode';
 import { dispose as disposeTelemetryWrapper, initializeFromJsonFile, instrumentOperation } from "vscode-extension-telemetry-wrapper";
 import { BootApp } from './BootApp';
-import { BootAppManager } from './BootAppManager';
 import { Controller } from './Controller';
-import { LocalAppTreeProvider } from './LocalAppTree';
-import { initialize } from './stsApi';
-import { BeansDataProvider } from './views/beans';
-import { MappingsDataProvider } from './views/mappings';
-
-let localAppManager: BootAppManager;
+import { init as initLiveDataController } from './controllers/LiveDataController';
+import { appsProvider } from './views/apps';
+import { beansProvider } from './views/beans';
+import { mappingsProvider } from './views/mappings';
 
 export async function activate(context: vscode.ExtensionContext) {
     await initializeFromJsonFile(context.asAbsolutePath("./package.json"), { firstParty: true });
@@ -20,13 +17,11 @@ export async function activate(context: vscode.ExtensionContext) {
 }
 
 export async function initializeExtension(_oprationId: string, context: vscode.ExtensionContext) {
-    localAppManager = new BootAppManager();
-    const localTree: LocalAppTreeProvider = new LocalAppTreeProvider(localAppManager);
-    const controller: Controller = new Controller(localAppManager, context);
+    const controller: Controller = new Controller(appsProvider.manager, context);
 
-    context.subscriptions.push(vscode.window.registerTreeDataProvider('spring-boot-dashboard', localTree));
+    context.subscriptions.push(vscode.window.registerTreeDataProvider('spring-boot-dashboard', appsProvider));
     context.subscriptions.push(instrumentAndRegisterCommand("spring-boot-dashboard.refresh", () => {
-        localAppManager.fireDidChangeApps();
+        appsProvider.manager.fireDidChangeApps(undefined);
     }));
     context.subscriptions.push(instrumentAndRegisterCommand("spring-boot-dashboard.localapp.run", async (app: BootApp) => {
         await controller.runBootApp(app);
@@ -60,16 +55,12 @@ export async function initializeExtension(_oprationId: string, context: vscode.E
         }
     });
 
-    const beansProvider = new BeansDataProvider();
     context.subscriptions.push(vscode.window.registerTreeDataProvider('spring.beans', beansProvider));
-
-    const mappingsProvider = new MappingsDataProvider();
     context.subscriptions.push(vscode.window.registerTreeDataProvider('spring.mappings', mappingsProvider));
-
-    await initialize(beansProvider, mappingsProvider);
+    await initLiveDataController();
 
     // console.log
-    context.subscriptions.push(vscode.commands.registerCommand("spring.console.log", console.log));
+    context.subscriptions.push(vscode.commands.registerCommand("_spring.console.log", console.log));
 }
 
 // this method is called when your extension is deactivated

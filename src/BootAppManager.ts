@@ -1,12 +1,13 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT license.
 
-import { BootApp, ClassPathData, AppState } from "./BootApp";
+import { BootApp, AppState } from "./BootApp";
 
 import * as vscode from 'vscode';
 import * as uuid from 'uuid';
 import * as path from 'path';
 import { DebugSession } from "vscode";
+import { ClassPathData, MainClassData } from "./types/jdtls";
 
 function isBootAppClasspath(cp: ClassPathData): boolean {
     if (cp.entries) {
@@ -45,8 +46,8 @@ export class BootAppManager {
         return this._onDidChangeApps.event;
     }
 
-    public fireDidChangeApps(): void {
-        this._onDidChangeApps.fire(undefined);
+    public fireDidChangeApps(element: BootApp | undefined): void {
+        this._onDidChangeApps.fire(element);
     }
 
     public getAppList(): BootApp[] {
@@ -70,6 +71,11 @@ export class BootAppManager {
         app.activeSessionName = session.name;
         this._bindedSessions.set(app.path, session);
     }
+
+    public getAppByMainClass(mainClass: string): BootApp | undefined {
+        return this.getAppList().find(app => app.mainClasses?.find((mcd: MainClassData) => mcd.mainClass === mainClass));
+    }
+
     /**
      * Registers for classpath change events (from redhat.java and pivotal.spring-boot extension).
      * These events are used to keep the list of boot apps in sync with the workspace projects.
@@ -95,7 +101,7 @@ export class BootAppManager {
                     this._boot_projects.delete(location);
                 }
             }
-            this.fireDidChangeApps();
+            this.fireDidChangeApps(undefined);
         });
 
         async function registerClasspathListener(): Promise<void> {

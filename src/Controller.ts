@@ -1,13 +1,14 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT license.
 
-import * as vscode from "vscode";
-import { BootAppManager } from "./BootAppManager";
-import { BootApp, AppState } from "./BootApp";
 import { findJvm } from "@pivotal-tools/jvm-launch-utils";
-import * as path from "path";
-import { readAll } from "./stream-util";
 import { ChildProcess } from "child_process";
+import * as path from "path";
+import * as vscode from "vscode";
+import { AppState, BootApp } from "./BootApp";
+import { BootAppManager } from "./BootAppManager";
+import { readAll } from "./stream-util";
+import { MainClassData } from "./types/jdtls";
 const getPort = require("get-port");
 
 export class Controller {
@@ -44,7 +45,15 @@ export class Controller {
     public async runBootApp(app: BootApp, debug?: boolean): Promise<void> {
         const mainClasData = await vscode.window.withProgress(
             { location: vscode.ProgressLocation.Window, title: `Resolving main classes for ${app.name}...` },
-            () => { return this._getMainClass(app); }
+            async () => { 
+                const mainClassList = await app.getMainClasses();
+
+                if (mainClassList && mainClassList instanceof Array && mainClassList.length > 0) {
+                    return mainClassList.length === 1 ? mainClassList[0] :
+                        await vscode.window.showQuickPick(mainClassList.map(x => Object.assign({ label: x.mainClass }, x)), { placeHolder: `Specify the main class for ${app.name}` });
+                }
+                return null; 
+            }
         );
         if (mainClasData === null) {
             vscode.window.showWarningMessage("No main class is found.");
@@ -96,7 +105,7 @@ export class Controller {
         const app: BootApp | undefined = this._manager.getAppList().find((elem: BootApp) => elem.activeSessionName === session.name);
         if (app) {
             this._manager.bindDebugSession(app, session);
-            this._setState(app, AppState.RUNNING);
+            this._setState(app, AppState.LAUNCHING);
         }
     }
 
@@ -120,7 +129,12 @@ export class Controller {
         // TODO: How to send a shutdown signal to the app instead of killing the process directly?
         const session: vscode.DebugSession | undefined = this._manager.getSessionByApp(app);
         if (session) {
-            await session.customRequest("disconnect", { restart: !!restart });
+            if (isRunInTerminal(session) && app.pid) {
+                // kill corresponding process launched in terminal
+                process.kill(app.pid);
+            } else {
+                await session.customRequest("disconnect", { restart: !!restart });
+            }
         } else {
             // What if session not found? Force to set STATE_INACTIVE?
         }
@@ -128,7 +142,9 @@ export class Controller {
 
     public onDidStopBootApp(session: vscode.DebugSession): void {
         const app = this._manager.getAppBySession(session);
-        if (app) {
+        if (app
+            && !isRunInTerminal(session) // workaround: "run in termial" sends a disconnect request immediately, do not update status
+        ) {
             this._setState(app, AppState.INACTIVE);
         }
     }
@@ -218,7 +234,7 @@ export class Controller {
         const output: vscode.OutputChannel = this._getOutput(app);
         app.state = state;
         output.appendLine(`${app.name} is ${state} now.`);
-        this._manager.fireDidChangeApps();
+        this._manager.fireDidChangeApps(undefined);
     }
 
     private _getChannelName(app: BootApp): string {
@@ -235,15 +251,6 @@ export class Controller {
         return output;
     }
 
-    private async _getMainClass(app: BootApp): Promise<MainClassData | null> {
-        // Note: Command `vscode.java.resolveMainClass` is implemented in extension `vscode.java.resolveMainClass`
-        const mainClassList = await vscode.commands.executeCommand('java.execute.workspaceCommand', 'vscode.java.resolveMainClass', app.path);
-        if (mainClassList && mainClassList instanceof Array && mainClassList.length > 0) {
-            return mainClassList.length === 1 ? mainClassList[0] :
-                await vscode.window.showQuickPick(mainClassList.map(x => Object.assign({ label: x.mainClass }, x)), { placeHolder: `Specify the main class for ${app.name}` });
-        }
-        return Promise.resolve(null);
-    }
 
     private _getLaunchConfig(mainClasData: MainClassData) {
         const launchConfigurations: vscode.WorkspaceConfiguration = vscode.workspace.getConfiguration("launch", vscode.Uri.file(mainClasData.filePath));
@@ -279,8 +286,6 @@ export class Controller {
     }
 }
 
-interface MainClassData {
-    filePath: string;
-    mainClass: string;
-    projectName: string;
+function isRunInTerminal(session: vscode.DebugSession) {
+    return session.configuration.noDebug === true && session.configuration.console !== "internalConsole";
 }
