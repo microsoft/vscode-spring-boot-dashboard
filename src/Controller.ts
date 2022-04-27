@@ -7,7 +7,7 @@ import * as path from "path";
 import * as vscode from "vscode";
 import { AppState, BootApp } from "./BootApp";
 import { BootAppManager } from "./BootAppManager";
-import { readAll } from "./stream-util";
+import { readAll } from "./utils";
 import { MainClassData } from "./types/jdtls";
 const getPort = require("get-port");
 
@@ -131,12 +131,15 @@ export class Controller {
         if (session) {
             if (isRunInTerminal(session) && app.pid) {
                 // kill corresponding process launched in terminal
-                process.kill(app.pid);
+                try {
+                    process.kill(app.pid);
+                } catch (error) {
+                    this._getOutput(app).appendLine(error);
+                    app.reset();
+                }
             } else {
                 await session.customRequest("disconnect", { restart: !!restart });
             }
-        } else {
-            // What if session not found? Force to set STATE_INACTIVE?
         }
     }
 

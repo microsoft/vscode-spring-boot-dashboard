@@ -3,6 +3,7 @@
 
 import * as vscode from "vscode";
 import { ClassPathData, MainClassData } from "./types/jdtls";
+import { isAlive } from "./utils";
 import { appsProvider } from "./views/apps";
 
 export enum AppState {
@@ -16,9 +17,11 @@ export class BootApp {
     private _jmxPort?: number;
     private _port?: number;
     private _contextPath?: string;
+    private _pid?: number;
+
+    private _watchdog?: any; // used to watch running process.
 
     public mainClasses: MainClassData[];
-    public pid?: number;
 
     constructor(
         private _path: string,
@@ -70,6 +73,9 @@ export class BootApp {
     public set state(state: AppState) {
         this._state = state;
         appsProvider.refresh(this);
+        if (this._state === AppState.INACTIVE) {
+            this.clearWatchdog();
+        }
     }
     
     public get port(): number | undefined {
@@ -81,13 +87,50 @@ export class BootApp {
         appsProvider.refresh(this);
     }
 
+    public get pid(): number | undefined {
+        return this._pid;
+    }
+
+    public set pid(pid: number | undefined) {
+        this._pid = pid;
+        if (pid !== undefined) {
+            this.setWatchdog();
+        }
+    }
+
     public get contextPath(): string | undefined {
         return this._contextPath;
     }
 
-    public set contextPath(port: string | undefined) {
-        this._contextPath = port;
+    public set contextPath(contextPath: string | undefined) {
+        this._contextPath = contextPath;
         appsProvider.refresh(this);
+    }
+
+    public reset() {
+        this._port = undefined;
+        this._contextPath = undefined;
+        this.pid = undefined;
+        this._state = AppState.INACTIVE;
+        appsProvider.refresh(this);
+    }
+    
+    public setWatchdog() {
+        const watchdog = setInterval(async () => {
+            const alive = await isAlive(this.pid);
+            if (!alive) {
+                clearInterval(watchdog);
+                this.reset();
+            }
+        }, 2000);
+        this._watchdog = watchdog;
+    }
+
+    public clearWatchdog() {
+        if (this._watchdog) {
+            clearInterval(this._watchdog);
+            this._watchdog = undefined;
+        }
     }
 
     public async getMainClasses(): Promise<MainClassData[]> {

@@ -1,5 +1,6 @@
 import { AppState } from "../BootApp";
 import { getBeans, getContextPath, getMainClass, getMappings, getPid, getPort, initialize, stsApi } from "../models/stsApi";
+import { isAlive } from "../utils";
 import { appsProvider } from "../views/apps";
 import { beansProvider } from "../views/beans";
 import { mappingsProvider } from "../views/mappings";
@@ -50,11 +51,8 @@ async function resetProcessInfo(processKey: string) {
     mappingsProvider.refresh(processKey, []);
 
     const disconnectedApp = appsProvider.manager.getAppByMainClass(getMainClass(processKey));
-    // TO fix: app is still running if manually disconnect from live process connection.
-    if (disconnectedApp) {
-        disconnectedApp.pid = undefined;
-        disconnectedApp.port = undefined;
-        disconnectedApp.contextPath = undefined;
-        disconnectedApp.state = AppState.INACTIVE; // will refresh tree item
+    // Workaound for: app is still running if manually disconnect from live process connection.
+    if (disconnectedApp && !await isAlive(disconnectedApp.pid)) {
+        disconnectedApp.reset();
     }
 }
