@@ -16,6 +16,10 @@ class BootAppItem implements vscode.TreeItem {
         return this._app.name;
     }
 
+    public get description(): string | undefined {
+        return this._app.port || this._app.contextPath ? `[:${this._app.port}, ${this._app.contextPath}]` : undefined;
+    }
+
     public get iconPath(): string | vscode.ThemeIcon {
         const green = new vscode.ThemeColor("charts.green");
         switch (this.state) {

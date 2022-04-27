@@ -35,6 +35,22 @@ export async function getMappings(processKey: string) {
     return result;
 }
 
+export async function getPort(processKey: string) {
+    const result = await stsApi.getLiveProcessData({
+        processKey: processKey,
+        endpoint: "port"
+    });
+    return result;
+}
+
+export async function getContextPath(processKey: string) {
+    const result = await stsApi.getLiveProcessData({
+        processKey: processKey,
+        endpoint: "contextPath"
+    });
+    return result;
+}
+
 export function getPid(processKey: string) {
     return processKey.split(" - ")?.[0];
 }

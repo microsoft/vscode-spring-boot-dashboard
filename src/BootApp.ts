@@ -14,6 +14,8 @@ export enum AppState {
 export class BootApp {
     private _activeSessionName?: string;
     private _jmxPort?: number;
+    private _port?: number;
+    private _contextPath?: string;
 
     public mainClasses: MainClassData[];
     public pid?: number;
@@ -41,7 +43,6 @@ export class BootApp {
         return this._name;
     }
 
-
     public set name(name: string) {
         this._name = name;
     }
@@ -68,6 +69,24 @@ export class BootApp {
 
     public set state(state: AppState) {
         this._state = state;
+        appsProvider.refresh(this);
+    }
+    
+    public get port(): number | undefined {
+        return this._port;
+    }
+
+    public set port(port: number | undefined) {
+        this._port = port;
+        appsProvider.refresh(this);
+    }
+
+    public get contextPath(): string | undefined {
+        return this._contextPath;
+    }
+
+    public set contextPath(port: string | undefined) {
+        this._contextPath = port;
         appsProvider.refresh(this);
     }
 
