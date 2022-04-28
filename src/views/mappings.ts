@@ -14,10 +14,14 @@ interface Mapping {
     predicate: string;
 }
 
-class MappingsDataProvider implements vscode.TreeDataProvider<Mapping> {
-    private mappings: Mapping[] = [];
+class LiveProcess {
+    constructor(public processKey: string) { }
+}
 
-    private onDidRefreshMappings: vscode.EventEmitter<Mapping | undefined> = new vscode.EventEmitter<Mapping | undefined>();
+class MappingsDataProvider implements vscode.TreeDataProvider<Mapping | LiveProcess> {
+    private store: Map<LiveProcess, Mapping[]> = new Map();
+
+    private onDidRefreshMappings: vscode.EventEmitter<Mapping | LiveProcess | undefined> = new vscode.EventEmitter<Mapping | LiveProcess | undefined>();
 
     constructor() {
 
@@ -25,33 +29,59 @@ class MappingsDataProvider implements vscode.TreeDataProvider<Mapping> {
 
     onDidChangeTreeData = this.onDidRefreshMappings.event;
 
-    getTreeItem(element: Mapping): vscode.TreeItem | Thenable<vscode.TreeItem> {
-        const label = getLabel(element);
-        const item = new vscode.TreeItem(label);
+    getTreeItem(element: Mapping | LiveProcess): vscode.TreeItem | Thenable<vscode.TreeItem> {
+        if (element instanceof LiveProcess) {
+            const item = new vscode.TreeItem(element.processKey);
+            item.iconPath = new vscode.ThemeIcon("pulse");
+            item.collapsibleState = vscode.TreeItemCollapsibleState.Expanded;
+            item.contextValue = "liveProcess";
+            return item;
+        } else {
+            const label = getLabel(element);
+            const item = new vscode.TreeItem(label);
 
-        item.tooltip = element.handler;
-        item.collapsibleState = vscode.TreeItemCollapsibleState.None;
-        item.command = {
-            command: "_spring.console.log",
-            title: "console.log",
-            arguments: [element]
-        };
+            item.tooltip = element.handler;
+            item.collapsibleState = vscode.TreeItemCollapsibleState.None;
+            item.iconPath = new vscode.ThemeIcon("link");
 
-        // item.iconPath = new vscode.ThemeIcon("symbol-class");
-        return item;
+            // for debug use
+            item.command = {
+                command: "_spring.console.log",
+                title: "console.log",
+                arguments: [element]
+            };
+
+            return item;
+        }
     }
 
-    async getChildren(element?: Mapping): Promise<Mapping[] | undefined> {
+    async getChildren(element?: Mapping | LiveProcess): Promise<LiveProcess[] | Mapping[] | undefined> {
         // top-level
         if (!element) {
-            return this.mappings; // all beans
+            return Array.from(this.store.keys());
+        }
+
+        // all mappings
+        if (element instanceof LiveProcess) {
+            return this.store.get(element);
         }
 
         return undefined;
     }
 
-    public refresh(processKey: string, mappingsRaw: any[]) {
-        this.mappings = mappingsRaw.map(m => { return { processKey, label: getLabel(m.data.map), ...m.data.map } }).sort((a, b) => a.label.localeCompare(b.label));
+    public refresh(processKey: string, mappingsRaw: any[] | undefined) {
+        if (mappingsRaw === undefined) {
+            // remove
+            const targetLiveProcess = Array.from(this.store.keys()).find(lp => lp.processKey === processKey);
+            if (targetLiveProcess) {
+                this.store.delete(targetLiveProcess);
+            }
+        } else {
+            // add / update
+            const targetLiveProcess = Array.from(this.store.keys()).find(lp => lp.processKey === processKey) ?? new LiveProcess(processKey);
+            const mappings = mappingsRaw.map(m => { return { processKey, label: getLabel(m.data.map), ...m.data.map } }).sort((a, b) => a.label.localeCompare(b.label));
+            this.store.set(targetLiveProcess, mappings);
+        }
         this.onDidRefreshMappings.fire(undefined);
     }
 

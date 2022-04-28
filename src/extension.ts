@@ -3,7 +3,7 @@
 
 'use strict';
 import * as vscode from 'vscode';
-import { dispose as disposeTelemetryWrapper, initializeFromJsonFile, instrumentOperation } from "vscode-extension-telemetry-wrapper";
+import { dispose as disposeTelemetryWrapper, initializeFromJsonFile, instrumentOperation, instrumentOperationAsVsCodeCommand } from "vscode-extension-telemetry-wrapper";
 import { BootApp } from './BootApp';
 import { Controller } from './Controller';
 import { init as initLiveDataController } from './controllers/LiveDataController';
@@ -20,28 +20,28 @@ export async function initializeExtension(_oprationId: string, context: vscode.E
     const controller: Controller = new Controller(appsProvider.manager, context);
 
     context.subscriptions.push(vscode.window.registerTreeDataProvider('spring-boot-dashboard', appsProvider));
-    context.subscriptions.push(instrumentAndRegisterCommand("spring-boot-dashboard.refresh", () => {
+    context.subscriptions.push(instrumentOperationAsVsCodeCommand("spring-boot-dashboard.refresh", () => {
         appsProvider.manager.fireDidChangeApps(undefined);
     }));
-    context.subscriptions.push(instrumentAndRegisterCommand("spring-boot-dashboard.localapp.run", async (app: BootApp) => {
+    context.subscriptions.push(instrumentOperationAsVsCodeCommand("spring-boot-dashboard.localapp.run", async (app: BootApp) => {
         await controller.runBootApp(app);
     }));
-    context.subscriptions.push(instrumentAndRegisterCommand("spring-boot-dashboard.localapp.debug", async (app: BootApp) => {
+    context.subscriptions.push(instrumentOperationAsVsCodeCommand("spring-boot-dashboard.localapp.debug", async (app: BootApp) => {
         await controller.runBootApp(app, true);
     }));
-    context.subscriptions.push(instrumentAndRegisterCommand("spring-boot-dashboard.localapp.stop", async (app: BootApp) => {
+    context.subscriptions.push(instrumentOperationAsVsCodeCommand("spring-boot-dashboard.localapp.stop", async (app: BootApp) => {
         await controller.stopBootApp(app);
     }));
-    context.subscriptions.push(instrumentAndRegisterCommand("spring-boot-dashboard.localapp.open", async (app: BootApp) => {
+    context.subscriptions.push(instrumentOperationAsVsCodeCommand("spring-boot-dashboard.localapp.open", async (app: BootApp) => {
         await controller.openBootApp(app);
     }));
-    context.subscriptions.push(instrumentAndRegisterCommand("spring-boot-dashboard.localapp.run-multiple", async () => {
+    context.subscriptions.push(instrumentOperationAsVsCodeCommand("spring-boot-dashboard.localapp.run-multiple", async () => {
         await controller.runBootApps();
     }));
-    context.subscriptions.push(instrumentAndRegisterCommand("spring-boot-dashboard.localapp.debug-multiple", async () => {
+    context.subscriptions.push(instrumentOperationAsVsCodeCommand("spring-boot-dashboard.localapp.debug-multiple", async () => {
         await controller.runBootApps(true);
     }));
-    context.subscriptions.push(instrumentAndRegisterCommand("spring-boot-dashboard.localapp.stop-multiple", async () => {
+    context.subscriptions.push(instrumentOperationAsVsCodeCommand("spring-boot-dashboard.localapp.stop-multiple", async () => {
         await controller.stopBootApps();
     }))
     vscode.debug.onDidStartDebugSession((session: vscode.DebugSession) => {
@@ -55,6 +55,7 @@ export async function initializeExtension(_oprationId: string, context: vscode.E
         }
     });
 
+    // live data
     context.subscriptions.push(vscode.window.registerTreeDataProvider('spring.beans', beansProvider));
     context.subscriptions.push(vscode.window.registerTreeDataProvider('spring.mappings', mappingsProvider));
     await initLiveDataController();
@@ -66,9 +67,4 @@ export async function initializeExtension(_oprationId: string, context: vscode.E
 // this method is called when your extension is deactivated
 export async function deactivate() {
     await disposeTelemetryWrapper();
-}
-
-function instrumentAndRegisterCommand(name: string, cb: (...args: any[]) => any) {
-    const instrumented = instrumentOperation(name, async (_operationId, myargs) => await cb(myargs));
-    return vscode.commands.registerCommand(name, instrumented);
 }

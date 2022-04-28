@@ -2,8 +2,6 @@
 // Licensed under the MIT license.
 
 import * as vscode from "vscode";
-import { getBeansDependingOn } from "../models/stsApi";
-
 
 interface Bean {
     processKey: string;
@@ -11,10 +9,14 @@ interface Bean {
     dependents?: Bean[];
 }
 
-class BeansDataProvider implements vscode.TreeDataProvider<Bean> {
-    private beans: Bean[] = [];
+class LiveProcess {
+    constructor(public processKey: string) { }
+}
 
-    private onDidRefreshBeans: vscode.EventEmitter<Bean | undefined> = new vscode.EventEmitter<Bean | undefined>();
+class BeansDataProvider implements vscode.TreeDataProvider<Bean | LiveProcess> {
+    private store: Map<LiveProcess, Bean[]> = new Map();
+
+    private onDidRefreshBeans: vscode.EventEmitter<Bean | LiveProcess | undefined> = new vscode.EventEmitter<Bean | LiveProcess | undefined>();
 
     constructor() {
 
@@ -22,27 +24,62 @@ class BeansDataProvider implements vscode.TreeDataProvider<Bean> {
 
     onDidChangeTreeData = this.onDidRefreshBeans.event;
 
-    getTreeItem(element: Bean): vscode.TreeItem | Thenable<vscode.TreeItem> {
-        const item = new vscode.TreeItem(element.id);
-        item.collapsibleState = vscode.TreeItemCollapsibleState.Collapsed;
-        item.iconPath = new vscode.ThemeIcon("symbol-class");
-        return item;
+    getTreeItem(element: Bean | LiveProcess): vscode.TreeItem | Thenable<vscode.TreeItem> {
+        if (element instanceof LiveProcess) {
+            const item = new vscode.TreeItem(element.processKey);
+            item.iconPath = new vscode.ThemeIcon("pulse");
+            item.collapsibleState = vscode.TreeItemCollapsibleState.Expanded;
+            item.contextValue = "liveProcess";
+            return item;
+        } else {
+            const item = new vscode.TreeItem(element.id);
+            item.collapsibleState = vscode.TreeItemCollapsibleState.None;
+            item.iconPath = new vscode.ThemeIcon("symbol-class");
+
+            // for debug use
+            item.command = {
+                command: "_spring.console.log",
+                title: "console.log",
+                arguments: [element]
+            };
+            return item;
+        }
     }
 
-    async getChildren(element?: Bean): Promise<Bean[] | undefined> {
+    async getChildren(element?: Bean | LiveProcess): Promise<LiveProcess[] | Bean[] | undefined> {
         // top-level
         if (!element) {
-            return this.beans; // all beans
+            return Array.from(this.store.keys());
         }
 
-        const beans = await getBeansDependingOn(element.processKey, element.id);
-        element.dependents = beans.map((b:any) => {return {processKey: element.processKey, ...b}});
-        return element.dependents;
+        // all beans
+        if (element instanceof LiveProcess) {
+            return this.store.get(element);
+        }
 
+        /*
+        TODO: should move to reference view
+            // dependencies
+            const beans = await getBeansDependingOn(element.processKey, element.id);
+            element.dependents = beans.map((b:any) => {return {processKey: element.processKey, ...b}});
+            return element.dependents;
+        */
+        return undefined;
     }
 
-    public refresh(processKey: string, beans: string[]) {
-        this.beans = beans.map(b => { return { processKey, id: b } }).sort((a, b) => a.id.localeCompare(b.id));
+    public refresh(processKey: string, beanIds: string[] | undefined) {
+        if (beanIds === undefined) {
+            // remove
+            const targetLiveProcess = Array.from(this.store.keys()).find(lp => lp.processKey === processKey);
+            if (targetLiveProcess) {
+                this.store.delete(targetLiveProcess);
+            }
+        } else {
+            // add/update
+            const targetLiveProcess = Array.from(this.store.keys()).find(lp => lp.processKey === processKey) ?? new LiveProcess(processKey);
+            const beans = beanIds.map(b => { return { processKey, id: b } }).sort((a, b) => a.id.localeCompare(b.id));
+            this.store.set(targetLiveProcess, beans);
+        }
         this.onDidRefreshBeans.fire(undefined);
     }
 

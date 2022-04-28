@@ -47,8 +47,8 @@ async function resetProcessInfo(processKey: string) {
     console.log("disconnect", processKey);
 
     store.data.delete(processKey);
-    beansProvider.refresh(processKey, []);
-    mappingsProvider.refresh(processKey, []);
+    beansProvider.refresh(processKey, undefined);
+    mappingsProvider.refresh(processKey, undefined);
 
     const disconnectedApp = appsProvider.manager.getAppByMainClass(getMainClass(processKey));
     // Workaound for: app is still running if manually disconnect from live process connection.
