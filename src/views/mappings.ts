@@ -41,11 +41,11 @@ class MappingsDataProvider implements vscode.TreeDataProvider<Mapping | LiveProc
             item.iconPath = new vscode.ThemeIcon("link");
 
             // for debug use
-            item.command = {
-                command: "_spring.console.log",
-                title: "console.log",
-                arguments: [element]
-            };
+            // item.command = {
+            //     command: "_spring.console.log",
+            //     title: "console.log",
+            //     arguments: [element]
+            // };
 
             return item;
         }

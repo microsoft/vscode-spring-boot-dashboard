@@ -12,12 +12,10 @@ import { MainClassData } from "./types/jdtls";
 const getPort = require("get-port");
 
 export class Controller {
-    private _outputChannels: Map<string, vscode.OutputChannel>;
     private _manager: BootAppManager;
     private _context: vscode.ExtensionContext;
 
     constructor(manager: BootAppManager, context: vscode.ExtensionContext) {
-        this._outputChannels = new Map<string, vscode.OutputChannel>();
         this._manager = manager;
         this._context = context;
     }
@@ -134,7 +132,7 @@ export class Controller {
                 try {
                     process.kill(app.pid);
                 } catch (error) {
-                    this._getOutput(app).appendLine(error);
+                    console.log(error);
                     app.reset();
                 }
             } else {
@@ -234,26 +232,9 @@ export class Controller {
     }
 
     private _setState(app: BootApp, state: AppState): void {
-        const output: vscode.OutputChannel = this._getOutput(app);
         app.state = state;
-        output.appendLine(`${app.name} is ${state} now.`);
         this._manager.fireDidChangeApps(undefined);
     }
-
-    private _getChannelName(app: BootApp): string {
-        return `BootApp_${app.name}`;
-    }
-
-    private _getOutput(app: BootApp): vscode.OutputChannel {
-        const channelName: string = this._getChannelName(app);
-        let output: vscode.OutputChannel | undefined = this._outputChannels.get(channelName);
-        if (!output) {
-            output = vscode.window.createOutputChannel(channelName);
-            this._outputChannels.set(channelName, output);
-        }
-        return output;
-    }
-
 
     private _getLaunchConfig(mainClasData: MainClassData) {
         const launchConfigurations: vscode.WorkspaceConfiguration = vscode.workspace.getConfiguration("launch", vscode.Uri.file(mainClasData.filePath));

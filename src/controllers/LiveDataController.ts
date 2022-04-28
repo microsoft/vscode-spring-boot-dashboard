@@ -23,8 +23,6 @@ export async function init() {
 }
 
 async function updateProcessInfo(processKey: string) {
-    console.log("update", processKey);
-
     const beans = await getBeans(processKey);
     beansProvider.refresh(processKey, beans);
 
@@ -44,8 +42,6 @@ async function updateProcessInfo(processKey: string) {
 }
 
 async function resetProcessInfo(processKey: string) {
-    console.log("disconnect", processKey);
-
     store.data.delete(processKey);
     beansProvider.refresh(processKey, undefined);
     mappingsProvider.refresh(processKey, undefined);

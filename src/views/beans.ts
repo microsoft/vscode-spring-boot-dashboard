@@ -35,11 +35,11 @@ class BeansDataProvider implements vscode.TreeDataProvider<Bean | LiveProcess> {
             item.iconPath = new vscode.ThemeIcon("symbol-class");
 
             // for debug use
-            item.command = {
-                command: "_spring.console.log",
-                title: "console.log",
-                arguments: [element]
-            };
+            // item.command = {
+            //     command: "_spring.console.log",
+            //     title: "console.log",
+            //     arguments: [element]
+            // };
             return item;
         }
     }
