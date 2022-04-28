@@ -2,15 +2,12 @@
 // Licensed under the MIT license.
 
 import * as vscode from "vscode";
+import { LiveProcess } from "../models/liveProcess";
 
 interface Bean {
     processKey: string;
     id: string;
     dependents?: Bean[];
-}
-
-class LiveProcess {
-    constructor(public processKey: string) { }
 }
 
 class BeansDataProvider implements vscode.TreeDataProvider<Bean | LiveProcess> {
@@ -26,8 +23,9 @@ class BeansDataProvider implements vscode.TreeDataProvider<Bean | LiveProcess> {
 
     getTreeItem(element: Bean | LiveProcess): vscode.TreeItem | Thenable<vscode.TreeItem> {
         if (element instanceof LiveProcess) {
-            const item = new vscode.TreeItem(element.processKey);
-            item.iconPath = new vscode.ThemeIcon("pulse");
+            const item = new vscode.TreeItem(element.appName);
+            item.description = `pid: ${element.pid}`;
+            item.iconPath = new vscode.ThemeIcon("pulse", new vscode.ThemeColor("charts.green"));
             item.collapsibleState = vscode.TreeItemCollapsibleState.Expanded;
             item.contextValue = "liveProcess";
             return item;

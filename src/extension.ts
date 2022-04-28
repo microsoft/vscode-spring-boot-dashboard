@@ -56,8 +56,8 @@ export async function initializeExtension(_oprationId: string, context: vscode.E
     });
 
     // live data
-    context.subscriptions.push(vscode.window.registerTreeDataProvider('spring.beans', beansProvider));
-    context.subscriptions.push(vscode.window.registerTreeDataProvider('spring.mappings', mappingsProvider));
+    context.subscriptions.push(vscode.window.createTreeView('spring.beans', { treeDataProvider: beansProvider, showCollapseAll: true }));
+    context.subscriptions.push(vscode.window.createTreeView('spring.mappings', { treeDataProvider: mappingsProvider, showCollapseAll: true }));
     await initLiveDataController();
 
     // console.log

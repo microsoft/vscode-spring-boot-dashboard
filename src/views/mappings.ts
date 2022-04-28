@@ -3,7 +3,7 @@
 // Licensed under the MIT license.
 
 import * as vscode from "vscode";
-import {  } from "../models/stsApi";
+import { LiveProcess } from "../models/liveProcess";
 
 
 interface Mapping {
@@ -13,11 +13,6 @@ interface Mapping {
     handler: string;
     predicate: string;
 }
-
-class LiveProcess {
-    constructor(public processKey: string) { }
-}
-
 class MappingsDataProvider implements vscode.TreeDataProvider<Mapping | LiveProcess> {
     private store: Map<LiveProcess, Mapping[]> = new Map();
 
@@ -31,8 +26,9 @@ class MappingsDataProvider implements vscode.TreeDataProvider<Mapping | LiveProc
 
     getTreeItem(element: Mapping | LiveProcess): vscode.TreeItem | Thenable<vscode.TreeItem> {
         if (element instanceof LiveProcess) {
-            const item = new vscode.TreeItem(element.processKey);
-            item.iconPath = new vscode.ThemeIcon("pulse");
+            const item = new vscode.TreeItem(element.appName);
+            item.description = `pid: ${element.pid}`;
+            item.iconPath = new vscode.ThemeIcon("pulse", new vscode.ThemeColor("charts.green"));
             item.collapsibleState = vscode.TreeItemCollapsibleState.Expanded;
             item.contextValue = "liveProcess";
             return item;
