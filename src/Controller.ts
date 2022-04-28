@@ -43,14 +43,14 @@ export class Controller {
     public async runBootApp(app: BootApp, debug?: boolean): Promise<void> {
         const mainClasData = await vscode.window.withProgress(
             { location: vscode.ProgressLocation.Window, title: `Resolving main classes for ${app.name}...` },
-            async () => { 
+            async () => {
                 const mainClassList = await app.getMainClasses();
 
                 if (mainClassList && mainClassList instanceof Array && mainClassList.length > 0) {
                     return mainClassList.length === 1 ? mainClassList[0] :
                         await vscode.window.showQuickPick(mainClassList.map(x => Object.assign({ label: x.mainClass }, x)), { placeHolder: `Specify the main class for ${app.name}` });
                 }
-                return null; 
+                return null;
             }
         );
         if (mainClasData === null) {
@@ -171,7 +171,7 @@ export class Controller {
                 let contextPath: string | null = null;
 
                 READ_JMX_EXTENSION_RESPONSE: {
-                    if (stdout != null) {
+                    if (stdout !== null) {
                         let jmxExtensionResponse;
 
                         try {
@@ -181,28 +181,28 @@ export class Controller {
                             break READ_JMX_EXTENSION_RESPONSE;
                         }
 
-                        if (jmxExtensionResponse['local.server.port'] != null && typeof jmxExtensionResponse['local.server.port'] == 'number') {
+                        if (jmxExtensionResponse['local.server.port'] !== null && typeof jmxExtensionResponse['local.server.port'] === 'number') {
                             port = jmxExtensionResponse['local.server.port'];
                         }
 
-                        if (jmxExtensionResponse['server.servlet.context-path'] != null) {
+                        if (jmxExtensionResponse['server.servlet.context-path'] !== null) {
                             contextPath = jmxExtensionResponse['server.servlet.context-path'];
                         }
 
-                        if (jmxExtensionResponse['status'] != null && jmxExtensionResponse['status'] === "failure") {
+                        if (jmxExtensionResponse['status'] !== null && jmxExtensionResponse['status'] === "failure") {
                             this._printJavaProcessError(javaProcess);
                         }
                     }
                 }
 
-                if (contextPath == null) {
+                if (contextPath === null) {
                     contextPath = "/"; //if no context path is defined then fallback to root path
                 }
 
                 const configOpenUrl: string = vscode.workspace.getConfiguration("spring.dashboard").get("openUrl") as string;
                 let openUrl: string;
 
-                if (configOpenUrl == null) {
+                if (configOpenUrl === null) {
                     openUrl = `http://localhost:${port}${contextPath}`;
                 } else {
                     openUrl = configOpenUrl
@@ -211,7 +211,7 @@ export class Controller {
                 }
 
 
-                if (port != null) {
+                if (port !== null) {
                     const openWithExternalBrowser: boolean = vscode.workspace.getConfiguration("spring.dashboard").get("openWith") === "external";
                     const browserCommand: string = openWithExternalBrowser ? "vscode.open" : "simpleBrowser.api.open";
 

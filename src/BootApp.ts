@@ -77,7 +77,7 @@ export class BootApp {
             this.clearWatchdog();
         }
     }
-    
+
     public get port(): number | undefined {
         return this._port;
     }
@@ -114,7 +114,7 @@ export class BootApp {
         this._state = AppState.INACTIVE;
         appsProvider.refresh(this);
     }
-    
+
     public setWatchdog() {
         const watchdog = setInterval(async () => {
             const alive = await isAlive(this.pid);

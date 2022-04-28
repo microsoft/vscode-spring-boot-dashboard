@@ -75,7 +75,7 @@ class MappingsDataProvider implements vscode.TreeDataProvider<Mapping | LiveProc
         } else {
             // add / update
             const targetLiveProcess = Array.from(this.store.keys()).find(lp => lp.processKey === processKey) ?? new LiveProcess(processKey);
-            const mappings = mappingsRaw.map(m => { return { processKey, label: getLabel(m.data.map), ...m.data.map } }).sort((a, b) => a.label.localeCompare(b.label));
+            const mappings = mappingsRaw.map(m => { return { processKey, label: getLabel(m.data.map), ...m.data.map }; }).sort((a, b) => a.label.localeCompare(b.label));
             this.store.set(targetLiveProcess, mappings);
         }
         this.onDidRefreshMappings.fire(undefined);

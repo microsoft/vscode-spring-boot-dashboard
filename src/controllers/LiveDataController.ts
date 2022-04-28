@@ -26,7 +26,7 @@ async function updateProcessInfo(processKey: string) {
     const beans = await getBeans(processKey);
     beansProvider.refresh(processKey, beans);
 
-    const mappings = await getMappings(processKey); 
+    const mappings = await getMappings(processKey);
     mappingsProvider.refresh(processKey, mappings);
 
     const port = await getPort(processKey);

@@ -75,7 +75,7 @@ class BeansDataProvider implements vscode.TreeDataProvider<Bean | LiveProcess> {
         } else {
             // add/update
             const targetLiveProcess = Array.from(this.store.keys()).find(lp => lp.processKey === processKey) ?? new LiveProcess(processKey);
-            const beans = beanIds.map(b => { return { processKey, id: b } }).sort((a, b) => a.id.localeCompare(b.id));
+            const beans = beanIds.map(b => { return { processKey, id: b }; }).sort((a, b) => a.id.localeCompare(b.id));
             this.store.set(targetLiveProcess, beans);
         }
         this.onDidRefreshBeans.fire(undefined);
