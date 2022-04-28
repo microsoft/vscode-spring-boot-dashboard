@@ -1,22 +1,21 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT license.
 
-import * as vscode from "vscode";
-import { BootAppManager } from "./BootAppManager";
-import { BootApp, AppState } from "./BootApp";
 import { findJvm } from "@pivotal-tools/jvm-launch-utils";
-import * as path from "path";
-import { readAll } from "./stream-util";
 import { ChildProcess } from "child_process";
+import * as path from "path";
+import * as vscode from "vscode";
+import { AppState, BootApp } from "./BootApp";
+import { BootAppManager } from "./BootAppManager";
+import { readAll } from "./utils";
+import { MainClassData } from "./types/jdtls";
 const getPort = require("get-port");
 
 export class Controller {
-    private _outputChannels: Map<string, vscode.OutputChannel>;
     private _manager: BootAppManager;
     private _context: vscode.ExtensionContext;
 
     constructor(manager: BootAppManager, context: vscode.ExtensionContext) {
-        this._outputChannels = new Map<string, vscode.OutputChannel>();
         this._manager = manager;
         this._context = context;
     }
@@ -44,7 +43,15 @@ export class Controller {
     public async runBootApp(app: BootApp, debug?: boolean): Promise<void> {
         const mainClasData = await vscode.window.withProgress(
             { location: vscode.ProgressLocation.Window, title: `Resolving main classes for ${app.name}...` },
-            () => { return this._getMainClass(app); }
+            async () => {
+                const mainClassList = await app.getMainClasses();
+
+                if (mainClassList && mainClassList instanceof Array && mainClassList.length > 0) {
+                    return mainClassList.length === 1 ? mainClassList[0] :
+                        await vscode.window.showQuickPick(mainClassList.map(x => Object.assign({ label: x.mainClass }, x)), { placeHolder: `Specify the main class for ${app.name}` });
+                }
+                return null;
+            }
         );
         if (mainClasData === null) {
             vscode.window.showWarningMessage("No main class is found.");
@@ -96,7 +103,7 @@ export class Controller {
         const app: BootApp | undefined = this._manager.getAppList().find((elem: BootApp) => elem.activeSessionName === session.name);
         if (app) {
             this._manager.bindDebugSession(app, session);
-            this._setState(app, AppState.RUNNING);
+            this._setState(app, AppState.LAUNCHING);
         }
     }
 
@@ -120,15 +127,25 @@ export class Controller {
         // TODO: How to send a shutdown signal to the app instead of killing the process directly?
         const session: vscode.DebugSession | undefined = this._manager.getSessionByApp(app);
         if (session) {
-            await session.customRequest("disconnect", { restart: !!restart });
-        } else {
-            // What if session not found? Force to set STATE_INACTIVE?
+            if (isRunInTerminal(session) && app.pid) {
+                // kill corresponding process launched in terminal
+                try {
+                    process.kill(app.pid);
+                } catch (error) {
+                    console.log(error);
+                    app.reset();
+                }
+            } else {
+                await session.customRequest("disconnect", { restart: !!restart });
+            }
         }
     }
 
     public onDidStopBootApp(session: vscode.DebugSession): void {
         const app = this._manager.getAppBySession(session);
-        if (app) {
+        if (app
+            && !isRunInTerminal(session) // workaround: "run in termial" sends a disconnect request immediately, do not update status
+        ) {
             this._setState(app, AppState.INACTIVE);
         }
     }
@@ -154,7 +171,7 @@ export class Controller {
                 let contextPath: string | null = null;
 
                 READ_JMX_EXTENSION_RESPONSE: {
-                    if (stdout != null) {
+                    if (stdout !== null) {
                         let jmxExtensionResponse;
 
                         try {
@@ -164,28 +181,28 @@ export class Controller {
                             break READ_JMX_EXTENSION_RESPONSE;
                         }
 
-                        if (jmxExtensionResponse['local.server.port'] != null && typeof jmxExtensionResponse['local.server.port'] == 'number') {
+                        if (jmxExtensionResponse['local.server.port'] !== null && typeof jmxExtensionResponse['local.server.port'] === 'number') {
                             port = jmxExtensionResponse['local.server.port'];
                         }
 
-                        if (jmxExtensionResponse['server.servlet.context-path'] != null) {
+                        if (jmxExtensionResponse['server.servlet.context-path'] !== null) {
                             contextPath = jmxExtensionResponse['server.servlet.context-path'];
                         }
 
-                        if (jmxExtensionResponse['status'] != null && jmxExtensionResponse['status'] === "failure") {
+                        if (jmxExtensionResponse['status'] !== null && jmxExtensionResponse['status'] === "failure") {
                             this._printJavaProcessError(javaProcess);
                         }
                     }
                 }
 
-                if (contextPath == null) {
+                if (contextPath === null) {
                     contextPath = "/"; //if no context path is defined then fallback to root path
                 }
 
                 const configOpenUrl: string = vscode.workspace.getConfiguration("spring.dashboard").get("openUrl") as string;
                 let openUrl: string;
 
-                if (configOpenUrl == null) {
+                if (configOpenUrl === null) {
                     openUrl = `http://localhost:${port}${contextPath}`;
                 } else {
                     openUrl = configOpenUrl
@@ -194,7 +211,7 @@ export class Controller {
                 }
 
 
-                if (port != null) {
+                if (port !== null) {
                     const openWithExternalBrowser: boolean = vscode.workspace.getConfiguration("spring.dashboard").get("openWith") === "external";
                     const browserCommand: string = openWithExternalBrowser ? "vscode.open" : "simpleBrowser.api.open";
 
@@ -215,34 +232,8 @@ export class Controller {
     }
 
     private _setState(app: BootApp, state: AppState): void {
-        const output: vscode.OutputChannel = this._getOutput(app);
         app.state = state;
-        output.appendLine(`${app.name} is ${state} now.`);
-        this._manager.fireDidChangeApps();
-    }
-
-    private _getChannelName(app: BootApp): string {
-        return `BootApp_${app.name}`;
-    }
-
-    private _getOutput(app: BootApp): vscode.OutputChannel {
-        const channelName: string = this._getChannelName(app);
-        let output: vscode.OutputChannel | undefined = this._outputChannels.get(channelName);
-        if (!output) {
-            output = vscode.window.createOutputChannel(channelName);
-            this._outputChannels.set(channelName, output);
-        }
-        return output;
-    }
-
-    private async _getMainClass(app: BootApp): Promise<MainClassData | null> {
-        // Note: Command `vscode.java.resolveMainClass` is implemented in extension `vscode.java.resolveMainClass`
-        const mainClassList = await vscode.commands.executeCommand('java.execute.workspaceCommand', 'vscode.java.resolveMainClass', app.path);
-        if (mainClassList && mainClassList instanceof Array && mainClassList.length > 0) {
-            return mainClassList.length === 1 ? mainClassList[0] :
-                await vscode.window.showQuickPick(mainClassList.map(x => Object.assign({ label: x.mainClass }, x)), { placeHolder: `Specify the main class for ${app.name}` });
-        }
-        return Promise.resolve(null);
+        this._manager.fireDidChangeApps(undefined);
     }
 
     private _getLaunchConfig(mainClasData: MainClassData) {
@@ -279,8 +270,6 @@ export class Controller {
     }
 }
 
-interface MainClassData {
-    filePath: string;
-    mainClass: string;
-    projectName: string;
+function isRunInTerminal(session: vscode.DebugSession) {
+    return session.configuration.noDebug === true && session.configuration.console !== "internalConsole";
 }

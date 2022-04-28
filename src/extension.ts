@@ -3,13 +3,13 @@
 
 'use strict';
 import * as vscode from 'vscode';
-import { dispose as disposeTelemetryWrapper, initializeFromJsonFile, instrumentOperation } from "vscode-extension-telemetry-wrapper";
-import { LocalAppTreeProvider } from './LocalAppTree';
-import { BootAppManager } from './BootAppManager';
+import { dispose as disposeTelemetryWrapper, initializeFromJsonFile, instrumentOperation, instrumentOperationAsVsCodeCommand } from "vscode-extension-telemetry-wrapper";
 import { BootApp } from './BootApp';
 import { Controller } from './Controller';
-
-let localAppManager: BootAppManager;
+import { init as initLiveDataController } from './controllers/LiveDataController';
+import { appsProvider } from './views/apps';
+import { beansProvider } from './views/beans';
+import { mappingsProvider } from './views/mappings';
 
 export async function activate(context: vscode.ExtensionContext) {
     await initializeFromJsonFile(context.asAbsolutePath("./package.json"), { firstParty: true });
@@ -17,35 +17,33 @@ export async function activate(context: vscode.ExtensionContext) {
 }
 
 export async function initializeExtension(_oprationId: string, context: vscode.ExtensionContext) {
-    localAppManager = new BootAppManager();
-    const localTree: LocalAppTreeProvider = new LocalAppTreeProvider(localAppManager);
-    const controller: Controller = new Controller(localAppManager, context);
+    const controller: Controller = new Controller(appsProvider.manager, context);
 
-    context.subscriptions.push(vscode.window.registerTreeDataProvider('spring-boot-dashboard', localTree));
-    context.subscriptions.push(instrumentAndRegisterCommand("spring-boot-dashboard.refresh", () => {
-        localAppManager.fireDidChangeApps();
+    context.subscriptions.push(vscode.window.registerTreeDataProvider('spring-boot-dashboard', appsProvider));
+    context.subscriptions.push(instrumentOperationAsVsCodeCommand("spring-boot-dashboard.refresh", () => {
+        appsProvider.manager.fireDidChangeApps(undefined);
     }));
-    context.subscriptions.push(instrumentAndRegisterCommand("spring-boot-dashboard.localapp.run", async (app: BootApp) => {
+    context.subscriptions.push(instrumentOperationAsVsCodeCommand("spring-boot-dashboard.localapp.run", async (app: BootApp) => {
         await controller.runBootApp(app);
     }));
-    context.subscriptions.push(instrumentAndRegisterCommand("spring-boot-dashboard.localapp.debug", async (app: BootApp) => {
+    context.subscriptions.push(instrumentOperationAsVsCodeCommand("spring-boot-dashboard.localapp.debug", async (app: BootApp) => {
         await controller.runBootApp(app, true);
     }));
-    context.subscriptions.push(instrumentAndRegisterCommand("spring-boot-dashboard.localapp.stop", async (app: BootApp) => {
+    context.subscriptions.push(instrumentOperationAsVsCodeCommand("spring-boot-dashboard.localapp.stop", async (app: BootApp) => {
         await controller.stopBootApp(app);
     }));
-    context.subscriptions.push(instrumentAndRegisterCommand("spring-boot-dashboard.localapp.open", async (app: BootApp) => {
+    context.subscriptions.push(instrumentOperationAsVsCodeCommand("spring-boot-dashboard.localapp.open", async (app: BootApp) => {
         await controller.openBootApp(app);
     }));
-    context.subscriptions.push(instrumentAndRegisterCommand("spring-boot-dashboard.localapp.run-multiple", async () => {
+    context.subscriptions.push(instrumentOperationAsVsCodeCommand("spring-boot-dashboard.localapp.run-multiple", async () => {
         await controller.runBootApps();
     }));
-    context.subscriptions.push(instrumentAndRegisterCommand("spring-boot-dashboard.localapp.debug-multiple", async () => {
+    context.subscriptions.push(instrumentOperationAsVsCodeCommand("spring-boot-dashboard.localapp.debug-multiple", async () => {
         await controller.runBootApps(true);
     }));
-    context.subscriptions.push(instrumentAndRegisterCommand("spring-boot-dashboard.localapp.stop-multiple", async () => {
+    context.subscriptions.push(instrumentOperationAsVsCodeCommand("spring-boot-dashboard.localapp.stop-multiple", async () => {
         await controller.stopBootApps();
-    }))
+    }));
     vscode.debug.onDidStartDebugSession((session: vscode.DebugSession) => {
         if (session.type === "java") {
             controller.onDidStartBootApp(session);
@@ -56,14 +54,17 @@ export async function initializeExtension(_oprationId: string, context: vscode.E
             controller.onDidStopBootApp(session);
         }
     });
+
+    // live data
+    context.subscriptions.push(vscode.window.createTreeView('spring.beans', { treeDataProvider: beansProvider, showCollapseAll: true }));
+    context.subscriptions.push(vscode.window.createTreeView('spring.mappings', { treeDataProvider: mappingsProvider, showCollapseAll: true }));
+    await initLiveDataController();
+
+    // console.log
+    context.subscriptions.push(vscode.commands.registerCommand("_spring.console.log", console.log));
 }
 
 // this method is called when your extension is deactivated
 export async function deactivate() {
     await disposeTelemetryWrapper();
-}
-
-function instrumentAndRegisterCommand(name: string, cb: (...args: any[]) => any) {
-    const instrumented = instrumentOperation(name, async (_operationId, myargs) => await cb(myargs));
-    return vscode.commands.registerCommand(name, instrumented);
 }

@@ -2,6 +2,7 @@
 // Licensed under the MIT license.
 
 import { Readable } from "stream";
+import pidtree = require("pidtree");
 
 export function readAll(input: Readable) : Promise<string> {
     let buffer = "";
@@ -17,4 +18,13 @@ export function readAll(input: Readable) : Promise<string> {
         });
 
     });
+}
+
+export async function isAlive(pid?: number) {
+    if (!pid) {
+        return false;
+    }
+
+    const pidList = await pidtree(-1);
+    return pidList.includes(pid);
 }

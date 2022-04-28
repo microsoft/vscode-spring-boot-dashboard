@@ -28,13 +28,36 @@
     },
     "main": "./out/extension",
     "contributes": {
+        "viewsContainers": {
+            "activitybar": [
+                {
+                    "id": "spring",
+                    "icon": "resources/logo.png",
+                    "title": "Spring"
+                }
+            ]
+        },
         "views": {
-            "explorer": [
+            "spring": [
                 {
                     "id": "spring-boot-dashboard",
                     "name": "Spring Boot Dashboard",
                     "when": "java:serverMode",
-                    "contextualTitle": "Java",
+                    "contextualTitle": "Spring",
+                    "icon": "resources/logo.png"
+                },
+                {
+                    "id": "spring.beans",
+                    "name": "Beans",
+                    "when": "java:serverMode",
+                    "contextualTitle": "Spring",
+                    "icon": "resources/logo.png"
+                },
+                {
+                    "id": "spring.mappings",
+                    "name": "Endpoint Mappings",
+                    "when": "java:serverMode",
+                    "contextualTitle": "Spring",
                     "icon": "resources/logo.png"
                 }
             ]
@@ -87,10 +110,20 @@
                 "title": "Debug ...",
                 "category": "Spring Boot Dashboard",
                 "icon": "$(debug)"
+            },
+            {
+                "command": "sts/livedata/refresh",
+                "title": "Refresh Live Connection",
+                "category": "Spring Boot Dashboard",
+                "icon": "$(refresh)"
             }
         ],
         "menus": {
             "commandPalette": [
+                {
+                    "command": "sts/livedata/refresh",
+                    "when": "never"
+                },
                 {
                     "command": "spring-boot-dashboard.localapp.run",
                     "when": "never"
@@ -184,6 +217,16 @@
                     "command": "spring-boot-dashboard.localapp.stop-multiple",
                     "when": "view == spring-boot-dashboard && !viewItem",
                     "group": "action@13"
+                },
+                {
+                    "command": "sts/livedata/refresh",
+                    "when": "view == spring.beans && viewItem == liveProcess",
+                    "group": "inline@5"
+                },
+                {
+                    "command": "sts/livedata/refresh",
+                    "when": "view == spring.mappings && viewItem == liveProcess",
+                    "group": "inline@5"
                 }
             ]
         },
@@ -241,6 +284,7 @@
     "dependencies": {
         "@pivotal-tools/jvm-launch-utils": "0.0.11",
         "get-port": "^5.1.1",
+        "pidtree": "^0.5.0",
         "uuid": "^3.4.0",
         "vscode-extension-telemetry-wrapper": "^0.12.0"
     }
