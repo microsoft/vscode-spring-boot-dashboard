@@ -4,19 +4,26 @@
 
 import * as vscode from "vscode";
 import { LiveProcess } from "../models/liveProcess";
+import { getContextPath, getPort } from "../models/stsApi";
 
 
-interface Mapping {
+interface Endpoint {
+    // raw
     processKey: string;
-    label: string;
     details?: any;
     handler: string;
     predicate: string;
-}
-class MappingsDataProvider implements vscode.TreeDataProvider<Mapping | LiveProcess> {
-    private store: Map<LiveProcess, Mapping[]> = new Map();
 
-    private onDidRefreshMappings: vscode.EventEmitter<Mapping | LiveProcess | undefined> = new vscode.EventEmitter<Mapping | LiveProcess | undefined>();
+    // parsed
+    label: string;
+    method?: string;
+    pattern?: string;
+}
+
+class MappingsDataProvider implements vscode.TreeDataProvider<Endpoint | LiveProcess> {
+    private store: Map<LiveProcess, Endpoint[]> = new Map();
+
+    private onDidRefreshMappings: vscode.EventEmitter<Endpoint | LiveProcess | undefined> = new vscode.EventEmitter<Endpoint | LiveProcess | undefined>();
 
     constructor() {
 
@@ -24,7 +31,7 @@ class MappingsDataProvider implements vscode.TreeDataProvider<Mapping | LiveProc
 
     onDidChangeTreeData = this.onDidRefreshMappings.event;
 
-    getTreeItem(element: Mapping | LiveProcess): vscode.TreeItem | Thenable<vscode.TreeItem> {
+    getTreeItem(element: Endpoint | LiveProcess): vscode.TreeItem | Thenable<vscode.TreeItem> {
         if (element instanceof LiveProcess) {
             const item = new vscode.TreeItem(element.appName);
             item.description = `pid: ${element.pid}`;
@@ -33,12 +40,17 @@ class MappingsDataProvider implements vscode.TreeDataProvider<Mapping | LiveProc
             item.contextValue = "liveProcess";
             return item;
         } else {
-            const label = getLabel(element);
+            const label = element.label;
             const item = new vscode.TreeItem(label);
 
             item.tooltip = element.handler;
             item.collapsibleState = vscode.TreeItemCollapsibleState.None;
             item.iconPath = new vscode.ThemeIcon("link");
+
+            item.contextValue = "spring:endpoint";
+            if (element.method) {
+                item.contextValue += `+${element.method}`;
+            }
 
             // for debug use
             // item.command = {
@@ -51,7 +63,7 @@ class MappingsDataProvider implements vscode.TreeDataProvider<Mapping | LiveProc
         }
     }
 
-    async getChildren(element?: Mapping | LiveProcess): Promise<LiveProcess[] | Mapping[] | undefined> {
+    async getChildren(element?: Endpoint | LiveProcess): Promise<LiveProcess[] | Endpoint[] | undefined> {
         // top-level
         if (!element) {
             return Array.from(this.store.keys());
@@ -75,7 +87,7 @@ class MappingsDataProvider implements vscode.TreeDataProvider<Mapping | LiveProc
         } else {
             // add / update
             const targetLiveProcess = Array.from(this.store.keys()).find(lp => lp.processKey === processKey) ?? new LiveProcess(processKey);
-            const mappings = mappingsRaw.map(m => { return { processKey, label: getLabel(m.data.map), ...m.data.map }; }).sort((a, b) => a.label.localeCompare(b.label));
+            const mappings = mappingsRaw.map(raw => parseMapping(raw, processKey)).sort((a, b) => a.label.localeCompare(b.label));
             this.store.set(targetLiveProcess, mappings);
         }
         this.onDidRefreshMappings.fire(undefined);
@@ -83,14 +95,31 @@ class MappingsDataProvider implements vscode.TreeDataProvider<Mapping | LiveProc
 
 }
 
-function getLabel(mapping: Mapping): string {
-    const pattern = mapping.details?.map.requestMappingConditions?.map.patterns?.myArrayList?.[0];
-    const method = mapping.details?.map.requestMappingConditions?.map.methods?.myArrayList?.[0];
-    let label = pattern ?? mapping.predicate;
+function parseMapping(raw:any, processKey: string): Endpoint {
+    const pattern = raw.data.map?.details?.map.requestMappingConditions?.map.patterns?.myArrayList?.[0];
+    const method = raw.data.map?.details?.map.requestMappingConditions?.map.methods?.myArrayList?.[0];
+
+    let label = pattern ?? raw.data.map?.predicate ?? "unknown";
     if (method) {
         label += ` [${method}]`;
     }
-    return label;
+    return {
+        processKey,
+        label,
+        method,
+        pattern,
+        ...raw.data.map
+    };
 }
 
 export const mappingsProvider = new MappingsDataProvider();
+
+export async function openEndpointHandler(endpoint: Endpoint) {
+    const port = await getPort(endpoint.processKey);
+    const contextPath = await getContextPath(endpoint.processKey);
+    const url = `http://localhost:${port}${contextPath}${endpoint.pattern}`;
+
+    const openWithExternalBrowser: boolean = vscode.workspace.getConfiguration("spring.dashboard").get("openWith") === "external";
+    const browserCommand: string = openWithExternalBrowser ? "vscode.open" : "simpleBrowser.api.open";
+    vscode.commands.executeCommand(browserCommand, vscode.Uri.parse(url));
+}
