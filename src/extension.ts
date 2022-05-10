@@ -9,7 +9,7 @@ import { Controller } from './Controller';
 import { init as initLiveDataController } from './controllers/LiveDataController';
 import { appsProvider } from './views/apps';
 import { beansProvider } from './views/beans';
-import { mappingsProvider } from './views/mappings';
+import { mappingsProvider, openEndpointHandler } from './views/mappings';
 
 export async function activate(context: vscode.ExtensionContext) {
     await initializeFromJsonFile(context.asAbsolutePath("./package.json"), { firstParty: true });
@@ -59,6 +59,7 @@ export async function initializeExtension(_oprationId: string, context: vscode.E
     context.subscriptions.push(vscode.window.createTreeView('spring.beans', { treeDataProvider: beansProvider, showCollapseAll: true }));
     context.subscriptions.push(vscode.window.createTreeView('spring.mappings', { treeDataProvider: mappingsProvider, showCollapseAll: true }));
     await initLiveDataController();
+    context.subscriptions.push(instrumentOperationAsVsCodeCommand("spring.dashboard.endpoint.open", openEndpointHandler));
 
     // console.log
     context.subscriptions.push(vscode.commands.registerCommand("_spring.console.log", console.log));
