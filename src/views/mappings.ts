@@ -5,7 +5,7 @@
 import * as vscode from "vscode";
 import { LiveProcess } from "../models/liveProcess";
 import { getContextPath, getPort } from "../models/stsApi";
-
+import { LocalLiveProcess } from "../types/sts-api";
 
 interface Endpoint {
     // raw
@@ -77,17 +77,17 @@ class MappingsDataProvider implements vscode.TreeDataProvider<Endpoint | LivePro
         return undefined;
     }
 
-    public refresh(processKey: string, mappingsRaw: any[] | undefined) {
+    public refresh(liveProcess: LocalLiveProcess, mappingsRaw: any[] | undefined) {
         if (mappingsRaw === undefined) {
             // remove
-            const targetLiveProcess = Array.from(this.store.keys()).find(lp => lp.processKey === processKey);
+            const targetLiveProcess = Array.from(this.store.keys()).find(lp => lp.processKey === liveProcess.processKey);
             if (targetLiveProcess) {
                 this.store.delete(targetLiveProcess);
             }
         } else {
             // add / update
-            const targetLiveProcess = Array.from(this.store.keys()).find(lp => lp.processKey === processKey) ?? new LiveProcess(processKey);
-            const mappings = mappingsRaw.map(raw => parseMapping(raw, processKey)).sort((a, b) => a.label.localeCompare(b.label));
+            const targetLiveProcess = Array.from(this.store.keys()).find(lp => lp.processKey === liveProcess.processKey) ?? new LiveProcess(liveProcess);
+            const mappings = mappingsRaw.map(raw => parseMapping(raw, liveProcess.processKey)).sort((a, b) => a.label.localeCompare(b.label));
             this.store.set(targetLiveProcess, mappings);
         }
         this.onDidRefreshMappings.fire(undefined);

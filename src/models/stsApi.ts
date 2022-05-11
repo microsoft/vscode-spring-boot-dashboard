@@ -51,10 +51,24 @@ export async function getContextPath(processKey: string) {
     return result;
 }
 
+/**
+ * below are workaround for spring-tools v1.33 as `processKey` equals to `pid`.
+ */
 export function getPid(processKey: string) {
     return processKey.split(" - ")?.[0];
 }
 
 export function getMainClass(processKey: string) {
-    return processKey.split(" - ")?.[1];
+    const mainClass = processKey.split(" - ")?.[1];
+    if (!mainClass) {
+        const pid = getPid(processKey);
+        return getMainClassFromPid(pid);
+    }
+    return mainClass;
+}
+
+function getMainClassFromPid(pid: string) {
+    // workaround: parse output from  `jps -l`
+    // TODO
+    return pid;
 }
