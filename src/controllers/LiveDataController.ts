@@ -68,7 +68,7 @@ async function resetProcessInfo(payload: string | LocalLiveProcess) {
 async function parsePayload(payload: string | LocalLiveProcess): Promise<LocalLiveProcess> {
     if (typeof payload === "string") {
         const processKey = payload;
-        const processName = getMainClass(processKey);
+        const processName = await getMainClass(processKey);
         const pid = getPid(processKey);
         return {
             type: "local",

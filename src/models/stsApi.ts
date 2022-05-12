@@ -1,5 +1,11 @@
+import * as cp from "child_process";
+import * as os from "os";
+import { promisify } from "util";
 import * as vscode from 'vscode';
+import * as path from 'path';
+import * as fs from 'fs';
 import { ExtensionAPI } from "../types/sts-api";
+const execFile = promisify(cp.execFile);
 
 export let stsApi: ExtensionAPI;
 
@@ -58,17 +64,46 @@ export function getPid(processKey: string) {
     return processKey.split(" - ")?.[0];
 }
 
-export function getMainClass(processKey: string) {
+export async function getMainClass(processKey: string) {
     const mainClass = processKey.split(" - ")?.[1];
     if (!mainClass) {
         const pid = getPid(processKey);
-        return getMainClassFromPid(pid);
+        return await getMainClassFromPid(pid);
     }
     return mainClass;
 }
 
-function getMainClassFromPid(pid: string) {
+async function getMainClassFromPid(pid: string) {
     // workaround: parse output from  `jps -l`
-    // TODO
-    return pid;
+    const jreHome = await getJreHome();
+    if (jreHome) {
+        const jpsExecRes = await execFile(path.join(jreHome, "bin", "jps"), ["-l"]);
+        const targetLine = jpsExecRes.stdout.split(os.EOL).find(line => line.startsWith(pid));
+        if (targetLine) {
+            const segments = targetLine.trim().split(/\s+/);
+            return segments[segments.length - 1];
+        }
+    }
+
+    return "";
 }
+
+async function getJreHome() {
+    const javaExt = vscode.extensions.getExtension("redhat.java");
+      if (!javaExt) {
+         return undefined;
+      }
+      // get embedded JRE Home
+      let jreHome: string | undefined;
+      try {
+         const jreFolder = path.join(javaExt.extensionPath, "jre");
+         const jreDistros = await fs.promises.readdir(jreFolder);
+         if (jreDistros.length > 0) {
+            jreHome = path.join(jreFolder, jreDistros[0]);
+         }
+      } catch (error) {
+         console.error(error);
+      }
+    return jreHome;
+}
+
