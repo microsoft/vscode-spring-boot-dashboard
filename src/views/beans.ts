@@ -3,12 +3,16 @@
 
 import * as vscode from "vscode";
 import { LiveProcess } from "../models/liveProcess";
+import { getBeanDetail } from "../models/stsApi";
 import { LocalLiveProcess } from "../types/sts-api";
 
 interface Bean {
     processKey: string;
     id: string;
     dependents?: Bean[];
+    scope?: string;
+    type?: string;
+    resource?: string;
 }
 
 class BeansDataProvider implements vscode.TreeDataProvider<Bean | LiveProcess> {
@@ -35,6 +39,7 @@ class BeansDataProvider implements vscode.TreeDataProvider<Bean | LiveProcess> {
             item.collapsibleState = vscode.TreeItemCollapsibleState.None;
             item.iconPath = new vscode.ThemeIcon("symbol-class");
 
+            item.contextValue = "spring:bean";
             // for debug use
             // item.command = {
             //     command: "_spring.console.log",
@@ -85,3 +90,27 @@ class BeansDataProvider implements vscode.TreeDataProvider<Bean | LiveProcess> {
 }
 
 export const beansProvider = new BeansDataProvider();
+
+export async function openBeanHandler(bean: Bean) {
+    // TODO: extract logic in sts.java.javadocHoverLink into jdtls as a utility
+    if (!bean.type) {
+        const details = await getBeanDetail(bean.processKey, bean.id);
+        if (details && details.length > 0) {
+            bean = { ...bean, ...details[0] };
+        }
+    }
+
+    if (bean.type) {
+        const bindingKey = `L${bean.type.replace(/\./g, "/")};`;
+        const uriString = await vscode.commands.executeCommand<string>("sts.java.javadocHoverLink", {
+            bindingKey,
+            lookInOtherProjects: true
+        });
+        if (uriString) {
+            await vscode.commands.executeCommand("vscode.open", vscode.Uri.parse(uriString));
+            return;
+        }
+    }
+
+    vscode.window.showWarningMessage(`Fail to open bean. ${JSON.stringify(bean)}`);
+}

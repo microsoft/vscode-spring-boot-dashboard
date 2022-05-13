@@ -33,6 +33,15 @@ export async function getBeans(processKey: string) {
     return result;
 }
 
+export async function getBeanDetail(processKey: string, beanName: string) {
+    const bean = await stsApi.getLiveProcessData({
+        processKey,
+        endpoint: "beans",
+        beanName
+    });
+    return bean;
+}
+
 export async function getMappings(processKey: string) {
     const result = await stsApi.getLiveProcessData({
         processKey: processKey,

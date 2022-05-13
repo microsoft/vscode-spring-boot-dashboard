@@ -122,6 +122,12 @@
                 "title": "Open",
                 "category": "Spring Boot Dashboard",
                 "icon": "$(globe)"
+            },
+            {
+                "command": "spring.dashboard.bean.open",
+                "title": "Open",
+                "category": "Spring Boot Dashboard",
+                "icon": "$(go-to-file)"
             }
         ],
         "menus": {
@@ -237,6 +243,11 @@
                 {
                     "command": "spring.dashboard.endpoint.open",
                     "when": "view == spring.mappings && viewItem =~ /spring:endpoint(?=.*?\\b\\+GET\\b)/",
+                    "group": "inline@5"
+                },
+                {
+                    "command": "spring.dashboard.bean.open",
+                    "when": "view == spring.beans && viewItem =~ /spring:bean/",
                     "group": "inline@5"
                 }
             ]
