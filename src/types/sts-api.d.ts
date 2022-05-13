@@ -7,17 +7,17 @@ export interface ExtensionAPI {
     /**
      * An event which fires on live process is connected. Payload is processKey.
      */
-    readonly onDidLiveProcessConnect: Event<string>;
+    readonly onDidLiveProcessConnect: Event<LiveProcess | string>;
 
     /**
      * An event which fires on live process is disconnected. Payload is processKey.
      */
-    readonly onDidLiveProcessDisconnect: Event<string>;
+    readonly onDidLiveProcessDisconnect: Event<LiveProcess | string>;
 
 	/**
      * An event which fires on live process data change. Payload is processKey.
      */
-	readonly onDidLiveProcessUpdate: Event<string>;
+	readonly onDidLiveProcessUpdate: Event<LiveProcess | string>;
 
     /**
      * A command to get live process data.
@@ -29,7 +29,7 @@ export interface ExtensionAPI {
      *
      * Returns a list of processKeys.
      */
-    readonly listConnectedProcesses: () => Promise<string[]>;
+    readonly listConnectedProcesses: () => Promise<(LiveProcess | string)[]>;
 }
 
 interface LiveProcessDataQuery {
@@ -50,4 +50,22 @@ interface BeansQuery extends LiveProcessDataQuery {
      */
     beanName?: string;
     dependingOn?: string;
+}
+
+/**
+ * Common information provided by all live process notifications, for all types
+ * of events and for all types of processes.
+ */
+export interface LiveProcess {
+	type: string;
+	processKey: string;
+	processName: string;
+}
+
+/**
+ * Specialized interface for type 'local' LiveProcess.
+ */
+export interface LocalLiveProcess extends LiveProcess {
+	type: "local";
+	pid: string;
 }

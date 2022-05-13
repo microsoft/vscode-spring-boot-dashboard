@@ -1,16 +1,20 @@
+import { LocalLiveProcess } from "../types/sts-api";
 import { appsProvider } from "../views/apps";
-import { getPid, getMainClass } from "./stsApi";
 
 
 export class LiveProcess {
-    constructor(public processKey: string) { }
+    constructor(private liveProcess: LocalLiveProcess) { }
+
+    public get processKey(): string {
+        return this.liveProcess.processKey;
+    }
 
     public get pid(): string {
-        return getPid(this.processKey);
+        return this.liveProcess.pid;
     }
 
     public get appName(): string {
-        const mainClass = getMainClass(this.processKey);
+        const mainClass = this.liveProcess.processName;
         const runningApp = appsProvider.manager.getAppByMainClass(mainClass);
         return runningApp?.name ?? mainClass;
     }

@@ -3,6 +3,7 @@
 
 import * as vscode from "vscode";
 import { LiveProcess } from "../models/liveProcess";
+import { LocalLiveProcess } from "../types/sts-api";
 
 interface Bean {
     processKey: string;
@@ -65,17 +66,17 @@ class BeansDataProvider implements vscode.TreeDataProvider<Bean | LiveProcess> {
         return undefined;
     }
 
-    public refresh(processKey: string, beanIds: string[] | undefined) {
+    public refresh(liveProcess: LocalLiveProcess, beanIds: string[] | undefined) {
         if (beanIds === undefined) {
             // remove
-            const targetLiveProcess = Array.from(this.store.keys()).find(lp => lp.processKey === processKey);
+            const targetLiveProcess = Array.from(this.store.keys()).find(lp => lp.processKey === liveProcess.processKey);
             if (targetLiveProcess) {
                 this.store.delete(targetLiveProcess);
             }
         } else {
             // add/update
-            const targetLiveProcess = Array.from(this.store.keys()).find(lp => lp.processKey === processKey) ?? new LiveProcess(processKey);
-            const beans = beanIds.map(b => { return { processKey, id: b }; }).sort((a, b) => a.id.localeCompare(b.id));
+            const targetLiveProcess = Array.from(this.store.keys()).find(lp => lp.processKey === liveProcess.processKey) ?? new LiveProcess(liveProcess);
+            const beans = beanIds.map(b => { return { processKey: liveProcess.processKey, id: b }; }).sort((a, b) => a.id.localeCompare(b.id));
             this.store.set(targetLiveProcess, beans);
         }
         this.onDidRefreshBeans.fire(undefined);
