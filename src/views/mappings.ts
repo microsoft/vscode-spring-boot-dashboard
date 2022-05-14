@@ -116,7 +116,7 @@ export const mappingsProvider = new MappingsDataProvider();
 
 export async function openEndpointHandler(endpoint: Endpoint) {
     const port = await getPort(endpoint.processKey);
-    const contextPath = await getContextPath(endpoint.processKey);
+    const contextPath = await getContextPath(endpoint.processKey) ?? "";
     const url = `http://localhost:${port}${contextPath}${endpoint.pattern}`;
 
     const openWithExternalBrowser: boolean = vscode.workspace.getConfiguration("spring.dashboard").get("openWith") === "external";

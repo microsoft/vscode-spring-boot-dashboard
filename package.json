@@ -270,7 +270,7 @@
                     "description": "Defines which browser to use when opening Spring Boot apps."
                 },
                 "spring.dashboard.openUrl": {
-                    "default": "http://localhost:{port}{contextPath}",
+                    "default": "http://localhost:{port}{contextPath}/",
                     "type": "string",
                     "scope": "window",
                     "description": "Defines which URL is opened when opening Spring Boot apps. Uses {port} and {contextPath} as placeholders."

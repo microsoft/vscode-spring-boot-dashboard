@@ -17,7 +17,17 @@ class BootAppItem implements vscode.TreeItem {
     }
 
     public get description(): string | undefined {
-        return this._app.port || this._app.contextPath ? `[:${this._app.port}, ${this._app.contextPath}]` : undefined;
+        const list = [];
+        if (this._app.port) {
+            list.push(`:${this._app.port}`);
+        }
+        if (this._app.contextPath) {
+            list.push(this._app.contextPath);
+        }
+        if (list.length > 0) {
+            return `[${list.join(", ")}]`;
+        }
+        return undefined;
     }
 
     public get iconPath(): string | vscode.ThemeIcon {

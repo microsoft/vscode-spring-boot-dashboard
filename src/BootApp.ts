@@ -103,7 +103,7 @@ export class BootApp {
     }
 
     public set contextPath(contextPath: string | undefined) {
-        this._contextPath = contextPath;
+        this._contextPath = contextPath ?? "";
         appsProvider.refresh(this);
     }
 

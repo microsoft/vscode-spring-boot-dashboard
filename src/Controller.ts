@@ -150,77 +150,75 @@ export class Controller {
         }
     }
 
-    public async openBootApp(app: BootApp): Promise<void> {
+    private async getOpenUrlFromJMX(app: BootApp) {
+        if (!app.jmxPort) {
+            return undefined;
+        }
+
         let jvm = await findJvm();
         if (!jvm) {
-            throw new Error("Couldn't find a JVM to run Java code");
+            return undefined;
         }
-        let jmxport = app.jmxPort;
-        if (jmxport) {
-            let jmxurl = `service:jmx:rmi:///jndi/rmi://localhost:${jmxport}/jmxrmi`;
-            if (jvm) {
-                let javaProcess = jvm.jarLaunch(
-                    path.resolve(this._context.extensionPath, "lib", "java-extension.jar"),
-                    [
-                        "-Djmxurl=" + jmxurl
-                    ]
-                );
-                let stdout = javaProcess.stdout ? await readAll(javaProcess.stdout) : null;
 
-                let port: number | null = null;
-                let contextPath: string | null = null;
+        let jmxurl = `service:jmx:rmi:///jndi/rmi://localhost:${app.jmxPort}/jmxrmi`;
+        let javaProcess = jvm.jarLaunch(
+            path.resolve(this._context.extensionPath, "lib", "java-extension.jar"),
+            [
+                "-Djmxurl=" + jmxurl
+            ]
+        );
+        let stdout = javaProcess.stdout ? await readAll(javaProcess.stdout) : null;
 
-                READ_JMX_EXTENSION_RESPONSE: {
-                    if (stdout !== null) {
-                        let jmxExtensionResponse;
+        let port: number | undefined = undefined;
+        let contextPath: string | undefined = undefined;
 
-                        try {
-                            jmxExtensionResponse = JSON.parse(stdout);
-                        } catch (ex) {
-                            console.log(ex);
-                            break READ_JMX_EXTENSION_RESPONSE;
-                        }
+        READ_JMX_EXTENSION_RESPONSE: {
+            if (stdout !== null) {
+                let jmxExtensionResponse;
 
-                        if (jmxExtensionResponse['local.server.port'] !== null && typeof jmxExtensionResponse['local.server.port'] === 'number') {
-                            port = jmxExtensionResponse['local.server.port'];
-                        }
-
-                        if (jmxExtensionResponse['server.servlet.context-path'] !== null) {
-                            contextPath = jmxExtensionResponse['server.servlet.context-path'];
-                        }
-
-                        if (jmxExtensionResponse['status'] !== null && jmxExtensionResponse['status'] === "failure") {
-                            this._printJavaProcessError(javaProcess);
-                        }
-                    }
+                try {
+                    jmxExtensionResponse = JSON.parse(stdout);
+                } catch (ex) {
+                    console.log(ex);
+                    break READ_JMX_EXTENSION_RESPONSE;
                 }
 
-                if (contextPath === null) {
-                    contextPath = "/"; //if no context path is defined then fallback to root path
+                if (jmxExtensionResponse['local.server.port'] !== null && typeof jmxExtensionResponse['local.server.port'] === 'number') {
+                    port = jmxExtensionResponse['local.server.port'];
                 }
 
-                const configOpenUrl: string = vscode.workspace.getConfiguration("spring.dashboard").get("openUrl") as string;
-                let openUrl: string;
-
-                if (configOpenUrl === null) {
-                    openUrl = `http://localhost:${port}${contextPath}`;
-                } else {
-                    openUrl = configOpenUrl
-                        .replace("{port}", String(port))
-                        .replace("{contextPath}", contextPath.toString());
+                if (jmxExtensionResponse['server.servlet.context-path'] !== null) {
+                    contextPath = jmxExtensionResponse['server.servlet.context-path'];
                 }
 
-
-                if (port !== null) {
-                    const openWithExternalBrowser: boolean = vscode.workspace.getConfiguration("spring.dashboard").get("openWith") === "external";
-                    const browserCommand: string = openWithExternalBrowser ? "vscode.open" : "simpleBrowser.api.open";
-
-                    vscode.commands.executeCommand(browserCommand, vscode.Uri.parse(openUrl));
-                } else {
+                if (jmxExtensionResponse['status'] !== null && jmxExtensionResponse['status'] === "failure") {
                     this._printJavaProcessError(javaProcess);
-                    vscode.window.showErrorMessage("Couldn't determine port app is running on");
                 }
             }
+        }
+
+        if (contextPath === undefined) {
+            contextPath = ""; //if no context path is defined then fallback to root path
+        }
+
+        return port ? constructOpenUrl(contextPath, port) : undefined;
+    }
+
+    public async openBootApp(app: BootApp): Promise<void> {
+        let openUrl: string | undefined;
+        if(app.contextPath !== undefined && app.port !== undefined) {
+            openUrl = constructOpenUrl(app.contextPath, app.port);
+        } else {
+            openUrl = await this.getOpenUrlFromJMX(app);
+        }
+
+        if (openUrl !== undefined) {
+            const openWithExternalBrowser: boolean = vscode.workspace.getConfiguration("spring.dashboard").get("openWith") === "external";
+            const browserCommand: string = openWithExternalBrowser ? "vscode.open" : "simpleBrowser.api.open";
+
+            vscode.commands.executeCommand(browserCommand, vscode.Uri.parse(openUrl));
+        } else {
+            vscode.window.showErrorMessage("Couldn't determine port app is running on");
         }
     }
 
@@ -272,4 +270,18 @@ export class Controller {
 
 function isRunInTerminal(session: vscode.DebugSession) {
     return session.configuration.noDebug === true && session.configuration.console !== "internalConsole";
+}
+
+function constructOpenUrl(contextPath: string, port: number) {
+    const configOpenUrl: string | undefined = vscode.workspace.getConfiguration("spring.dashboard").get<string>("openUrl");
+    let openUrl: string;
+
+    if (configOpenUrl === undefined) {
+        openUrl = `http://localhost:${port}${contextPath}/`;
+    } else {
+        openUrl = configOpenUrl
+            .replace("{port}", String(port))
+            .replace("{contextPath}", contextPath.toString());
+    }
+    return openUrl;
 }
