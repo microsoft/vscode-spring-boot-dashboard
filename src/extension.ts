@@ -3,8 +3,9 @@
 
 'use strict';
 import * as vscode from 'vscode';
-import { dispose as disposeTelemetryWrapper, initializeFromJsonFile, instrumentOperation, instrumentOperationAsVsCodeCommand } from "vscode-extension-telemetry-wrapper";
+import { dispose as disposeTelemetryWrapper, initialize, instrumentOperation, instrumentOperationAsVsCodeCommand } from "vscode-extension-telemetry-wrapper";
 import { BootApp } from './BootApp';
+import { getAiKey, getExtensionId, getExtensionVersion, loadPackageInfo } from './contextUtils';
 import { Controller } from './Controller';
 import { init as initLiveDataController } from './controllers/LiveDataController';
 import { appsProvider } from './views/apps';
@@ -12,7 +13,11 @@ import { beansProvider, openBeanHandler } from './views/beans';
 import { mappingsProvider, openEndpointHandler } from './views/mappings';
 
 export async function activate(context: vscode.ExtensionContext) {
-    await initializeFromJsonFile(context.asAbsolutePath("./package.json"), { firstParty: true });
+    await loadPackageInfo(context);
+    // Usage data statistics.
+    if (getAiKey()) {
+        initialize(getExtensionId(), getExtensionVersion(), getAiKey(), { firstParty: true });
+    }
     await instrumentOperation("activation", initializeExtension)(context);
 }
 

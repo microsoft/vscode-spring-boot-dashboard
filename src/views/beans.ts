@@ -2,6 +2,7 @@
 // Licensed under the MIT license.
 
 import * as vscode from "vscode";
+import { getPathToExtensionRoot } from "../contextUtils";
 import { LiveProcess } from "../models/liveProcess";
 import { getBeanDetail } from "../models/stsApi";
 import { LocalLiveProcess } from "../types/sts-api";
@@ -37,7 +38,7 @@ class BeansDataProvider implements vscode.TreeDataProvider<Bean | LiveProcess> {
         } else {
             const item = new vscode.TreeItem(element.id);
             item.collapsibleState = vscode.TreeItemCollapsibleState.None;
-            item.iconPath = new vscode.ThemeIcon("symbol-class");
+            item.iconPath = getPathToExtensionRoot("resources", "bean.svg");
 
             item.contextValue = "spring:bean";
             // for debug use
