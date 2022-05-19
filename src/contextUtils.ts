@@ -4,7 +4,7 @@
 import * as os from "os";
 import * as fs from "fs";
 import * as path from "path";
-import { Extension, ExtensionContext, extensions } from "vscode";
+import { Extension, ExtensionContext, extensions, Uri } from "vscode";
 
 let EXTENSION_CONTEXT: ExtensionContext;
 let EXTENSION_PUBLISHER: string;
@@ -49,4 +49,11 @@ export function getPathToExtensionRoot(...args: string[]): string {
         throw new Error("Cannot identify extension root.");
     }
     return path.join(ext.extensionPath, ...args);
+}
+
+export function getPathToWorkspaceStorage(...args: string[]): Uri | undefined {
+    if (EXTENSION_CONTEXT.storageUri === undefined) {
+        return undefined;
+    }
+    return Uri.joinPath(EXTENSION_CONTEXT.storageUri, ...args);
 }
