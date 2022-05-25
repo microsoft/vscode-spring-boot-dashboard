@@ -2,6 +2,7 @@
 // Licensed under the MIT license.
 
 import * as vscode from "vscode";
+import { requestWorkspaceSymbols } from "./models/stsApi";
 import { ClassPathData, MainClassData } from "./types/jdtls";
 import { isAlive } from "./utils";
 import { appsProvider } from "./views/apps";
@@ -22,13 +23,16 @@ export class BootApp {
     private _watchdog?: any; // used to watch running process.
 
     public mainClasses: MainClassData[];
+    public symbols: {beans: any[], mappings: any[]};
 
     constructor(
         private _path: string,
         private _name: string,
         private _classpath: ClassPathData,
         private _state: AppState,
-    ) { }
+    ) {
+        this.getWorkspaceSymbols();
+    }
 
     public get activeSessionName() : string | undefined {
         return this._activeSessionName;
@@ -142,5 +146,15 @@ export class BootApp {
         } else {
             return [];
         }
+    }
+
+    /**
+     * getWorkspaceSymbols
+     */
+    public async getWorkspaceSymbols() {
+        if (!this.symbols) {
+            this.symbols = await requestWorkspaceSymbols(this.path);
+        }
+        return this.symbols;
     }
 }
