@@ -134,6 +134,12 @@
                 "title": "Open",
                 "category": "Spring Boot Dashboard",
                 "icon": "$(go-to-file)"
+            },
+            {
+                "command": "spring.dashboard.bean.navigate",
+                "title": "Open",
+                "category": "Spring Boot Dashboard",
+                "icon": "$(go-to-file)"
             }
         ],
         "menus": {
