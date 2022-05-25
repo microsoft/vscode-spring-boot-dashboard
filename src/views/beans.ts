@@ -41,12 +41,12 @@ class BeansDataProvider implements vscode.TreeDataProvider<Bean | LiveProcess> {
             item.iconPath = getPathToExtensionRoot("resources", "bean.svg");
 
             item.contextValue = "spring:bean";
-            // for debug use
-            // item.command = {
-            //     command: "_spring.console.log",
-            //     title: "console.log",
-            //     arguments: [element]
-            // };
+
+            item.command = {
+                command: "spring.dashboard.bean.open",
+                title: "Open",
+                arguments: [element]
+            };
             return item;
         }
     }
