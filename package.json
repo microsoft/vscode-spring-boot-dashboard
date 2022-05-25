@@ -124,6 +124,12 @@
                 "icon": "$(globe)"
             },
             {
+                "command": "spring.dashboard.endpoint.navigate",
+                "title": "Go to",
+                "category": "Spring Boot Dashboard",
+                "icon": "$(go-to-file)"
+            },
+            {
                 "command": "spring.dashboard.bean.open",
                 "title": "Open",
                 "category": "Spring Boot Dashboard",

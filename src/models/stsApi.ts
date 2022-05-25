@@ -116,3 +116,11 @@ async function getJreHome() {
     return jreHome;
 }
 
+export async function requestWorkspaceSymbols(_projectPath?: string): Promise<{
+    beans: any[],
+    mappings: any[]
+}> {
+    const beans = await stsApi.client.sendRequest("workspace/symbol", {"query": "@+"}) as any[];
+    const mappings = await stsApi.client.sendRequest("workspace/symbol", {"query": "@/"}) as any[];
+    return { beans, mappings };
+}
