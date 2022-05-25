@@ -59,9 +59,9 @@ class MappingsDataProvider implements vscode.TreeDataProvider<TreeData> {
             item.contextValue = "bootApp";
             return item;
         } else {
+            const isLive = !!(element as Endpoint).processKey;
             const label = element.label;
             const item = new vscode.TreeItem(label);
-            const isLive = !!(element as Endpoint).processKey;
 
             item.tooltip = (element as Endpoint).handler;
             item.collapsibleState = vscode.TreeItemCollapsibleState.None;
@@ -168,8 +168,4 @@ export async function openEndpointHandler(endpoint: Endpoint) {
     const openWithExternalBrowser: boolean = vscode.workspace.getConfiguration("spring.dashboard").get("openWith") === "external";
     const browserCommand: string = openWithExternalBrowser ? "vscode.open" : "simpleBrowser.api.open";
     vscode.commands.executeCommand(browserCommand, vscode.Uri.parse(url));
-}
-
-export async function navigateEndpointHandler(_endpoint: StaticEndpoint) {
-    // TODO: navigate to source file given a Location(uri + range);
 }

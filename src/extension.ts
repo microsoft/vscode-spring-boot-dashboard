@@ -9,10 +9,10 @@ import { getAiKey, getExtensionId, getExtensionVersion, loadPackageInfo } from '
 import { Controller } from './Controller';
 import { init as initLiveDataController } from './controllers/LiveDataController';
 import { requestWorkspaceSymbols } from './models/stsApi';
-import { getMappings, init as initSymbolManager } from './models/symbols';
+import { getBeans, getMappings, init as initSymbolManager, navigateToLocation } from './models/symbols';
 import { appsProvider } from './views/apps';
 import { beansProvider, openBeanHandler } from './views/beans';
-import { mappingsProvider, navigateEndpointHandler, openEndpointHandler } from './views/mappings';
+import { mappingsProvider, openEndpointHandler } from './views/mappings';
 
 export async function activate(context: vscode.ExtensionContext) {
     await loadPackageInfo(context);
@@ -67,8 +67,9 @@ export async function initializeExtension(_oprationId: string, context: vscode.E
     context.subscriptions.push(vscode.window.createTreeView('spring.mappings', { treeDataProvider: mappingsProvider, showCollapseAll: true }));
     await initLiveDataController();
     context.subscriptions.push(instrumentOperationAsVsCodeCommand("spring.dashboard.endpoint.open", openEndpointHandler));
-    context.subscriptions.push(instrumentOperationAsVsCodeCommand("spring.dashboard.endpoint.navigate", navigateEndpointHandler));
+    context.subscriptions.push(instrumentOperationAsVsCodeCommand("spring.dashboard.endpoint.navigate", navigateToLocation));
     context.subscriptions.push(instrumentOperationAsVsCodeCommand("spring.dashboard.bean.open", openBeanHandler));
+    context.subscriptions.push(instrumentOperationAsVsCodeCommand("spring.dashboard.bean.navigate", navigateToLocation));
 
     // console.log
     context.subscriptions.push(vscode.commands.registerCommand("_spring.console.log", console.log));
@@ -83,6 +84,7 @@ export async function initializeExtension(_oprationId: string, context: vscode.E
                     await initSymbolManager();
                     appsProvider.manager.getAppList().forEach(app => {
                         mappingsProvider.refreshStatic(app, getMappings(app.path));
+                        beansProvider.refreshStatic(app, getBeans(app.path));
                     });
                 }, 1000);
             }

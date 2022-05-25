@@ -2,6 +2,7 @@
 // Licensed under the MIT license.
 
 import * as vscode from "vscode";
+import { BootApp } from "../BootApp";
 import { getPathToExtensionRoot } from "../contextUtils";
 import { LiveProcess } from "../models/liveProcess";
 import { getBeanDetail } from "../models/stsApi";
@@ -16,10 +17,20 @@ interface Bean {
     resource?: string;
 }
 
-class BeansDataProvider implements vscode.TreeDataProvider<Bean | LiveProcess> {
-    private store: Map<LiveProcess, Bean[]> = new Map();
+interface StaticBean {
+    name: string;
+    location: vscode.Location;
 
-    private onDidRefreshBeans: vscode.EventEmitter<Bean | LiveProcess | undefined> = new vscode.EventEmitter<Bean | LiveProcess | undefined>();
+    id: string;
+}
+
+type TreeData = Bean | LiveProcess | StaticBean | BootApp;
+
+class BeansDataProvider implements vscode.TreeDataProvider<TreeData> {
+    private store: Map<LiveProcess, Bean[]> = new Map();
+    private staticData: Map<BootApp, StaticBean[]> = new Map();
+
+    private onDidRefreshBeans: vscode.EventEmitter<TreeData | undefined> = new vscode.EventEmitter<TreeData | undefined>();
 
     constructor() {
 
@@ -27,7 +38,7 @@ class BeansDataProvider implements vscode.TreeDataProvider<Bean | LiveProcess> {
 
     onDidChangeTreeData = this.onDidRefreshBeans.event;
 
-    getTreeItem(element: Bean | LiveProcess): vscode.TreeItem | Thenable<vscode.TreeItem> {
+    getTreeItem(element: TreeData): vscode.TreeItem | Thenable<vscode.TreeItem> {
         if (element instanceof LiveProcess) {
             const item = new vscode.TreeItem(element.appName);
             item.description = `pid: ${element.pid}`;
@@ -35,15 +46,31 @@ class BeansDataProvider implements vscode.TreeDataProvider<Bean | LiveProcess> {
             item.collapsibleState = vscode.TreeItemCollapsibleState.Expanded;
             item.contextValue = "liveProcess";
             return item;
+        } else if (element instanceof BootApp) {
+            const item = new vscode.TreeItem(element.name);
+            item.iconPath = new vscode.ThemeIcon("pulse");
+            item.collapsibleState = vscode.TreeItemCollapsibleState.Expanded;
+            item.contextValue = "bootApp";
+            return item;
         } else {
-            const item = new vscode.TreeItem(element.id);
-            item.collapsibleState = vscode.TreeItemCollapsibleState.None;
-            item.iconPath = getPathToExtensionRoot("resources", "bean.svg");
+            const isLive = !!(element as Bean).processKey;
+            const label = element.id;
 
-            item.contextValue = "spring:bean";
+            const item = new vscode.TreeItem(label);
+            item.collapsibleState = vscode.TreeItemCollapsibleState.None;
+            if (isLive) {
+                item.iconPath = getPathToExtensionRoot("resources", "bean-live.svg");
+            } else {
+                item.iconPath = {
+                    light: getPathToExtensionRoot("resources", "bean-light.svg"),
+                    dark: getPathToExtensionRoot("resources", "bean-dark.svg")
+                };
+            }
+
+            item.contextValue = isLive ? "spring:bean" : "spring:staticBean";
 
             item.command = {
-                command: "spring.dashboard.bean.open",
+                command: isLive ? "spring.dashboard.bean.open" : "spring.dashboard.bean.navigate",
                 title: "Open",
                 arguments: [element]
             };
@@ -51,15 +78,22 @@ class BeansDataProvider implements vscode.TreeDataProvider<Bean | LiveProcess> {
         }
     }
 
-    async getChildren(element?: Bean | LiveProcess): Promise<LiveProcess[] | Bean[] | undefined> {
+    async getChildren(element?: TreeData): Promise<TreeData[] | undefined> {
         // top-level
         if (!element) {
-            return Array.from(this.store.keys());
+            const liveProcesses = Array.from(this.store.keys());
+            if (liveProcesses.length > 0) {
+                return liveProcesses;
+            } else {
+                return Array.from(this.staticData.keys());
+            }
         }
 
         // all beans
         if (element instanceof LiveProcess) {
             return this.store.get(element);
+        } else if (element instanceof BootApp) {
+            return this.staticData.get(element);
         }
 
         /*
@@ -88,6 +122,11 @@ class BeansDataProvider implements vscode.TreeDataProvider<Bean | LiveProcess> {
         this.onDidRefreshBeans.fire(undefined);
     }
 
+    public refreshStatic(app: BootApp, mappingsRaw: StaticBean[]) {
+        const mappings = mappingsRaw.map(raw => parseStaticBean(raw)).sort((a, b) => a.id.localeCompare(b.id));
+        this.staticData.set(app, mappings);
+        this.onDidRefreshBeans.fire(undefined);
+    }
 }
 
 export const beansProvider = new BeansDataProvider();
@@ -114,4 +153,14 @@ export async function openBeanHandler(bean: Bean) {
     }
 
     vscode.window.showWarningMessage(`Fail to open bean. ${JSON.stringify(bean)}`);
+}
+
+function parseStaticBean(raw:any): StaticBean {
+    const m = (raw.name as string).match(/^@\+ '(.+?)'/);
+    let id = m ? m[1] : "unknown";
+
+    return {
+        id,
+        ...raw
+    };
 }
