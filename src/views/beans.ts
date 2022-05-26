@@ -30,10 +30,22 @@ class BeansDataProvider implements vscode.TreeDataProvider<TreeData> {
     private store: Map<LiveProcess, Bean[]> = new Map();
     private staticData: Map<BootApp, StaticBean[]> = new Map();
 
+    private _showAll: boolean = false;
+
     private onDidRefreshBeans: vscode.EventEmitter<TreeData | undefined> = new vscode.EventEmitter<TreeData | undefined>();
 
     constructor() {
+        vscode.commands.executeCommand("setContext", "spring.beans:showMode", "defined");
+    }
 
+    public get showAll(): boolean {
+        return this._showAll;
+    }
+
+    public set showAll(value: boolean) {
+        this._showAll = value;
+        vscode.commands.executeCommand("setContext", "spring.beans:showMode", this._showAll ? "all" : "defined");
+        this.onDidRefreshBeans.fire(undefined);
     }
 
     onDidChangeTreeData = this.onDidRefreshBeans.event;
@@ -91,7 +103,17 @@ class BeansDataProvider implements vscode.TreeDataProvider<TreeData> {
 
         // all beans
         if (element instanceof LiveProcess) {
-            return this.store.get(element);
+            const liveBeans =  this.store.get(element);
+            if (this.showAll) {
+                return liveBeans;
+            } else {
+                // TODO: inaccurate match with project name. should use some unique identifier like path.
+                const correspondingApp = Array.from(this.staticData.keys()).find(app => app.name === element.appName);
+                if (correspondingApp) {
+                    const staticBeans = this.staticData.get(correspondingApp);
+                    return liveBeans?.filter(lb => staticBeans?.find(sb => sb.id === lb.id));
+                }
+            }
         } else if (element instanceof BootApp) {
             return this.staticData.get(element);
         }

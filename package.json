@@ -140,6 +140,30 @@
                 "title": "Open",
                 "category": "Spring Boot Dashboard",
                 "icon": "$(go-to-file)"
+            },
+            {
+                "command": "spring.dashboard.mapping.showAll",
+                "title": "Show All Endpoints",
+                "category": "Spring Boot Dashboard",
+                "icon": "$(list-flat)"
+            },
+            {
+                "command": "spring.dashboard.mapping.showDefined",
+                "title": "Show Defined Endpoints",
+                "category": "Spring Boot Dashboard",
+                "icon": "$(list-filter)"
+            },
+            {
+                "command": "spring.dashboard.bean.showAll",
+                "title": "Show All Beans",
+                "category": "Spring Boot Dashboard",
+                "icon": "$(list-flat)"
+            },
+            {
+                "command": "spring.dashboard.bean.showDefined",
+                "title": "Show Defined Beans",
+                "category": "Spring Boot Dashboard",
+                "icon": "$(list-filter)"
             }
         ],
         "menus": {
@@ -184,6 +208,26 @@
                     "command": "spring-boot-dashboard.refresh",
                     "when": "view == spring-boot-dashboard",
                     "group": "navigation@5"
+                },
+                {
+                    "command": "spring.dashboard.mapping.showDefined",
+                    "when": "view == spring.mappings && spring.mappings:showMode != defined",
+                    "group": "navigation@5"
+                },
+                {
+                    "command": "spring.dashboard.mapping.showAll",
+                    "when": "view == spring.mappings && spring.mappings:showMode != all",
+                    "group": "navigation@8"
+                },
+                {
+                    "command": "spring.dashboard.bean.showDefined",
+                    "when": "view == spring.beans && spring.beans:showMode != defined",
+                    "group": "navigation@5"
+                },
+                {
+                    "command": "spring.dashboard.bean.showAll",
+                    "when": "view == spring.beans && spring.beans:showMode != all",
+                    "group": "navigation@8"
                 }
             ],
             "view/item/context": [

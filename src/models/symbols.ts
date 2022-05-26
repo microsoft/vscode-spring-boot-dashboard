@@ -36,7 +36,7 @@ function sanitizeFilePath(uri: string) {
 }
 
 export function navigateToLocation(symbol: { location: vscode.Location }) {
-    const {uri, range} = symbol.location;
+    const {uri, range} = symbol.location ?? (symbol as any).corresponding?.location;
     const line = range.start.line + 1; // zero-base in range.
 
     const uriString = `${uri}#${line}`;

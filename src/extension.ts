@@ -70,6 +70,10 @@ export async function initializeExtension(_oprationId: string, context: vscode.E
     context.subscriptions.push(instrumentOperationAsVsCodeCommand("spring.dashboard.endpoint.navigate", navigateToLocation));
     context.subscriptions.push(instrumentOperationAsVsCodeCommand("spring.dashboard.bean.open", openBeanHandler));
     context.subscriptions.push(instrumentOperationAsVsCodeCommand("spring.dashboard.bean.navigate", navigateToLocation));
+    context.subscriptions.push(instrumentOperationAsVsCodeCommand("spring.dashboard.mapping.showAll", () => mappingsProvider.showAll = true));
+    context.subscriptions.push(instrumentOperationAsVsCodeCommand("spring.dashboard.mapping.showDefined", () => mappingsProvider.showAll = false));
+    context.subscriptions.push(instrumentOperationAsVsCodeCommand("spring.dashboard.bean.showAll", () => beansProvider.showAll = true));
+    context.subscriptions.push(instrumentOperationAsVsCodeCommand("spring.dashboard.bean.showDefined", () => beansProvider.showAll = false));
 
     // console.log
     context.subscriptions.push(vscode.commands.registerCommand("_spring.console.log", console.log));

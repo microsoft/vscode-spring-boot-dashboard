@@ -36,10 +36,22 @@ class MappingsDataProvider implements vscode.TreeDataProvider<TreeData> {
     private store: Map<LiveProcess, Endpoint[]> = new Map();
     private staticData: Map<BootApp, StaticEndpoint[]> = new Map();
 
+    private _showAll: boolean = false;
+
     private onDidRefreshMappings: vscode.EventEmitter<TreeData | undefined> = new vscode.EventEmitter<TreeData | undefined>();
 
     constructor() {
+        vscode.commands.executeCommand("setContext", "spring.mappings:showMode", "defined");
+    }
 
+    public get showAll(): boolean {
+        return this._showAll;
+    }
+
+    public set showAll(value: boolean) {
+        this._showAll = value;
+        vscode.commands.executeCommand("setContext", "spring.mappings:showMode", this._showAll ? "all" : "defined");
+        this.onDidRefreshMappings.fire(undefined);
     }
 
     onDidChangeTreeData = this.onDidRefreshMappings.event;
@@ -96,7 +108,19 @@ class MappingsDataProvider implements vscode.TreeDataProvider<TreeData> {
 
         // all mappings
         if (element instanceof LiveProcess) {
-            return this.store.get(element);
+            const liveMappings = this.store.get(element);
+            // TODO: inaccurate match with project name. should use some unique identifier like path.
+            const correspondingApp = Array.from(this.staticData.keys()).find(app => app.name === element.appName);
+            let fullList = liveMappings;
+            if (correspondingApp) {
+                const staticMappings = this.staticData.get(correspondingApp);
+                fullList = liveMappings?.map(lm => ({ corresponding: staticMappings?.find(sm => sm.label === lm.label), ...lm }));
+            }
+            if (this.showAll) {
+                return fullList;
+            } else {
+                return fullList?.filter(elem => (elem as any).corresponding);
+            }
         } else if (element instanceof BootApp) {
             return this.staticData.get(element);
         }
