@@ -4,6 +4,7 @@
 
 import * as vscode from "vscode";
 import { BootApp } from "../BootApp";
+import { initSymbols } from "../controllers/SymbolsController";
 import { LiveProcess } from "../models/liveProcess";
 import { getContextPath, getPort } from "../models/stsApi";
 import { LocalLiveProcess } from "../types/sts-api";
@@ -106,6 +107,7 @@ class MappingsDataProvider implements vscode.TreeDataProvider<TreeData> {
             }
         }
 
+        await initSymbols();
         // all mappings
         if (element instanceof LiveProcess) {
             const liveMappings = this.store.get(element);
@@ -115,12 +117,13 @@ class MappingsDataProvider implements vscode.TreeDataProvider<TreeData> {
             if (correspondingApp) {
                 const staticMappings = this.staticData.get(correspondingApp);
                 fullList = liveMappings?.map(lm => ({ corresponding: staticMappings?.find(sm => sm.label === lm.label), ...lm }));
+
+                if (!this.showAll && staticMappings?.length) {
+                    return fullList?.filter(elem => (elem as any).corresponding);
+                }
             }
-            if (this.showAll) {
-                return fullList;
-            } else {
-                return fullList?.filter(elem => (elem as any).corresponding);
-            }
+            return fullList;
+
         } else if (element instanceof BootApp) {
             return this.staticData.get(element);
         }
@@ -128,7 +131,11 @@ class MappingsDataProvider implements vscode.TreeDataProvider<TreeData> {
         return undefined;
     }
 
-    public refresh(liveProcess: LocalLiveProcess, mappingsRaw: any[] | undefined) {
+    public refresh(item?: TreeData) {
+        this.onDidRefreshMappings.fire(item);
+    }
+
+    public refreshLive(liveProcess: LocalLiveProcess, mappingsRaw: any[] | undefined) {
         if (mappingsRaw === undefined) {
             // remove
             const targetLiveProcess = Array.from(this.store.keys()).find(lp => lp.processKey === liveProcess.processKey);
@@ -145,9 +152,13 @@ class MappingsDataProvider implements vscode.TreeDataProvider<TreeData> {
     }
 
     public refreshStatic(app: BootApp, mappingsRaw: StaticEndpoint[]) {
+        this.updateStaticData(app, mappingsRaw);
+        this.onDidRefreshMappings.fire(undefined);
+    }
+
+    public updateStaticData(app: BootApp, mappingsRaw: StaticEndpoint[]) {
         const mappings = mappingsRaw.map(raw => parseStaticMapping(raw)).sort((a, b) => a.label.localeCompare(b.label));
         this.staticData.set(app, mappings);
-        this.onDidRefreshMappings.fire(undefined);
     }
 }
 

@@ -28,10 +28,10 @@ async function updateProcessInfo(payload: string | LocalLiveProcess) {
     const { processKey, processName, pid } = liveProcess;
 
     const beans = await getBeans(processKey);
-    beansProvider.refresh(liveProcess, beans);
+    beansProvider.refreshLive(liveProcess, beans);
 
     const mappings = await getMappings(processKey);
-    mappingsProvider.refresh(liveProcess, mappings);
+    mappingsProvider.refreshLive(liveProcess, mappings);
 
     const port = await getPort(processKey);
     const contextPath = await getContextPath(processKey);
@@ -48,8 +48,8 @@ async function updateProcessInfo(payload: string | LocalLiveProcess) {
 async function resetProcessInfo(payload: string | LocalLiveProcess) {
     const liveProcess = await parsePayload(payload);
     store.data.delete(liveProcess.processKey);
-    beansProvider.refresh(liveProcess, undefined);
-    mappingsProvider.refresh(liveProcess, undefined);
+    beansProvider.refreshLive(liveProcess, undefined);
+    mappingsProvider.refreshLive(liveProcess, undefined);
 
     const disconnectedApp = appsProvider.manager.getAppByMainClass(liveProcess.processName);
     // Workaound for: app is still running if manually disconnect from live process connection.

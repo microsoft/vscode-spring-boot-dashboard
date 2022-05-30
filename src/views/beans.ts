@@ -4,6 +4,7 @@
 import * as vscode from "vscode";
 import { BootApp } from "../BootApp";
 import { getPathToExtensionRoot } from "../contextUtils";
+import { initSymbols } from "../controllers/SymbolsController";
 import { LiveProcess } from "../models/liveProcess";
 import { getBeanDetail } from "../models/stsApi";
 import { LocalLiveProcess } from "../types/sts-api";
@@ -101,19 +102,21 @@ class BeansDataProvider implements vscode.TreeDataProvider<TreeData> {
             }
         }
 
+        await initSymbols();
         // all beans
         if (element instanceof LiveProcess) {
             const liveBeans =  this.store.get(element);
-            if (this.showAll) {
-                return liveBeans;
-            } else {
+            if (!this.showAll) {
                 // TODO: inaccurate match with project name. should use some unique identifier like path.
                 const correspondingApp = Array.from(this.staticData.keys()).find(app => app.name === element.appName);
                 if (correspondingApp) {
                     const staticBeans = this.staticData.get(correspondingApp);
-                    return liveBeans?.filter(lb => staticBeans?.find(sb => sb.id === lb.id));
+                    if (staticBeans?.length) {
+                        return liveBeans?.filter(lb => staticBeans?.find(sb => sb.id === lb.id));
+                    }
                 }
             }
+            return liveBeans;
         } else if (element instanceof BootApp) {
             return this.staticData.get(element);
         }
@@ -128,7 +131,11 @@ class BeansDataProvider implements vscode.TreeDataProvider<TreeData> {
         return undefined;
     }
 
-    public refresh(liveProcess: LocalLiveProcess, beanIds: string[] | undefined) {
+    public refresh(item?: TreeData) {
+        this.onDidRefreshBeans.fire(item);
+    }
+
+    public refreshLive(liveProcess: LocalLiveProcess, beanIds: string[] | undefined) {
         if (beanIds === undefined) {
             // remove
             const targetLiveProcess = Array.from(this.store.keys()).find(lp => lp.processKey === liveProcess.processKey);
@@ -145,9 +152,13 @@ class BeansDataProvider implements vscode.TreeDataProvider<TreeData> {
     }
 
     public refreshStatic(app: BootApp, mappingsRaw: StaticBean[]) {
+        this.updateStaticData(app, mappingsRaw);
+        this.onDidRefreshBeans.fire(undefined);
+    }
+
+    public updateStaticData(app: BootApp, mappingsRaw: StaticBean[]) {
         const mappings = mappingsRaw.map(raw => parseStaticBean(raw)).sort((a, b) => a.id.localeCompare(b.id));
         this.staticData.set(app, mappings);
-        this.onDidRefreshBeans.fire(undefined);
     }
 }
 

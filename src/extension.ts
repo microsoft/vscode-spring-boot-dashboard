@@ -8,8 +8,9 @@ import { BootApp } from './BootApp';
 import { getAiKey, getExtensionId, getExtensionVersion, loadPackageInfo } from './contextUtils';
 import { Controller } from './Controller';
 import { init as initLiveDataController } from './controllers/LiveDataController';
+import { initSymbols } from './controllers/SymbolsController';
 import { requestWorkspaceSymbols } from './models/stsApi';
-import { getBeans, getMappings, init as initSymbolManager, navigateToLocation } from './models/symbols';
+import { navigateToLocation } from './models/symbols';
 import { appsProvider } from './views/apps';
 import { beansProvider, openBeanHandler } from './views/beans';
 import { mappingsProvider, openEndpointHandler } from './views/mappings';
@@ -85,12 +86,10 @@ export async function initializeExtension(_oprationId: string, context: vscode.E
         javaApi.onDidServerModeChange((m: any) => {
             if (m === "Standard") {
                 setTimeout(async () => {
-                    await initSymbolManager();
-                    appsProvider.manager.getAppList().forEach(app => {
-                        mappingsProvider.refreshStatic(app, getMappings(app.path));
-                        beansProvider.refreshStatic(app, getBeans(app.path));
-                    });
-                }, 1000);
+                    await initSymbols();
+                    beansProvider.refresh(undefined);
+                    mappingsProvider.refresh(undefined);
+                }, 2000);
             }
         });
     }
