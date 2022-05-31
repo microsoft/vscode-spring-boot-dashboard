@@ -2,7 +2,7 @@
     "name": "vscode-spring-boot-dashboard",
     "displayName": "Spring Boot Dashboard",
     "description": "Spring Boot Dashboard for VS Code",
-    "version": "0.3.1",
+    "version": "0.4.0",
     "license": "MIT",
     "icon": "resources/logo.png",
     "publisher": "vscjava",
@@ -196,6 +196,26 @@
                 },
                 {
                     "command": "spring-boot-dashboard.refresh",
+                    "when": "never"
+                },
+                {
+                    "command": "spring.staticData.refresh",
+                    "when": "never"
+                },
+                {
+                    "command": "spring.dashboard.bean.navigate",
+                    "when": "never"
+                },
+                {
+                    "command": "spring.dashboard.bean.open",
+                    "when": "never"
+                },
+                {
+                    "command": "spring.dashboard.endpoint.navigate",
+                    "when": "never"
+                },
+                {
+                    "command": "spring.dashboard.endpoint.open",
                     "when": "never"
                 }
             ],

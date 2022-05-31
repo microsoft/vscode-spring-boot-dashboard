@@ -4,6 +4,9 @@ All notable changes to the "vscode-spring-boot-dashboard" extension will be docu
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
+## 0.4.0
+- Visualize beans and endpoint mappings. [#164](https://github.com/microsoft/vscode-spring-boot-dashboard/issues/164)
+
 ## 0.3.1
 - Support to use a custom context-path. [#162](https://github.com/microsoft/vscode-spring-boot-dashboard/pull/162)
 
