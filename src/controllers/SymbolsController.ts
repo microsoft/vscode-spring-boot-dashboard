@@ -7,7 +7,7 @@ import { beansProvider } from "../views/beans";
 import { mappingsProvider } from "../views/mappings";
 
 export async function initSymbols() {
-    await init();
+    await init(5000);
     appsProvider.manager.getAppList().forEach(app => {
         mappingsProvider.updateStaticData(app, getMappings(app.path));
         beansProvider.updateStaticData(app, getBeans(app.path));

@@ -3,14 +3,24 @@
 
 import { requestWorkspaceSymbols } from "./stsApi";
 import * as vscode from "vscode";
+import { sleep } from "../utils";
 
 let beans: any[];
 let mappings: any[];
 
-export async function init() {
-    const symbols = await requestWorkspaceSymbols();
-    beans = symbols.beans;
-    mappings = symbols.mappings;
+export async function init(timeout?: number) {
+    const INTERVAL = 500; //ms
+    const TIMEOUT = timeout ?? 0;
+    let retry = 0;
+    do {
+        if (retry !== 0) {
+            await sleep(INTERVAL);
+            retry++;
+        }
+        const symbols = await requestWorkspaceSymbols();
+        beans = symbols.beans;
+        mappings = symbols.mappings;
+    } while (!beans?.length && !mappings?.length && retry * INTERVAL < TIMEOUT);
 }
 
 export function getBeans(projectPath?: string) {

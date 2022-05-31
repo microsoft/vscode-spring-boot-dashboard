@@ -1,13 +1,16 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT license.
 
-import { BootApp, AppState } from "./BootApp";
+import { AppState, BootApp } from "./BootApp";
 
-import * as vscode from 'vscode';
-import * as uuid from 'uuid';
 import * as path from 'path';
+import * as uuid from 'uuid';
+import * as vscode from 'vscode';
 import { DebugSession } from "vscode";
+import { initSymbols } from "./controllers/SymbolsController";
 import { ClassPathData, MainClassData } from "./types/jdtls";
+import { beansProvider } from "./views/beans";
+import { mappingsProvider } from "./views/mappings";
 
 function isBootAppClasspath(cp: ClassPathData): boolean {
     if (cp.entries) {
@@ -102,6 +105,11 @@ export class BootAppManager {
                 }
             }
             this.fireDidChangeApps(undefined);
+            // update workspace symbols for beans/mappings
+            initSymbols().then(() => {
+                beansProvider.refresh(undefined);
+                mappingsProvider.refresh(undefined);
+            });
         });
 
         async function registerClasspathListener(): Promise<void> {

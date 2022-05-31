@@ -28,3 +28,12 @@ export async function isAlive(pid?: number) {
     const pidList = await pidtree(-1);
     return pidList.includes(pid);
 }
+
+
+export async function sleep(ms: number) {
+    return new Promise<void>((resolve) => {
+        setTimeout(() => {
+            resolve();
+        }, ms);
+    });
+}
