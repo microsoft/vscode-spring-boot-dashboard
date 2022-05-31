@@ -99,12 +99,15 @@ class MappingsDataProvider implements vscode.TreeDataProvider<TreeData> {
     async getChildren(element?: TreeData): Promise<TreeData[] | undefined> {
         // top-level
         if (!element) {
+            const ret = [];
             const liveProcesses = Array.from(this.store.keys());
-            if (liveProcesses.length > 0) {
-                return liveProcesses;
-            } else {
-                return Array.from(this.staticData.keys());
-            }
+            ret.push(...liveProcesses);
+
+            const staticApps = Array.from(this.staticData.keys());
+            const appsWithoutLiveProcess = staticApps.filter(app => !liveProcesses.find(lp => lp.appName === app.name));
+            ret.push(...appsWithoutLiveProcess);
+            ret.sort((a, b) => ((a as LiveProcess).appName ?? (a as BootApp).name).localeCompare((b as LiveProcess).appName ?? (b as BootApp).name));
+            return ret;
         }
 
         await initSymbols();

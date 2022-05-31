@@ -106,7 +106,7 @@ export class BootAppManager {
             }
             this.fireDidChangeApps(undefined);
             // update workspace symbols for beans/mappings
-            initSymbols().then(() => {
+            initSymbols(5000).then(() => {
                 beansProvider.refresh(undefined);
                 mappingsProvider.refresh(undefined);
             });

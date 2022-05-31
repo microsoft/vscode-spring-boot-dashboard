@@ -6,10 +6,15 @@ import { appsProvider } from "../views/apps";
 import { beansProvider } from "../views/beans";
 import { mappingsProvider } from "../views/mappings";
 
-export async function initSymbols() {
-    await init(5000);
+export async function initSymbols(maxTimeout?: number, refresh?:boolean) {
+    await init(maxTimeout);
     appsProvider.manager.getAppList().forEach(app => {
-        mappingsProvider.updateStaticData(app, getMappings(app.path));
-        beansProvider.updateStaticData(app, getBeans(app.path));
+        if (refresh) {
+            mappingsProvider.refreshStatic(app, getMappings(app.path));
+            beansProvider.refreshStatic(app, getBeans(app.path));
+        } else {
+            mappingsProvider.updateStaticData(app, getMappings(app.path));
+            beansProvider.updateStaticData(app, getBeans(app.path));
+        }
     });
 }

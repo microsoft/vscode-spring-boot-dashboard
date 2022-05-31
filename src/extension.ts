@@ -8,6 +8,7 @@ import { BootApp } from './BootApp';
 import { getAiKey, getExtensionId, getExtensionVersion, loadPackageInfo } from './contextUtils';
 import { Controller } from './Controller';
 import { init as initLiveDataController } from './controllers/LiveDataController';
+import { initSymbols } from './controllers/SymbolsController';
 import { requestWorkspaceSymbols } from './models/stsApi';
 import { navigateToLocation } from './models/symbols';
 import { appsProvider } from './views/apps';
@@ -74,6 +75,7 @@ export async function initializeExtension(_oprationId: string, context: vscode.E
     context.subscriptions.push(instrumentOperationAsVsCodeCommand("spring.dashboard.mapping.showDefined", () => mappingsProvider.showAll = false));
     context.subscriptions.push(instrumentOperationAsVsCodeCommand("spring.dashboard.bean.showAll", () => beansProvider.showAll = true));
     context.subscriptions.push(instrumentOperationAsVsCodeCommand("spring.dashboard.bean.showDefined", () => beansProvider.showAll = false));
+    context.subscriptions.push(instrumentOperationAsVsCodeCommand("spring.staticData.refresh", () => initSymbols(0, true)));
 
     // console.log
     context.subscriptions.push(vscode.commands.registerCommand("_spring.console.log", console.log));
