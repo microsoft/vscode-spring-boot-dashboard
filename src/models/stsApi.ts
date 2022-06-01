@@ -99,21 +99,10 @@ async function getMainClassFromPid(pid: string) {
 
 async function getJreHome() {
     const javaExt = vscode.extensions.getExtension("redhat.java");
-      if (!javaExt) {
-         return undefined;
-      }
-      // get embedded JRE Home
-      let jreHome: string | undefined;
-      try {
-         const jreFolder = path.join(javaExt.extensionPath, "jre");
-         const jreDistros = await fs.promises.readdir(jreFolder);
-         if (jreDistros.length > 0) {
-            jreHome = path.join(jreFolder, jreDistros[0]);
-         }
-      } catch (error) {
-         console.error(error);
-      }
-    return jreHome;
+    if (!javaExt) {
+        return undefined;
+    }
+    return javaExt.exports.javaRequirement?.tooling_jre;
 }
 
 export async function requestWorkspaceSymbols(_projectPath?: string): Promise<{
