@@ -143,9 +143,7 @@ export class Controller {
 
     public onDidStopBootApp(session: vscode.DebugSession): void {
         const app = this._manager.getAppBySession(session);
-        if (app
-            && !isRunInTerminal(session) // workaround: "run in termial" sends a disconnect request immediately, do not update status
-        ) {
+        if (app) {
             this._setState(app, AppState.INACTIVE);
         }
     }

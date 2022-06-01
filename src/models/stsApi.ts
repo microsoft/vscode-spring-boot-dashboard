@@ -3,7 +3,6 @@ import * as os from "os";
 import { promisify } from "util";
 import * as vscode from 'vscode';
 import * as path from 'path';
-import * as fs from 'fs';
 import { ExtensionAPI } from "../types/sts-api";
 const execFile = promisify(cp.execFile);
 
