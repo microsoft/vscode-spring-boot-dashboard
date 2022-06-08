@@ -1,8 +1,11 @@
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT license.
+
 import * as cp from "child_process";
 import * as os from "os";
+import * as path from 'path';
 import { promisify } from "util";
 import * as vscode from 'vscode';
-import * as path from 'path';
 import { ExtensionAPI } from "../types/sts-api";
 const execFile = promisify(cp.execFile);
 
@@ -63,6 +66,20 @@ export async function getContextPath(processKey: string) {
         endpoint: "contextPath"
     });
     return result;
+}
+
+
+// workaround before livedata carries location
+/**
+ * @param beanType full qualified name of a class
+ */
+export async function getUrlOfBeanType(beanType: string) {
+    const bindingKey = `L${beanType.replace(/\./g, "/")};`;
+    const uriString = await vscode.commands.executeCommand<string>("sts.java.javadocHoverLink", {
+        bindingKey,
+        lookInOtherProjects: true
+    });
+    return uriString;
 }
 
 /**

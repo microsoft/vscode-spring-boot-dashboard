@@ -6,13 +6,13 @@ import { BootApp } from "../BootApp";
 import { getPathToExtensionRoot } from "../contextUtils";
 import { initSymbols } from "../controllers/SymbolsController";
 import { LiveProcess } from "../models/liveProcess";
-import { getBeanDetail } from "../models/stsApi";
+import { getBeanDetail, getUrlOfBeanType } from "../models/stsApi";
 import { LocalLiveProcess } from "../types/sts-api";
 
-interface Bean {
+export interface Bean {
     processKey: string;
     id: string;
-    dependents?: Bean[];
+    dependencies?: string[];
     scope?: string;
     type?: string;
     resource?: string;
@@ -177,11 +177,7 @@ export async function openBeanHandler(bean: Bean) {
     }
 
     if (bean.type) {
-        const bindingKey = `L${bean.type.replace(/\./g, "/")};`;
-        const uriString = await vscode.commands.executeCommand<string>("sts.java.javadocHoverLink", {
-            bindingKey,
-            lookInOtherProjects: true
-        });
+        const uriString = await getUrlOfBeanType(bean.type);
         if (uriString) {
             await vscode.commands.executeCommand("vscode.open", vscode.Uri.parse(uriString));
             return;
