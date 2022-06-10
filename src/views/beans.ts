@@ -183,8 +183,6 @@ export async function openBeanHandler(bean: Bean) {
             return;
         }
     }
-
-    vscode.window.showWarningMessage(`Fail to open bean. ${JSON.stringify(bean)}`);
 }
 
 function parseStaticBean(raw:any): StaticBean {
