@@ -11,7 +11,7 @@ import { init as initLiveDataController } from './controllers/LiveDataController
 import { initSymbols } from './controllers/SymbolsController';
 import { requestWorkspaceSymbols } from './models/stsApi';
 import { navigateToLocation } from './models/symbols';
-import { showDependencies, showInjectedInto } from './references-view';
+import { showBeanHierarchy, showDependencies, showInjectedInto } from './references-view';
 import { appsProvider } from './views/apps';
 import { beansProvider, openBeanHandler } from './views/beans';
 import { mappingsProvider, openEndpointHandler } from './views/mappings';
@@ -79,6 +79,7 @@ export async function initializeExtension(_oprationId: string, context: vscode.E
     context.subscriptions.push(instrumentOperationAsVsCodeCommand("spring.staticData.refresh", () => initSymbols(0, true)));
     context.subscriptions.push(instrumentOperationAsVsCodeCommand("spring.dashboard.bean.showDependencies", showDependencies));
     context.subscriptions.push(instrumentOperationAsVsCodeCommand("spring.dashboard.bean.showInjectedInto", showInjectedInto));
+    context.subscriptions.push(instrumentOperationAsVsCodeCommand("spring.dashboard.bean.showHierarchy", showBeanHierarchy));
 
     // console.log
     context.subscriptions.push(vscode.commands.registerCommand("_spring.console.log", console.log));

@@ -182,6 +182,12 @@
                 "title": "Show Injected Into",
                 "category": "Spring Boot Dashboard",
                 "icon": "$(type-hierarchy-super)"
+            },
+            {
+                "command": "spring.dashboard.bean.showHierarchy",
+                "title": "Show Bean Hierarchy",
+                "category": "Spring Boot Dashboard",
+                "icon": "$(type-hierarchy)"
             }
         ],
         "menus": {
@@ -228,6 +234,10 @@
                 },
                 {
                     "command": "spring.dashboard.endpoint.open",
+                    "when": "never"
+                },
+                {
+                    "command": "spring.dashboard.bean.showHierarchy",
                     "when": "never"
                 },
                 {
@@ -368,14 +378,9 @@
                     "group": "inline@5"
                 },
                 {
-                    "command": "spring.dashboard.bean.showDependencies",
+                    "command": "spring.dashboard.bean.showHierarchy",
                     "when": "view == spring.beans && viewItem == spring:bean",
                     "group": "inline@5"
-                },
-                {
-                    "command": "spring.dashboard.bean.showInjectedInto",
-                    "when": "view == spring.beans && viewItem == spring:bean",
-                    "group": "inline@7"
                 },
                 {
                     "command": "spring.dashboard.bean.showDependencies",

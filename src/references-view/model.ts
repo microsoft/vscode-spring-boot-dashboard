@@ -18,7 +18,7 @@ export class BeansTreeInput implements SymbolTreeInput<BeanItem> {
         readonly direction: BeansDirection,
     ) {
         this.title = direction === BeansDirection.Dependencies
-            ? "Dependencies"
+            ? "Depending On"
             : "Injected Into";
     }
 

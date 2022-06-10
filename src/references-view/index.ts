@@ -8,7 +8,10 @@ import { BeanItem, BeansDirection, BeansTreeInput } from './model';
 import { SymbolTree } from './references-view';
 import { asLocation } from './utils';
 
+const DEFAULT_DIRECTION = BeansDirection.Dependencies;
+
 let currentBean: Bean;
+let currentDirection: BeansDirection = DEFAULT_DIRECTION;
 
 /**
  * @param bean
@@ -17,7 +20,6 @@ let currentBean: Bean;
  * undefined: from references-view.title
  */
 export async function showDependencies(bean?: Bean | BeanItem) {
-    await vscode.commands.executeCommand("setContext", "beanHierarchy:direction", "dependencies");
     if (bean) {
         currentBean = bean instanceof BeanItem ? bean.item : bean;
     }
@@ -31,7 +33,6 @@ export async function showDependencies(bean?: Bean | BeanItem) {
  * undefined: from references-view.title
  */
 export async function showInjectedInto(bean?: Bean | BeanItem) {
-    await vscode.commands.executeCommand("setContext", "beanHierarchy:direction", "injectedInto");
     if (bean) {
         currentBean = bean instanceof BeanItem ? bean.item : bean;
     }
@@ -39,6 +40,13 @@ export async function showInjectedInto(bean?: Bean | BeanItem) {
 }
 
 export async function showBeanHierarchy(bean: Bean, direction?: BeansDirection) {
+    currentBean = bean;
+    currentDirection = direction ?? currentDirection ?? DEFAULT_DIRECTION;
+
+    const contextValue = currentDirection === BeansDirection.Dependencies ? "dependencies" : "injectedInto";
+    await vscode.commands.executeCommand("setContext", "beanHierarchy:direction", contextValue);
+
+
     const tree = await vscode.extensions.getExtension<SymbolTree>('ms-vscode.references-view')?.activate();
     if (tree) {
         const detail = await getBeanDetail(bean.processKey, bean.id);
@@ -46,10 +54,7 @@ export async function showBeanHierarchy(bean: Bean, direction?: BeansDirection) 
             const beanWithDetail = { ...bean, ...detail[0] };
             const uriString = await getUrlOfBeanType(beanWithDetail.type);
             const location = asLocation(uriString);
-            // const textEdit = await vscode.window.showTextDocument(location.uri);
-            // const range = textEdit.document.getWordRangeAtPosition(location.range.start);
-            // const newLocation = new vscode.Location(textEdit.document.uri, range ?? location.range);
-            const input = new BeansTreeInput(location, beanWithDetail, direction ?? BeansDirection.Dependencies);
+            const input = new BeansTreeInput(location, beanWithDetail, currentDirection);
             tree.setInput(input);
         }
     }
