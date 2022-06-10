@@ -170,6 +170,24 @@
                 "title": "Show Defined Beans",
                 "category": "Spring Boot Dashboard",
                 "icon": "$(list-filter)"
+            },
+            {
+                "command": "spring.dashboard.bean.showDependencies",
+                "title": "Show Dependencies",
+                "category": "Spring Boot Dashboard",
+                "icon": "$(type-hierarchy-sub)"
+            },
+            {
+                "command": "spring.dashboard.bean.showInjectedInto",
+                "title": "Show Injected Into",
+                "category": "Spring Boot Dashboard",
+                "icon": "$(type-hierarchy-super)"
+            },
+            {
+                "command": "spring.dashboard.bean.showHierarchy",
+                "title": "Show Bean Hierarchy",
+                "category": "Spring Boot Dashboard",
+                "icon": "$(type-hierarchy)"
             }
         ],
         "menus": {
@@ -217,6 +235,18 @@
                 {
                     "command": "spring.dashboard.endpoint.open",
                     "when": "never"
+                },
+                {
+                    "command": "spring.dashboard.bean.showHierarchy",
+                    "when": "never"
+                },
+                {
+                    "command": "spring.dashboard.bean.showDependencies",
+                    "when": "never"
+                },
+                {
+                    "command": "spring.dashboard.bean.showInjectedInto",
+                    "when": "never"
                 }
             ],
             "view/title": [
@@ -254,6 +284,16 @@
                     "command": "spring.dashboard.bean.showAll",
                     "when": "view == spring.beans && spring.beans:showMode != all",
                     "group": "navigation@8"
+                },
+                {
+                    "command": "spring.dashboard.bean.showDependencies",
+                    "when": "view == references-view.tree && reference-list.hasResult && reference-list.source == beanHierarchy && beanHierarchy:direction != dependencies",
+                    "group": "navigation@5"
+                },
+                {
+                    "command": "spring.dashboard.bean.showInjectedInto",
+                    "when": "view == references-view.tree && reference-list.hasResult && reference-list.source == beanHierarchy && beanHierarchy:direction != injectedInto",
+                    "group": "navigation@7"
                 }
             ],
             "view/item/context": [
@@ -336,6 +376,21 @@
                     "command": "spring.dashboard.endpoint.open",
                     "when": "view == spring.mappings && viewItem =~ /spring:endpoint(?=.*?\\b\\+GET\\b)/",
                     "group": "inline@5"
+                },
+                {
+                    "command": "spring.dashboard.bean.showHierarchy",
+                    "when": "view == spring.beans && viewItem == spring:bean",
+                    "group": "inline@5"
+                },
+                {
+                    "command": "spring.dashboard.bean.showDependencies",
+                    "when": "viewItem == spring:bean",
+                    "group": "action@5"
+                },
+                {
+                    "command": "spring.dashboard.bean.showInjectedInto",
+                    "when": "viewItem == spring:bean",
+                    "group": "action@7"
                 }
             ]
         },
