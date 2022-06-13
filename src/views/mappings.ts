@@ -8,6 +8,7 @@ import { initSymbols } from "../controllers/SymbolsController";
 import { LiveProcess } from "../models/liveProcess";
 import { getContextPath, getPort } from "../models/stsApi";
 import { LocalLiveProcess } from "../types/sts-api";
+import { constructOpenUrl } from "../utils";
 
 interface Endpoint {
     // raw
@@ -201,7 +202,7 @@ export const mappingsProvider = new MappingsDataProvider();
 export async function openEndpointHandler(endpoint: Endpoint) {
     const port = await getPort(endpoint.processKey);
     const contextPath = await getContextPath(endpoint.processKey) ?? "";
-    const url = `http://localhost:${port}${contextPath}${endpoint.pattern}`;
+    const url = constructOpenUrl(contextPath, port, endpoint.pattern);
 
     const openWithExternalBrowser: boolean = vscode.workspace.getConfiguration("spring.dashboard").get("openWith") === "external";
     const browserCommand: string = openWithExternalBrowser ? "vscode.open" : "simpleBrowser.api.open";
