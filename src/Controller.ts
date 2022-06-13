@@ -7,7 +7,7 @@ import * as path from "path";
 import * as vscode from "vscode";
 import { AppState, BootApp } from "./BootApp";
 import { BootAppManager } from "./BootAppManager";
-import { readAll } from "./utils";
+import { constructOpenUrl, readAll } from "./utils";
 import { MainClassData } from "./types/jdtls";
 const getPort = require("get-port");
 
@@ -268,18 +268,4 @@ export class Controller {
 
 function isRunInTerminal(session: vscode.DebugSession) {
     return session.configuration.noDebug === true && session.configuration.console !== "internalConsole";
-}
-
-function constructOpenUrl(contextPath: string, port: number) {
-    const configOpenUrl: string | undefined = vscode.workspace.getConfiguration("spring.dashboard").get<string>("openUrl");
-    let openUrl: string;
-
-    if (configOpenUrl === undefined) {
-        openUrl = `http://localhost:${port}${contextPath}/`;
-    } else {
-        openUrl = configOpenUrl
-            .replace("{port}", String(port))
-            .replace("{contextPath}", contextPath.toString());
-    }
-    return openUrl;
 }

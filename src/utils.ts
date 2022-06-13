@@ -3,6 +3,7 @@
 
 import { Readable } from "stream";
 import pidtree = require("pidtree");
+import * as vscode from "vscode";
 
 export function readAll(input: Readable) : Promise<string> {
     let buffer = "";
@@ -36,4 +37,26 @@ export async function sleep(ms: number) {
             resolve();
         }, ms);
     });
+}
+
+/**
+ * Construct URL based on format defined in spring.dashboard.openUrl
+ *
+ * @param contextPath
+ * @param port
+ * @param pathSeg must starts with '/'
+ * @returns url
+ */
+export function constructOpenUrl(contextPath: string, port: number, pathSeg?: string) {
+    const configOpenUrl: string | undefined = vscode.workspace.getConfiguration("spring.dashboard").get<string>("openUrl");
+    let openUrl: string;
+
+    if (configOpenUrl === undefined) {
+        openUrl = `http://localhost:${port}${contextPath}`;
+    } else {
+        openUrl = configOpenUrl
+            .replace("{port}", String(port))
+            .replace("{contextPath}", contextPath.toString());
+    }
+    return `${openUrl}${pathSeg ?? "/"}`;
 }
