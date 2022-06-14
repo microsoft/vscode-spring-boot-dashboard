@@ -32,6 +32,7 @@ export class BootApp {
         private _state: AppState,
     ) {
         this.getWorkspaceSymbols();
+        this.getMainClasses();
     }
 
     public get activeSessionName() : string | undefined {
@@ -138,14 +139,16 @@ export class BootApp {
     }
 
     public async getMainClasses(): Promise<MainClassData[]> {
-        // Note: Command `vscode.java.resolveMainClass` is implemented in extension java-debugger
-        const mainClassList = await vscode.commands.executeCommand('java.execute.workspaceCommand', 'vscode.java.resolveMainClass', this.path);
-        if (mainClassList && mainClassList instanceof Array) {
-            this.mainClasses = mainClassList;
-            return mainClassList;
-        } else {
-            return [];
+        if (this.mainClasses === undefined) {
+            // Note: Command `vscode.java.resolveMainClass` is implemented in extension java-debugger
+            const mainClassList = await vscode.commands.executeCommand('java.execute.workspaceCommand', 'vscode.java.resolveMainClass', this.path);
+            if (mainClassList && mainClassList instanceof Array) {
+                this.mainClasses = mainClassList;
+            } else {
+                return [];
+            }
         }
+        return this.mainClasses;
     }
 
     /**

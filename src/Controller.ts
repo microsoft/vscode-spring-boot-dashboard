@@ -100,7 +100,15 @@ export class Controller {
     }
 
     public onDidStartBootApp(session: vscode.DebugSession): void {
-        const app: BootApp | undefined = this._manager.getAppList().find((elem: BootApp) => elem.activeSessionName === session.name);
+        // exact match
+        let app: BootApp | undefined = this._manager.getAppList().find((elem: BootApp) => elem.activeSessionName === session.name);
+
+        // workaround if not launched from dashboard, where `activeSessionName` is not set
+        // See https://github.com/microsoft/vscode-spring-boot-dashboard/issues/177
+        if (app === undefined) {
+            app = this._manager.getAppList().find((elem: BootApp) => elem.name === session.configuration.projectName);
+        }
+
         if (app) {
             this._manager.bindDebugSession(app, session);
             this._setState(app, AppState.LAUNCHING);
