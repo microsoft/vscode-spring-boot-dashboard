@@ -28,6 +28,15 @@
     },
     "main": "./out/extension",
     "contributes": {
+        "icons": {
+            "spring-bean": {
+                "description": "bean icon",
+                "default": {
+                    "fontPath": "./resources/icons.woff",
+                    "fontCharacter": "\\e900"
+                }
+            }
+        },
         "viewsContainers": {
             "activitybar": [
                 {
