@@ -267,22 +267,22 @@
                 },
                 {
                     "command": "spring.dashboard.mapping.showDefined",
-                    "when": "view == spring.mappings && spring.mappings:showMode != defined",
+                    "when": "view == spring.mappings && spring.mappings:showMode != defined && spring.mappings:hasLiveProcess == true",
                     "group": "navigation@5"
                 },
                 {
                     "command": "spring.dashboard.mapping.showAll",
-                    "when": "view == spring.mappings && spring.mappings:showMode != all",
+                    "when": "view == spring.mappings && spring.mappings:showMode != all && spring.mappings:hasLiveProcess == true",
                     "group": "navigation@8"
                 },
                 {
                     "command": "spring.dashboard.bean.showDefined",
-                    "when": "view == spring.beans && spring.beans:showMode != defined",
+                    "when": "view == spring.beans && spring.beans:showMode != defined && spring.beans:hasLiveProcess == true",
                     "group": "navigation@5"
                 },
                 {
                     "command": "spring.dashboard.bean.showAll",
-                    "when": "view == spring.beans && spring.beans:showMode != all",
+                    "when": "view == spring.beans && spring.beans:showMode != all && spring.beans:hasLiveProcess == true",
                     "group": "navigation@8"
                 },
                 {
