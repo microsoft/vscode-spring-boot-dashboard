@@ -97,6 +97,8 @@ class BeansDataProvider implements vscode.TreeDataProvider<TreeData> {
             const ret = [];
             const liveProcesses = Array.from(this.store.keys());
             ret.push(...liveProcesses);
+            // update context key
+            vscode.commands.executeCommand("setContext", "spring.beans:hasLiveProcess", liveProcesses.length > 0);
 
             const staticApps = Array.from(this.staticData.keys());
             const appsWithoutLiveProcess = staticApps.filter(app => !liveProcesses.find(lp => lp.appName === app.name));
