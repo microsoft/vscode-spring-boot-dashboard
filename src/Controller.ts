@@ -92,6 +92,7 @@ export class Controller {
         await vscode.debug.startDebugging(
             vscode.workspace.getWorkspaceFolder(cwdUri),
             Object.assign({}, targetConfig, {
+                console: "integratedTerminal", // Workaround before https://github.com/spring-projects/sts4/issues/794 got fixed.
                 noDebug: !debug,
                 cwd: cwdUri.fsPath,
                 vmArgs
