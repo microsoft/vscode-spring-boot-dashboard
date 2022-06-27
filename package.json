@@ -288,12 +288,12 @@
                 {
                     "command": "spring.dashboard.bean.showDependencies",
                     "when": "view == references-view.tree && reference-list.hasResult && reference-list.source == beanHierarchy && beanHierarchy:direction != dependencies",
-                    "group": "navigation@5"
+                    "group": "navigation@1"
                 },
                 {
                     "command": "spring.dashboard.bean.showInjectedInto",
                     "when": "view == references-view.tree && reference-list.hasResult && reference-list.source == beanHierarchy && beanHierarchy:direction != injectedInto",
-                    "group": "navigation@7"
+                    "group": "navigation@1"
                 }
             ],
             "view/item/context": [
