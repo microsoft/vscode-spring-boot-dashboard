@@ -47,7 +47,8 @@ export async function showBeanHierarchy(bean: Bean, direction?: BeansDirection) 
     await vscode.commands.executeCommand("setContext", "beanHierarchy:direction", contextValue);
 
 
-    const tree = await vscode.extensions.getExtension<SymbolTree>('ms-vscode.references-view')?.activate();
+    const refViewletExt = vscode.extensions.getExtension<SymbolTree>('vscode.references-view') ??  vscode.extensions.getExtension<SymbolTree>('ms-vscode.references-view');
+    const tree = await refViewletExt?.activate();
     if (tree) {
         const detail = await getBeanDetail(bean.processKey, bean.id);
         if (detail?.length) {

@@ -2,7 +2,7 @@
     "name": "vscode-spring-boot-dashboard",
     "displayName": "Spring Boot Dashboard",
     "description": "Spring Boot Dashboard for VS Code",
-    "version": "0.4.0",
+    "version": "0.5.0",
     "license": "MIT",
     "icon": "resources/logo.png",
     "publisher": "vscjava",
@@ -276,33 +276,33 @@
                 },
                 {
                     "command": "spring.dashboard.mapping.showDefined",
-                    "when": "view == spring.mappings && spring.mappings:showMode != defined",
+                    "when": "view == spring.mappings && spring.mappings:showMode != defined && spring.mappings:hasLiveProcess == true",
                     "group": "navigation@5"
                 },
                 {
                     "command": "spring.dashboard.mapping.showAll",
-                    "when": "view == spring.mappings && spring.mappings:showMode != all",
+                    "when": "view == spring.mappings && spring.mappings:showMode != all && spring.mappings:hasLiveProcess == true",
                     "group": "navigation@8"
                 },
                 {
                     "command": "spring.dashboard.bean.showDefined",
-                    "when": "view == spring.beans && spring.beans:showMode != defined",
+                    "when": "view == spring.beans && spring.beans:showMode != defined && spring.beans:hasLiveProcess == true",
                     "group": "navigation@5"
                 },
                 {
                     "command": "spring.dashboard.bean.showAll",
-                    "when": "view == spring.beans && spring.beans:showMode != all",
+                    "when": "view == spring.beans && spring.beans:showMode != all && spring.beans:hasLiveProcess == true",
                     "group": "navigation@8"
                 },
                 {
                     "command": "spring.dashboard.bean.showDependencies",
                     "when": "view == references-view.tree && reference-list.hasResult && reference-list.source == beanHierarchy && beanHierarchy:direction != dependencies",
-                    "group": "navigation@5"
+                    "group": "navigation@1"
                 },
                 {
                     "command": "spring.dashboard.bean.showInjectedInto",
                     "when": "view == references-view.tree && reference-list.hasResult && reference-list.source == beanHierarchy && beanHierarchy:direction != injectedInto",
-                    "group": "navigation@7"
+                    "group": "navigation@1"
                 }
             ],
             "view/item/context": [
@@ -459,7 +459,7 @@
         "get-port": "^5.1.1",
         "pidtree": "^0.5.0",
         "uuid": "^3.4.0",
-        "vscode-extension-telemetry-wrapper": "^0.12.0",
+        "vscode-extension-telemetry-wrapper": "^0.13.1",
         "vscode-languageclient": "^7.0.0"
     }
 }
