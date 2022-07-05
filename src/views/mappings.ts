@@ -93,6 +93,10 @@ class MappingsDataProvider implements vscode.TreeDataProvider<TreeData> {
                 arguments: [element]
             };
 
+            // highlight defined beans in "all" mode
+            if (this.showAll && (element as any).corresponding) {
+                item.description = "(defined)";
+            }
             return item;
         }
     }

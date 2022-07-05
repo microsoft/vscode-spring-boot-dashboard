@@ -15,6 +15,7 @@ export interface Bean {
     scope?: string;
     type?: string;
     resource?: string;
+    defined?: boolean; // whether it's defined in workspace
 }
 
 interface StaticBean {
@@ -81,6 +82,12 @@ class BeansDataProvider implements vscode.TreeDataProvider<TreeData> {
                 title: "Open",
                 arguments: [element]
             };
+
+            // highlight defined beans in "all" mode
+            if (this.showAll && (element as Bean).defined) {
+                item.description = "(defined)";
+            }
+
             return item;
         }
     }
@@ -105,28 +112,30 @@ class BeansDataProvider implements vscode.TreeDataProvider<TreeData> {
         // all beans
         if (element instanceof LiveProcess) {
             const liveBeans =  this.store.get(element);
-            if (!this.showAll) {
-                // TODO: inaccurate match with project name. should use some unique identifier like path.
-                const correspondingApp = Array.from(this.staticData.keys()).find(app => app.name === element.appName);
-                if (correspondingApp) {
-                    const staticBeans = this.staticData.get(correspondingApp);
-                    if (staticBeans?.length) {
-                        return liveBeans?.filter(lb => staticBeans?.find(sb => sb.id === lb.id));
+            // Workaround: Mark beans defined in workspace
+            // TODO: inaccurate match with project name. should use some unique identifier like path.
+            const correspondingApp = Array.from(this.staticData.keys()).find(app => app.name === element.appName);
+            if (correspondingApp) {
+                const staticBeans = this.staticData.get(correspondingApp);
+                if (staticBeans?.length) {
+                    const definedBeans = liveBeans?.filter(lb => staticBeans?.find(sb => sb.id === lb.id));
+                    if (definedBeans) {
+                        for (const bean of definedBeans) {
+                            bean.defined = true;
+                        }
                     }
                 }
             }
-            return liveBeans;
+
+            if (this.showAll) {
+                return liveBeans;
+            } else {
+                return liveBeans?.filter(b => b.defined);
+            }
         } else if (element instanceof BootApp) {
             return this.staticData.get(element);
         }
 
-        /*
-        TODO: should move to reference view
-            // dependencies
-            const beans = await getBeansDependingOn(element.processKey, element.id);
-            element.dependents = beans.map((b:any) => {return {processKey: element.processKey, ...b}});
-            return element.dependents;
-        */
         return undefined;
     }
 
