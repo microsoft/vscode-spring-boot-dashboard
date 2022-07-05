@@ -38,7 +38,7 @@ class BootAppItem implements vscode.TreeItem {
             case "launching":
                 return new vscode.ThemeIcon("sync~spin");
             default:
-                return new vscode.ThemeIcon("circle-filled",);
+                return new vscode.ThemeIcon("circle-outline",);
         }
     }
 

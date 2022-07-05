@@ -54,13 +54,13 @@ class BeansDataProvider implements vscode.TreeDataProvider<TreeData> {
         if (element instanceof LiveProcess) {
             const item = new vscode.TreeItem(element.appName);
             item.description = `pid: ${element.pid}`;
-            item.iconPath = new vscode.ThemeIcon("pulse", new vscode.ThemeColor("charts.green"));
+            item.iconPath = new vscode.ThemeIcon("circle-filled", new vscode.ThemeColor("charts.green"));
             item.collapsibleState = vscode.TreeItemCollapsibleState.Expanded;
             item.contextValue = "liveProcess";
             return item;
         } else if (element instanceof BootApp) {
             const item = new vscode.TreeItem(element.name);
-            item.iconPath = new vscode.ThemeIcon("pulse");
+            item.iconPath = new vscode.ThemeIcon("circle-outline");
             item.collapsibleState = vscode.TreeItemCollapsibleState.Expanded;
             item.contextValue = "bootApp";
             return item;
