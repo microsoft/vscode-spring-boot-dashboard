@@ -3,7 +3,6 @@
 
 import * as vscode from "vscode";
 import { BootApp } from "../BootApp";
-import { getPathToExtensionRoot } from "../contextUtils";
 import { initSymbols } from "../controllers/SymbolsController";
 import { LiveProcess } from "../models/liveProcess";
 import { getBeanDetail, getUrlOfBeanType } from "../models/stsApi";
@@ -71,14 +70,9 @@ class BeansDataProvider implements vscode.TreeDataProvider<TreeData> {
 
             const item = new vscode.TreeItem(label);
             item.collapsibleState = vscode.TreeItemCollapsibleState.None;
-            if (isLive) {
-                item.iconPath = getPathToExtensionRoot("resources", "bean-live.svg");
-            } else {
-                item.iconPath = {
-                    light: getPathToExtensionRoot("resources", "bean-light.svg"),
-                    dark: getPathToExtensionRoot("resources", "bean-dark.svg")
-                };
-            }
+
+            const themeColor = isLive ? new vscode.ThemeColor("charts.green") : undefined;
+            item.iconPath = new vscode.ThemeIcon("spring-bean", themeColor);
 
             item.contextValue = isLive ? "spring:bean" : "spring:staticBean";
 
