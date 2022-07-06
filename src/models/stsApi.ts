@@ -18,11 +18,11 @@ export async function initialize() {
     }
 }
 
-export async function getBeansDependingOn(processKey: string, id: string) {
+export async function getBeansDependingOn(processKey: string, beanName: string) {
     const beans = await stsApi.getLiveProcessData({
         processKey,
         endpoint: "beans",
-        dependingOn: id
+        dependingOn: beanName
     });
     return beans;
 }

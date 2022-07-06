@@ -4,7 +4,6 @@
 import * as vscode from 'vscode';
 import { SymbolItemDragAndDrop, SymbolItemEditorHighlights, SymbolItemNavigation, SymbolTreeInput, SymbolTreeModel } from './references-view';
 
-import { getPathToExtensionRoot } from '../contextUtils';
 import { getBeanDetail, getBeansDependingOn } from '../models/stsApi';
 import { Bean } from "../views/beans";
 
@@ -88,7 +87,8 @@ class BeanDataProvider implements vscode.TreeDataProvider<BeanItem> {
     public getTreeItem(element: BeanItem): vscode.TreeItem {
         const item = new vscode.TreeItem(element.item.id);
         item.collapsibleState = element.parent ? vscode.TreeItemCollapsibleState.Collapsed : vscode.TreeItemCollapsibleState.Expanded;
-        item.iconPath = getPathToExtensionRoot("resources", "bean-live.svg");
+        const themeColor = new vscode.ThemeColor("charts.green");
+        item.iconPath = new vscode.ThemeIcon("spring-bean", themeColor);
         item.contextValue = "spring:bean";
         item.command = {
             command: "spring.dashboard.bean.open",
