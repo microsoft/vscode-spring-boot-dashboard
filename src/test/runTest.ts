@@ -3,14 +3,15 @@
 // Licensed under the MIT license.
 
 import * as path from "path";
+import * as os from "os";
 
-import { runTests } from "vscode-test";
+import { downloadAndUnzipVSCode, runTests } from "@vscode/test-electron";
 
 async function main(): Promise<void> {
-    // TODO: enable test
-    // require https://github.com/microsoft/vscode-test/issues/31
-    process.exit(0);
     try {
+
+        const vscodeExecutablePath = await downloadAndUnzipVSCode();
+
         // The folder containing the Extension Manifest package.json
         // Passed to `--extensionDevelopmentPath`
         const extensionDevelopmentPath: string = path.resolve(__dirname, "../../");
@@ -20,9 +21,16 @@ async function main(): Promise<void> {
         const extensionTestsPath: string = path.resolve(__dirname, "./suite/index");
 
         // Download VS Code, unzip it and run the integration test
-        await runTests({ extensionDevelopmentPath, extensionTestsPath });
+        await runTests({
+            vscodeExecutablePath,
+            extensionDevelopmentPath,
+            extensionTestsPath
+        });
+
+        process.exit(0);
+
     } catch (err) {
-        console.error("Failed to run tests");
+        process.stdout.write(`${err}${os.EOL}`);
         process.exit(1);
     }
 }
