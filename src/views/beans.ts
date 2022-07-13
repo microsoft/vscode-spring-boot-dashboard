@@ -8,14 +8,25 @@ import { LiveProcess } from "../models/liveProcess";
 import { getBeanDetail, getUrlOfBeanType } from "../models/stsApi";
 import { LocalLiveProcess } from "../types/sts-api";
 
-export interface Bean {
-    processKey: string;
-    id: string;
+export class Bean {
     dependencies?: string[];
     scope?: string;
     type?: string;
     resource?: string;
     defined?: boolean; // whether it's defined in workspace
+
+    constructor(
+        public processKey: string,
+        public id: string
+    ) {}
+}
+
+class BeanProperty {
+    constructor(public name: string, public value: string) {}
+
+    public toString() {
+        return `${this.name}: ${this.value}`;
+    }
 }
 
 interface StaticBean {
@@ -25,7 +36,8 @@ interface StaticBean {
     id: string;
 }
 
-type TreeData = Bean | LiveProcess | StaticBean | BootApp;
+type TreeData = Bean | LiveProcess | StaticBean | BootApp | BeanProperty;
+const COLOR_LIVE = new vscode.ThemeColor("charts.green");
 
 class BeansDataProvider implements vscode.TreeDataProvider<TreeData> {
     private store: Map<LiveProcess, Bean[]> = new Map();
@@ -55,7 +67,7 @@ class BeansDataProvider implements vscode.TreeDataProvider<TreeData> {
         if (element instanceof LiveProcess) {
             const item = new vscode.TreeItem(element.appName);
             item.description = `pid: ${element.pid}`;
-            item.iconPath = new vscode.ThemeIcon("circle-filled", new vscode.ThemeColor("charts.green"));
+            item.iconPath = new vscode.ThemeIcon("circle-filled", COLOR_LIVE);
             item.collapsibleState = vscode.TreeItemCollapsibleState.Expanded;
             item.contextValue = "liveProcess";
             return item;
@@ -65,20 +77,31 @@ class BeansDataProvider implements vscode.TreeDataProvider<TreeData> {
             item.collapsibleState = vscode.TreeItemCollapsibleState.Expanded;
             item.contextValue = "bootApp";
             return item;
+        } else if (element instanceof BeanProperty) {
+            const item = new vscode.TreeItem(element.toString());
+            item.iconPath = new vscode.ThemeIcon("note", COLOR_LIVE);
+            return item;
         } else {
             const isLive = !!(element as Bean).processKey;
             const label = element.id;
-
             const item = new vscode.TreeItem(label);
-            item.collapsibleState = vscode.TreeItemCollapsibleState.None;
 
-            const themeColor = isLive ? new vscode.ThemeColor("charts.green") : undefined;
-            item.iconPath = new vscode.ThemeIcon("spring-bean", themeColor);
+            let commandOnClick;
+            if (isLive) {
+                item.collapsibleState = vscode.TreeItemCollapsibleState.Collapsed;
+                item.iconPath = new vscode.ThemeIcon("spring-bean", COLOR_LIVE);
+                item.contextValue = "spring:bean";
+                commandOnClick = "spring.dashboard.bean.open";
 
-            item.contextValue = isLive ? "spring:bean" : "spring:staticBean";
+            } else {
+                item.collapsibleState = vscode.TreeItemCollapsibleState.None;
+                item.iconPath = new vscode.ThemeIcon("spring-bean");
+                item.contextValue = "spring:staticBean";
+                commandOnClick = "spring.dashboard.bean.navigate";
+            }
 
             item.command = {
-                command: isLive ? "spring.dashboard.bean.open" : "spring.dashboard.bean.navigate",
+                command: commandOnClick,
                 title: "Open",
                 arguments: [element]
             };
@@ -134,6 +157,17 @@ class BeansDataProvider implements vscode.TreeDataProvider<TreeData> {
             }
         } else if (element instanceof BootApp) {
             return this.staticData.get(element);
+        } else if (element instanceof Bean) {
+            const props = [];
+            const details = await getBeanDetail(element.processKey, element.id);
+            if (details && details.length > 0) {
+                for (const name of ["scope", "type"]) {
+                    if (details[0][name]) {
+                        props.push(new BeanProperty(name, details[0][name]));
+                    }
+                }
+            } 
+            return props;
         }
 
         return undefined;
@@ -153,7 +187,7 @@ class BeansDataProvider implements vscode.TreeDataProvider<TreeData> {
         } else {
             // add/update
             const targetLiveProcess = Array.from(this.store.keys()).find(lp => lp.processKey === liveProcess.processKey) ?? new LiveProcess(liveProcess);
-            const beans = beanIds.map(b => { return { processKey: liveProcess.processKey, id: b }; }).sort((a, b) => a.id.localeCompare(b.id));
+            const beans = beanIds.map(b => new Bean(liveProcess.processKey, b)).sort((a, b) => a.id.localeCompare(b.id));
             this.store.set(targetLiveProcess, beans);
         }
         this.onDidRefreshBeans.fire(undefined);
