@@ -63,7 +63,7 @@ class BeansDataProvider implements vscode.TreeDataProvider<TreeData> {
 
     onDidChangeTreeData = this.onDidRefreshBeans.event;
 
-    getTreeItem(element: TreeData): vscode.TreeItem | Thenable<vscode.TreeItem> {
+    async getTreeItem(element: TreeData): Promise<vscode.TreeItem> {
         if (element instanceof LiveProcess) {
             const item = new vscode.TreeItem(element.appName);
             item.description = `pid: ${element.pid}`;
@@ -81,36 +81,50 @@ class BeansDataProvider implements vscode.TreeDataProvider<TreeData> {
             const item = new vscode.TreeItem(element.toString());
             item.iconPath = new vscode.ThemeIcon("note", COLOR_LIVE);
             return item;
-        } else {
-            const isLive = !!(element as Bean).processKey;
+        } else if (element instanceof Bean) {
             const label = element.id;
             const item = new vscode.TreeItem(label);
-
-            let commandOnClick;
-            if (isLive) {
-                item.collapsibleState = vscode.TreeItemCollapsibleState.Collapsed;
-                item.iconPath = new vscode.ThemeIcon("spring-bean", COLOR_LIVE);
-                item.contextValue = "spring:bean";
-                commandOnClick = "spring.dashboard.bean.open";
-
-            } else {
-                item.collapsibleState = vscode.TreeItemCollapsibleState.None;
-                item.iconPath = new vscode.ThemeIcon("spring-bean");
-                item.contextValue = "spring:staticBean";
-                commandOnClick = "spring.dashboard.bean.navigate";
-            }
-
+            item.collapsibleState = vscode.TreeItemCollapsibleState.None;
+            item.iconPath = new vscode.ThemeIcon("spring-bean", COLOR_LIVE);
+            item.contextValue = "spring:bean";
+            const commandOnClick = "spring.dashboard.bean.open";
             item.command = {
                 command: commandOnClick,
                 title: "Open",
                 arguments: [element]
             };
 
-            // highlight defined beans in "all" mode
-            if (this.showAll && (element as Bean).defined) {
-                item.description = "(defined)";
+            const desc = [];
+            if (!element.scope) {
+                const details = await getBeanDetail(element.processKey, element.id);
+                if (details?.length) {
+                    element = {...element, ...details[0]} as Bean;
+                }
             }
+            if (element.scope) {
+                desc.push(element.scope);
+            }
+            // highlight defined beans in "all" mode
+            if (this.showAll && element.defined) {
+                desc.push("defined");
+            }
+            item.description = desc.map(d => `(${d})`).join();
+            return item;
 
+        } else {
+            const label = element.id;
+            const item = new vscode.TreeItem(label);
+
+            item.collapsibleState = vscode.TreeItemCollapsibleState.None;
+            item.iconPath = new vscode.ThemeIcon("spring-bean");
+            item.contextValue = "spring:staticBean";
+            const commandOnClick = "spring.dashboard.bean.navigate";
+
+            item.command = {
+                command: commandOnClick,
+                title: "Open",
+                arguments: [element]
+            };
             return item;
         }
     }
@@ -158,16 +172,7 @@ class BeansDataProvider implements vscode.TreeDataProvider<TreeData> {
         } else if (element instanceof BootApp) {
             return this.staticData.get(element);
         } else if (element instanceof Bean) {
-            const props = [];
-            const details = await getBeanDetail(element.processKey, element.id);
-            if (details && details.length > 0) {
-                for (const name of ["scope", "type"]) {
-                    if (details[0][name]) {
-                        props.push(new BeanProperty(name, details[0][name]));
-                    }
-                }
-            } 
-            return props;
+            return undefined;
         }
 
         return undefined;
