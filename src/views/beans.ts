@@ -108,7 +108,7 @@ class BeansDataProvider implements vscode.TreeDataProvider<TreeData> {
             if (this.showAll && element.defined) {
                 desc.push("defined");
             }
-            item.description = desc.map(d => `(${d})`).join();
+            item.description = desc.join(", ");
             return item;
 
         } else {
