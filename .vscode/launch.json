@@ -24,8 +24,9 @@
             "request": "launch",
             "runtimeExecutable": "${execPath}",
             "args": [
+                "${workspaceFolder}/.vscode-test/spring-petclinic",
                 "--extensionDevelopmentPath=${workspaceFolder}",
-                "--extensionTestsPath=${workspaceFolder}/out/test"
+                "--extensionTestsPath=${workspaceFolder}/out/test/suite"
             ],
             "outFiles": [
                 "${workspaceFolder}/out/test/**/*.js"

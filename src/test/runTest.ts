@@ -36,6 +36,21 @@ async function main(): Promise<void> {
         // Passed to `--extensionDevelopmentPath`
         const extensionDevelopmentPath: string = path.resolve(__dirname, "../../");
 
+        // clone spring-petclinic
+        const vscodeTestPath = path.resolve(extensionDevelopmentPath, '.vscode-test');
+
+        cp.execSync('git clone https://github.com/spring-projects/spring-petclinic', {
+            stdio: [0, 1, 2],
+            cwd: vscodeTestPath,
+        });
+
+        const repositoryPath = path.resolve(vscodeTestPath, "spring-petclinic");
+
+        cp.execSync('git checkout ce626da', {
+            stdio: [0, 1, 2],
+            cwd: repositoryPath,
+        });
+
         // The path to the extension test script
         // Passed to --extensionTestsPath
         const extensionTestsPath: string = path.resolve(__dirname, "./suite/index");
@@ -44,7 +59,10 @@ async function main(): Promise<void> {
         await runTests({
             vscodeExecutablePath,
             extensionDevelopmentPath,
-            extensionTestsPath
+            extensionTestsPath,
+            launchArgs: [
+                repositoryPath
+            ]
         });
 
         process.exit(0);
