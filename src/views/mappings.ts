@@ -10,7 +10,7 @@ import { getContextPath, getPort } from "../models/stsApi";
 import { LocalLiveProcess } from "../types/sts-api";
 import { constructOpenUrl } from "../utils";
 
-interface Endpoint {
+export interface Endpoint {
     // raw
     processKey: string;
     details?: any;
@@ -23,7 +23,7 @@ interface Endpoint {
     pattern?: string;
 }
 
-interface StaticEndpoint {
+export interface StaticEndpoint {
     name: string;
     location: vscode.Location;
 
