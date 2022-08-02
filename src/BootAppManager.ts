@@ -11,6 +11,7 @@ import { initSymbols } from "./controllers/SymbolsController";
 import { ClassPathData, MainClassData } from "./types/jdtls";
 import { beansProvider } from "./views/beans";
 import { mappingsProvider } from "./views/mappings";
+import { initialize } from "./models/stsApi";
 
 function isBootAppClasspath(cp: ClassPathData): boolean {
     if (cp.entries) {
@@ -84,6 +85,7 @@ export class BootAppManager {
      * These events are used to keep the list of boot apps in sync with the workspace projects.
      */
     private async _startAppListSynchronisation(): Promise<void> {
+        await initialize();
         //TODO: The code below will fail if jdt language server has not yet been started
         //  How should we deal with that?
         const callbackId = uuid.v4();

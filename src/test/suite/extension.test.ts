@@ -79,7 +79,7 @@ suite("Extension Test Suite", () => {
         }
         assert.strictEqual(rootBeanAll.length, 1);
         const allBeans = await beansProvider.getChildren(rootBeanAll[0]);
-        assert.strictEqual(allBeans?.length, 376);
+        assert.strictEqual(allBeans?.length, 376, "There should be 376 beans in total.");
         // verify active bean name
         const allBean0 = allBeans[0] as Bean;
         assert.strictEqual(allBean0.id, "applicationAvailability");

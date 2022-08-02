@@ -164,7 +164,7 @@ class BeansDataProvider implements vscode.TreeDataProvider<TreeData> {
                 }
             }
 
-            if (this.showAll) {
+            if (!this.showAll) {
                 return liveBeans;
             } else {
                 return liveBeans?.filter(b => b.defined);
