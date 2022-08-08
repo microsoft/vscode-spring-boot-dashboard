@@ -4,9 +4,10 @@ import * as assert from "assert";
 import * as vscode from "vscode";
 import { AppState } from "../../BootApp";
 import { initSymbols } from "../../controllers/SymbolsController";
+import { StaticEndpoint } from "../../models/StaticSymbolTypes";
 import { appsProvider } from "../../views/apps";
 import { Bean, beansProvider } from "../../views/beans";
-import { Endpoint, mappingsProvider, StaticEndpoint } from "../../views/mappings";
+import { Endpoint, mappingsProvider } from "../../views/mappings";
 import { setupTestEnv, sleep } from "../utils";
 
 suite("Extension Test Suite", () => {
