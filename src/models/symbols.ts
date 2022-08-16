@@ -51,12 +51,7 @@ export async function navigateToLocation(symbol: StaticEndpoint | StaticBean | {
     const {uri, range} = location;
     const line = range.start.line + 1; // zero-base in range.
     const uriString = `${uri}#${line}`;
-    await vscode.commands.executeCommand("vscode.open", vscode.Uri.parse(uriString));
-
-    // Workaround: Keep focusing on tree view, to unblock further filtering.
-    if (symbol instanceof StaticBean) {
-        await vscode.commands.executeCommand("spring.beans.focus");
-    } else if (symbol instanceof StaticEndpoint || symbol.corresponding instanceof StaticEndpoint) {
-        await vscode.commands.executeCommand("spring.mappings.focus");
-    }
+    await vscode.window.showTextDocument(vscode.Uri.parse(uriString), {
+        preserveFocus: true
+    });
 }

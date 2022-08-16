@@ -220,9 +220,9 @@ export async function openBeanHandler(bean: Bean) {
     if (bean.type) {
         const uriString = await getUrlOfBeanType(bean.type);
         if (uriString) {
-            await vscode.commands.executeCommand("vscode.open", vscode.Uri.parse(uriString));
-            await vscode.commands.executeCommand("spring.beans.focus");
-            return;
+            await vscode.window.showTextDocument(vscode.Uri.parse(uriString), {
+                preserveFocus: true
+            });
         }
     }
 }
