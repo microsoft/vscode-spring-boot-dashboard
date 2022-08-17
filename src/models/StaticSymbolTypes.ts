@@ -1,3 +1,6 @@
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT license.
+
 import * as vscode from "vscode";
 
 export abstract class StaticSymbol {
@@ -8,7 +11,10 @@ export abstract class StaticSymbol {
         return this.raw.name;
     }
 
-    public get location() : vscode.Location {
+    public get location() : {
+        uri: string;
+        range: vscode.Range;
+    } {
         return this.raw.location;
     }
 
@@ -39,9 +45,9 @@ export class StaticEndpoint extends StaticSymbol {
     // parsed
     public get method(): string | undefined {
         return this.raw.method;
-    };
+    }
 
     public get pattern(): string | undefined {
         return this.raw.pattern;
-    };
+    }
 }

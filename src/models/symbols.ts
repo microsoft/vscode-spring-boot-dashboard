@@ -49,14 +49,5 @@ function sanitizeFilePath(uri: string) {
 export async function navigateToLocation(symbol: StaticEndpoint | StaticBean | {corresponding: StaticEndpoint}) {
     const location = (symbol instanceof StaticBean || symbol instanceof StaticEndpoint) ? symbol.location : symbol.corresponding.location;
     const {uri, range} = location;
-    const line = range.start.line + 1; // zero-base in range.
-    const uriString = `${uri}#${line}`;
-    await vscode.commands.executeCommand("vscode.open", vscode.Uri.parse(uriString));
-
-    // Workaround: Keep focusing on tree view, to unblock further filtering.
-    if (symbol instanceof StaticBean) {
-        await vscode.commands.executeCommand("spring.beans.focus");
-    } else if (symbol instanceof StaticEndpoint || symbol.corresponding instanceof StaticEndpoint) {
-        await vscode.commands.executeCommand("spring.mappings.focus");
-    }
+    await vscode.commands.executeCommand("vscode.open", vscode.Uri.parse(uri), { preserveFocus: true, selection: range});
 }
