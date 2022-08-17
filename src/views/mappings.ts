@@ -8,6 +8,7 @@ import { initSymbols } from "../controllers/SymbolsController";
 import { LiveProcess } from "../models/liveProcess";
 import { StaticEndpoint } from "../models/StaticSymbolTypes";
 import { getContextPath, getPort } from "../models/stsApi";
+import { getLocationUri } from "../models/symbols";
 import { LocalLiveProcess } from "../types/sts-api";
 import { constructOpenUrl } from "../utils";
 
@@ -22,6 +23,8 @@ export interface Endpoint {
     label: string;
     method?: string;
     pattern?: string;
+
+    corresponding?: StaticEndpoint;
 }
 
 
@@ -79,18 +82,37 @@ class MappingsDataProvider implements vscode.TreeDataProvider<TreeData> {
                 item.contextValue += `+${element.method}`;
             }
 
-            item.command = {
-                command: "spring.dashboard.endpoint.navigate",
-                title: "Go to definition",
-                arguments: [element]
-            };
-
             // highlight defined beans in "all" mode
             if (this.showAll && (element as any).corresponding) {
                 item.description = "(defined)";
             }
             return item;
         }
+    }
+
+    resolveTreeItem(item: vscode.TreeItem, element: TreeData, _token: vscode.CancellationToken): vscode.TreeItem {
+        if (element instanceof LiveProcess || element instanceof BootApp) {
+            return item;
+        }
+
+        const opts: vscode.TextDocumentShowOptions = {
+            preserveFocus: true,
+            viewColumn: vscode.ViewColumn.Active,
+        };
+        let uri;
+        if (element instanceof StaticEndpoint) {
+            uri = getLocationUri(element);
+        } else if (element.corresponding instanceof StaticEndpoint) {
+            uri = getLocationUri(element.corresponding);
+        }
+        if (uri) {
+            item.command = {
+                command: "vscode.open",
+                title: "Open",
+                arguments: [uri, opts]
+            };
+        }
+        return item;
     }
 
     async getChildren(element?: TreeData): Promise<TreeData[] | undefined> {

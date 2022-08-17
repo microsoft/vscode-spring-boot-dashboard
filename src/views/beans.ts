@@ -7,6 +7,7 @@ import { initSymbols } from "../controllers/SymbolsController";
 import { LiveProcess } from "../models/liveProcess";
 import { StaticBean } from "../models/StaticSymbolTypes";
 import { getBeanDetail, getUrlOfBeanType } from "../models/stsApi";
+import { getLocationUri } from "../models/symbols";
 import { LocalLiveProcess } from "../types/sts-api";
 
 export class Bean {
@@ -82,12 +83,6 @@ class BeansDataProvider implements vscode.TreeDataProvider<TreeData> {
             item.collapsibleState = vscode.TreeItemCollapsibleState.None;
             item.iconPath = new vscode.ThemeIcon("spring-bean", COLOR_LIVE);
             item.contextValue = "spring:bean";
-            const commandOnClick = "spring.dashboard.bean.open";
-            item.command = {
-                command: commandOnClick,
-                title: "Open",
-                arguments: [element]
-            };
 
             const desc = [];
             if (!element.scope) {
@@ -103,7 +98,9 @@ class BeansDataProvider implements vscode.TreeDataProvider<TreeData> {
             if (this.showAll && element.defined) {
                 desc.push("defined");
             }
-            item.description = desc.join(", ");
+            if (desc.length > 0) {
+                item.description = desc.join(", ");
+            }
             return item;
 
         } else if (element instanceof StaticBean) {
@@ -113,17 +110,31 @@ class BeansDataProvider implements vscode.TreeDataProvider<TreeData> {
             item.collapsibleState = vscode.TreeItemCollapsibleState.None;
             item.iconPath = new vscode.ThemeIcon("spring-bean");
             item.contextValue = "spring:staticBean";
-            const commandOnClick = "spring.dashboard.bean.navigate";
-
-            item.command = {
-                command: commandOnClick,
-                title: "Open",
-                arguments: [element]
-            };
             return item;
         } else {
             throw new Error("Unsupported Tree Data Item");
         }
+    }
+
+    async resolveTreeItem(item: vscode.TreeItem, element: TreeData, _token: vscode.CancellationToken): Promise<vscode.TreeItem> {
+        const opts: vscode.TextDocumentShowOptions = {
+            preserveFocus: true,
+            viewColumn: vscode.ViewColumn.Active,
+        };
+        let uri;
+        if (element instanceof Bean) {
+            uri = await getUri(element);
+        } else if (element instanceof StaticBean) {
+            uri = getLocationUri(element);
+        }
+        if (uri) {
+            item.command = {
+                command: "vscode.open",
+                title: "Open",
+                arguments: [uri, opts]
+            };
+        }
+        return item;
     }
 
     async getChildren(element?: TreeData): Promise<TreeData[] | undefined> {
@@ -175,6 +186,7 @@ class BeansDataProvider implements vscode.TreeDataProvider<TreeData> {
         return undefined;
     }
 
+
     public refresh(item?: TreeData) {
         this.onDidRefreshBeans.fire(item);
     }
@@ -208,7 +220,7 @@ class BeansDataProvider implements vscode.TreeDataProvider<TreeData> {
 
 export const beansProvider = new BeansDataProvider();
 
-export async function openBeanHandler(bean: Bean) {
+export async function getUri(bean: Bean) {
     // TODO: extract logic in sts.java.javadocHoverLink into jdtls as a utility
     if (!bean.type) {
         const details = await getBeanDetail(bean.processKey, bean.id);
@@ -220,9 +232,8 @@ export async function openBeanHandler(bean: Bean) {
     if (bean.type) {
         const uriString = await getUrlOfBeanType(bean.type);
         if (uriString) {
-            await vscode.window.showTextDocument(vscode.Uri.parse(uriString), {
-                preserveFocus: true
-            });
+            return vscode.Uri.parse(uriString);
         }
     }
+    return undefined;
 }

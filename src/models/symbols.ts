@@ -46,12 +46,10 @@ function sanitizeFilePath(uri: string) {
     return uri.replace(/^file:\/+/, "");
 }
 
-export async function navigateToLocation(symbol: StaticEndpoint | StaticBean | {corresponding: StaticEndpoint}) {
+export function getLocationUri(symbol: StaticEndpoint | StaticBean | {corresponding: StaticEndpoint}) {
     const location = (symbol instanceof StaticBean || symbol instanceof StaticEndpoint) ? symbol.location : symbol.corresponding.location;
     const {uri, range} = location;
     const line = range.start.line + 1; // zero-base in range.
     const uriString = `${uri}#${line}`;
-    await vscode.window.showTextDocument(vscode.Uri.parse(uriString), {
-        preserveFocus: true
-    });
+    return vscode.Uri.parse(uriString);
 }
