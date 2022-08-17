@@ -58,7 +58,7 @@ suite("Extension Test Suite", () => {
         openedEditor = vscode.window.activeTextEditor;
         assert.ok(openedEditor?.document.fileName.endsWith("CrashController.java"), "CrashController.java are opened.");
         assert.strictEqual(openedEditor?.selection.anchor.line, 30, "The definition of CrashController should be at line 30.");
-        assert.strictEqual(openedEditor?.selection.anchor.character, 0, "The definition of CrashController should be at character 0.");
+        assert.strictEqual(openedEditor?.selection.anchor.character, 1, "The definition of CrashController should be at character 1.");
     }).timeout(120 * 1000 /** ms */);
 
     test("Can view dynamic beans and mappings", async () => {
