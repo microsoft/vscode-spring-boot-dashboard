@@ -6,6 +6,7 @@ import * as vscode from "vscode";
 import { BootApp } from "../BootApp";
 import { initSymbols } from "../controllers/SymbolsController";
 import { LiveProcess } from "../models/liveProcess";
+import { StaticEndpoint } from "../models/StaticSymbolTypes";
 import { getContextPath, getPort } from "../models/stsApi";
 import { LocalLiveProcess } from "../types/sts-api";
 import { constructOpenUrl } from "../utils";
@@ -23,15 +24,6 @@ export interface Endpoint {
     pattern?: string;
 }
 
-export interface StaticEndpoint {
-    name: string;
-    location: vscode.Location;
-
-    // parsed
-    label: string;
-    method?: string;
-    pattern?: string;
-}
 
 type TreeData = Endpoint | StaticEndpoint | LiveProcess | BootApp;
 class MappingsDataProvider implements vscode.TreeDataProvider<TreeData> {
@@ -167,7 +159,7 @@ class MappingsDataProvider implements vscode.TreeDataProvider<TreeData> {
     }
 
     public updateStaticData(app: BootApp, mappingsRaw: StaticEndpoint[]) {
-        const mappings = mappingsRaw.map(raw => parseStaticMapping(raw)).sort((a, b) => a.label.localeCompare(b.label));
+        const mappings = mappingsRaw.map(raw => new StaticEndpoint(raw)).sort((a, b) => a.label.localeCompare(b.label));
         this.staticData.set(app, mappings);
     }
 }
@@ -186,20 +178,6 @@ function parseMapping(raw:any, processKey: string): Endpoint {
         method,
         pattern,
         ...raw.data.map
-    };
-}
-
-function parseStaticMapping(raw:any): StaticEndpoint {
-    const [pattern, method] = raw.name.replace(/^@/, "").split(" -- ");
-    let label = pattern ?? "unknown";
-    if (method) {
-        label += ` [${method}]`;
-    }
-    return {
-        label,
-        method,
-        pattern,
-        ...raw
     };
 }
 

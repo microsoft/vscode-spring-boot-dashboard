@@ -4,9 +4,10 @@ import * as assert from "assert";
 import * as vscode from "vscode";
 import { AppState } from "../../BootApp";
 import { initSymbols } from "../../controllers/SymbolsController";
+import { StaticEndpoint } from "../../models/StaticSymbolTypes";
 import { appsProvider } from "../../views/apps";
 import { Bean, beansProvider } from "../../views/beans";
-import { Endpoint, mappingsProvider, StaticEndpoint } from "../../views/mappings";
+import { Endpoint, mappingsProvider } from "../../views/mappings";
 import { setupTestEnv, sleep } from "../utils";
 
 suite("Extension Test Suite", () => {
@@ -57,7 +58,7 @@ suite("Extension Test Suite", () => {
         openedEditor = vscode.window.activeTextEditor;
         assert.ok(openedEditor?.document.fileName.endsWith("CrashController.java"), "CrashController.java are opened.");
         assert.strictEqual(openedEditor?.selection.anchor.line, 30, "The definition of CrashController should be at line 30.");
-        assert.strictEqual(openedEditor?.selection.anchor.character, 0, "The definition of CrashController should be at character 0.");
+        assert.strictEqual(openedEditor?.selection.anchor.character, 1, "The definition of CrashController should be at character 1.");
     }).timeout(120 * 1000 /** ms */);
 
     test("Can view dynamic beans and mappings", async () => {

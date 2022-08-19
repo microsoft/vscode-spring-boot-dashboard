@@ -5,6 +5,7 @@ import * as vscode from "vscode";
 import { BootApp } from "../BootApp";
 import { initSymbols } from "../controllers/SymbolsController";
 import { LiveProcess } from "../models/liveProcess";
+import { StaticBean } from "../models/StaticSymbolTypes";
 import { getBeanDetail, getUrlOfBeanType } from "../models/stsApi";
 import { LocalLiveProcess } from "../types/sts-api";
 
@@ -29,12 +30,6 @@ class BeanProperty {
     }
 }
 
-interface StaticBean {
-    name: string;
-    location: vscode.Location;
-
-    id: string;
-}
 
 type TreeData = Bean | LiveProcess | StaticBean | BootApp | BeanProperty;
 const COLOR_LIVE = new vscode.ThemeColor("charts.green");
@@ -111,8 +106,8 @@ class BeansDataProvider implements vscode.TreeDataProvider<TreeData> {
             item.description = desc.join(", ");
             return item;
 
-        } else {
-            const label = element.id;
+        } else if (element instanceof StaticBean) {
+            const label = element.label;
             const item = new vscode.TreeItem(label);
 
             item.collapsibleState = vscode.TreeItemCollapsibleState.None;
@@ -126,6 +121,8 @@ class BeansDataProvider implements vscode.TreeDataProvider<TreeData> {
                 arguments: [element]
             };
             return item;
+        } else {
+            throw new Error("Unsupported Tree Data Item");
         }
     }
 
@@ -198,13 +195,13 @@ class BeansDataProvider implements vscode.TreeDataProvider<TreeData> {
         this.onDidRefreshBeans.fire(undefined);
     }
 
-    public refreshStatic(app: BootApp, mappingsRaw: StaticBean[]) {
-        this.updateStaticData(app, mappingsRaw);
+    public refreshStatic(app: BootApp, beansRaw: StaticBean[]) {
+        this.updateStaticData(app, beansRaw);
         this.onDidRefreshBeans.fire(undefined);
     }
 
-    public updateStaticData(app: BootApp, mappingsRaw: StaticBean[]) {
-        const mappings = mappingsRaw.map(raw => parseStaticBean(raw)).sort((a, b) => a.id.localeCompare(b.id));
+    public updateStaticData(app: BootApp, beansRaw: StaticBean[]) {
+        const mappings = beansRaw.map(raw => new StaticBean(raw)).sort((a, b) => a.id.localeCompare(b.id));
         this.staticData.set(app, mappings);
     }
 }
@@ -222,19 +219,13 @@ export async function openBeanHandler(bean: Bean) {
 
     if (bean.type) {
         const uriString = await getUrlOfBeanType(bean.type);
+        const line = uriString.split("#")[1];
+        let range;
+        if (line && line.match(/^[0-9]+$/)) {
+            range = new vscode.Range(Number(line), 0, Number(line), 0);
+        }
         if (uriString) {
-            await vscode.commands.executeCommand("vscode.open", vscode.Uri.parse(uriString));
-            return;
+            await vscode.commands.executeCommand("vscode.open", vscode.Uri.parse(uriString), { preserveFocus: true, selection: range });
         }
     }
-}
-
-function parseStaticBean(raw:any): StaticBean {
-    const m = (raw.name as string).match(/^@\+ '(.+?)'/);
-    let id = m ? m[1] : "unknown";
-
-    return {
-        id,
-        ...raw
-    };
 }
