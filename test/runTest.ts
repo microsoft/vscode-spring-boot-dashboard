@@ -40,6 +40,11 @@ async function main(): Promise<void> {
         const vscodeTestPath = path.resolve(extensionDevelopmentPath, 'test/projects');
         const repositoryPath = path.resolve(vscodeTestPath, "spring-petclinic");
 
+        cp.execSync('git submodule update --init --recursive', {
+            stdio: [0, 1, 2],
+            cwd: repositoryPath,
+        });
+
         // The path to the extension test script
         // Passed to --extensionTestsPath
         const extensionTestsPath: string = path.resolve(__dirname, "./suite/index");
