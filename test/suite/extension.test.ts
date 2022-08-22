@@ -2,12 +2,12 @@
 // Licensed under the MIT license.
 import * as assert from "assert";
 import * as vscode from "vscode";
-import { AppState } from "../../BootApp";
-import { initSymbols } from "../../controllers/SymbolsController";
-import { StaticEndpoint } from "../../models/StaticSymbolTypes";
-import { appsProvider } from "../../views/apps";
-import { Bean, beansProvider } from "../../views/beans";
-import { Endpoint, mappingsProvider } from "../../views/mappings";
+import { AppState } from "../../src/BootApp";
+import { initSymbols } from "../../src/controllers/SymbolsController";
+import { StaticEndpoint } from "../../src/models/StaticSymbolTypes";
+import { appsProvider } from "../../src/views/apps";
+import { Bean, beansProvider } from "../../src/views/beans";
+import { Endpoint, mappingsProvider } from "../../src/views/mappings";
 import { setupTestEnv, sleep } from "../utils";
 
 suite("Extension Test Suite", () => {
