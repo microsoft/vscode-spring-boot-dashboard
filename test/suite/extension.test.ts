@@ -2,12 +2,12 @@
 // Licensed under the MIT license.
 import * as assert from "assert";
 import * as vscode from "vscode";
-import { AppState } from "../../BootApp";
-import { initSymbols } from "../../controllers/SymbolsController";
-import { StaticEndpoint } from "../../models/StaticSymbolTypes";
-import { appsProvider } from "../../views/apps";
-import { Bean, beansProvider } from "../../views/beans";
-import { Endpoint, mappingsProvider } from "../../views/mappings";
+import { AppState } from "../../src/BootApp";
+import { initSymbols } from "../../src/controllers/SymbolsController";
+import { StaticEndpoint } from "../../src/models/StaticSymbolTypes";
+import { appsProvider } from "../../src/views/apps";
+import { Bean, beansProvider } from "../../src/views/beans";
+import { Endpoint, mappingsProvider } from "../../src/views/mappings";
 import { setupTestEnv, sleep } from "../utils";
 
 suite("Extension Test Suite", () => {
@@ -58,7 +58,7 @@ suite("Extension Test Suite", () => {
         openedEditor = vscode.window.activeTextEditor;
         assert.ok(openedEditor?.document.fileName.endsWith("CrashController.java"), "CrashController.java are opened.");
         assert.strictEqual(openedEditor?.selection.anchor.line, 30, "The definition of CrashController should be at line 30.");
-        assert.strictEqual(openedEditor?.selection.anchor.character, 1, "The definition of CrashController should be at character 1.");
+        assert.strictEqual(openedEditor?.selection.anchor.character, 1, "The definition of CrashController should be at character 0.");
     }).timeout(120 * 1000 /** ms */);
 
     test("Can view dynamic beans and mappings", async () => {
