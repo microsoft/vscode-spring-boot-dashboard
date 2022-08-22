@@ -37,13 +37,7 @@ async function main(): Promise<void> {
         const extensionDevelopmentPath: string = path.resolve(__dirname, "../../");
 
         // clone spring-petclinic
-        const vscodeTestPath = path.resolve(extensionDevelopmentPath, '.vscode-test');
-
-        cp.execSync('git clone https://github.com/spring-projects/spring-petclinic', {
-            stdio: [0, 1, 2],
-            cwd: vscodeTestPath,
-        });
-
+        const vscodeTestPath = path.resolve(extensionDevelopmentPath, 'test/projects');
         const repositoryPath = path.resolve(vscodeTestPath, "spring-petclinic");
 
         cp.execSync('git checkout ce626da', {
