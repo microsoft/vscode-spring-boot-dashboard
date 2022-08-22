@@ -11,6 +11,8 @@ jobs:
     name: Windows
     runs-on: windows-latest
     timeout-minutes: 30
+    strategy:
+      fail-fast: false
     steps:
     - uses: actions/checkout@v2
 
@@ -35,4 +37,24 @@ jobs:
       run: vsce package
 
     - name: Test extension
+      continue-on-error: true
       run: npm test
+      id: test
+
+    - name: Retry test extension attempt 1
+      continue-on-error: true
+      if: steps.test.outcome=='failure'
+      run: npm test
+      id: retry1
+
+    - name: Retry test extension attempt 2
+      continue-on-error: true
+      if: steps.retry1.outcome=='failure'
+      run: npm test
+      id: retry2
+
+    - name: Set test extension status
+      if: ${{ steps.test.outcome=='failure' && steps.retry1.outcome=='failure' && steps.retry2.outcome=='failure' }}
+      run: |
+        echo "Tests failed"
+        exit 1
