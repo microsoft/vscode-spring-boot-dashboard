@@ -4,12 +4,16 @@ out/test/**
 out/**/*.map
 java-extension/**
 src/**
+test/**
 .gitignore
 tsconfig.json
 vsc-extension-quickstart.md
 tslint.json
 images/**
 scripts/**
+.mvn
+.github
+.gitmodules
 
 # Ignore output of code sign
 lib/*.md
