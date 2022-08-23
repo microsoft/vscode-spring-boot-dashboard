@@ -21,7 +21,9 @@
   ],
   "activationEvents": [
     "onCommand:spring-boot-dashboard.refresh",
-    "onView:spring-boot-dashboard"
+    "onView:spring.apps",
+    "onView:spring.beans",
+    "onView:spring.mappings"
   ],
   "capabilities": {
     "virtualWorkspaces": false
@@ -42,32 +44,35 @@
         {
           "id": "spring",
           "icon": "resources/logo.png",
-          "title": "Spring"
+          "title": "Spring Boot Dashboard"
         }
       ]
     },
     "views": {
       "spring": [
         {
-          "id": "spring-boot-dashboard",
-          "name": "Spring Boot Dashboard",
+          "id": "spring.apps",
+          "name": "Apps",
           "when": "java:serverMode",
           "contextualTitle": "Spring",
-          "icon": "resources/logo.png"
+          "icon": "resources/logo.png",
+          "size": 1
         },
         {
           "id": "spring.beans",
           "name": "Beans",
           "when": "java:serverMode",
           "contextualTitle": "Spring",
-          "icon": "resources/logo.png"
+          "icon": "resources/logo.png",
+          "size": 2
         },
         {
           "id": "spring.mappings",
           "name": "Endpoint Mappings",
           "when": "java:serverMode",
           "contextualTitle": "Spring",
-          "icon": "resources/logo.png"
+          "icon": "resources/logo.png",
+          "size": 2
         }
       ]
     },
