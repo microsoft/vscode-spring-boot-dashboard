@@ -1,0 +1,3 @@
+{
+    "viewsWelcome.noActuator": "Live information requires Spring Boot Actuator enabled for you application. You can add spring-boot-actuator-starter to your application's [pom.xml](command:workbench.action.quickOpen?[\"pom.xml\"]) or [build.gradle](command:workbench.action.quickOpen?[\"build.gradle\"]) as explained [here](https://docs.spring.io/spring-boot/docs/current/reference/html/actuator.html#actuator.enabling).\nOtherwise only static information will be shown here.\n[Enable Actuator](command:spring.enableActuator)\n[I Understand](command:spring.viewsWelcome.acknowledged)"
+}

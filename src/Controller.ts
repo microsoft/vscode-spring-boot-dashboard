@@ -9,6 +9,7 @@ import { AppState, BootApp } from "./BootApp";
 import { BootAppManager } from "./BootAppManager";
 import { constructOpenUrl, readAll } from "./utils";
 import { MainClassData } from "./types/jdtls";
+import { didRun, didStop } from "./views/guide";
 const getPort = require("get-port");
 
 export class Controller {
@@ -117,6 +118,9 @@ export class Controller {
             } else {
                 // actuator absent: no live connection, set project as 'running' immediately.
                 this._setState(app, AppState.RUNNING);
+
+                // actuator guide
+                didRun(app.path);
             }
         }
     }
@@ -159,6 +163,11 @@ export class Controller {
         const app = this._manager.getAppBySession(session);
         if (app) {
             this._setState(app, AppState.INACTIVE);
+
+            // actuator guide
+            if (!isActuatorOnClasspath(session.configuration)) {
+                didStop(app.path);
+            }
         }
     }
 
