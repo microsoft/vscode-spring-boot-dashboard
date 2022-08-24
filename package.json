@@ -71,6 +71,18 @@
         }
       ]
     },
+    "viewsWelcome": [
+      {
+        "view": "spring.beans",
+        "contents": "%viewsWelcome.noActuator%",
+        "when": "spring:noActuator"
+      },
+      {
+        "view": "spring.mappings",
+        "contents": "%viewsWelcome.noActuator%",
+        "when": "spring:noActuator"
+      }
+    ],
     "commands": [
       {
         "command": "spring-boot-dashboard.refresh",

@@ -8,6 +8,7 @@ import { LiveProcess } from "../models/liveProcess";
 import { StaticBean } from "../models/StaticSymbolTypes";
 import { getBeanDetail, getUrlOfBeanType } from "../models/stsApi";
 import { LocalLiveProcess } from "../types/sts-api";
+import { shouldShowGuide } from "./guide";
 
 export class Bean {
     dependencies?: string[];
@@ -129,6 +130,11 @@ class BeansDataProvider implements vscode.TreeDataProvider<TreeData> {
     async getChildren(element?: TreeData): Promise<TreeData[] | undefined> {
         // top-level
         if (!element) {
+            // for welcome view
+            if (shouldShowGuide()) {
+                return undefined;
+            }
+
             const ret = [];
             const liveProcesses = Array.from(this.store.keys());
             ret.push(...liveProcesses);

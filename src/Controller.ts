@@ -9,6 +9,9 @@ import { AppState, BootApp } from "./BootApp";
 import { BootAppManager } from "./BootAppManager";
 import { constructOpenUrl, readAll } from "./utils";
 import { MainClassData } from "./types/jdtls";
+import { didRun, didStop } from "./views/guide";
+import { beansProvider } from "./views/beans";
+import { mappingsProvider } from "./views/mappings";
 const getPort = require("get-port");
 
 export class Controller {
@@ -114,9 +117,15 @@ export class Controller {
             if (isActuatorOnClasspath(session.configuration)) {
                 // actuator enabled: wait live connection to update running state.
                 this._setState(app, AppState.LAUNCHING);
+                vscode.commands.executeCommand("setContext", "spring:noActuator", false);
             } else {
                 // actuator absent: no live connection, set project as 'running' immediately.
                 this._setState(app, AppState.RUNNING);
+
+                // actuator guide
+                didRun(app.path);
+                beansProvider.refresh(undefined);
+                mappingsProvider.refresh(undefined);
             }
         }
     }
@@ -159,6 +168,11 @@ export class Controller {
         const app = this._manager.getAppBySession(session);
         if (app) {
             this._setState(app, AppState.INACTIVE);
+
+            // actuator guide
+            didStop(app.path);
+            beansProvider.refresh(undefined);
+            mappingsProvider.refresh(undefined);
         }
     }
 

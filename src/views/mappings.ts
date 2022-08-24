@@ -10,6 +10,7 @@ import { StaticEndpoint } from "../models/StaticSymbolTypes";
 import { getContextPath, getPort } from "../models/stsApi";
 import { LocalLiveProcess } from "../types/sts-api";
 import { constructOpenUrl } from "../utils";
+import { shouldShowGuide } from "./guide";
 
 export interface Endpoint {
     // raw
@@ -96,6 +97,11 @@ class MappingsDataProvider implements vscode.TreeDataProvider<TreeData> {
     async getChildren(element?: TreeData): Promise<TreeData[] | undefined> {
         // top-level
         if (!element) {
+            // for welcome view
+            if (shouldShowGuide()) {
+                return undefined;
+            }
+
             const ret = [];
             const liveProcesses = Array.from(this.store.keys());
             ret.push(...liveProcesses);
