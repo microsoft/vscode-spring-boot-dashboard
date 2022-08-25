@@ -4,7 +4,6 @@
 
 import * as vscode from "vscode";
 import { BootApp } from "../BootApp";
-import { initSymbols } from "../controllers/SymbolsController";
 import { LiveProcess } from "../models/liveProcess";
 import { StaticEndpoint } from "../models/StaticSymbolTypes";
 import { getContextPath, getPort } from "../models/stsApi";
@@ -109,7 +108,6 @@ class MappingsDataProvider implements vscode.TreeDataProvider<TreeData> {
             return ret;
         }
 
-        await initSymbols();
         // all mappings
         if (element instanceof LiveProcess) {
             const liveMappings = this.store.get(element);

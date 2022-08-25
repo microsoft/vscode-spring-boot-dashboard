@@ -9,18 +9,21 @@ import { StaticBean, StaticEndpoint } from "./StaticSymbolTypes";
 let beans: any[];
 let mappings: any[];
 
+const MAX_TIMEOUT = 20 * 60 * 1000; // 20 min
+
 export async function init(timeout?: number) {
-    const INTERVAL = 500; //ms
-    const TIMEOUT = timeout ?? 0;
+    const INTERVAL = 1000; // 1000 ms
+    const TIMEOUT = timeout ?? MAX_TIMEOUT;
     let retry = 0;
     do {
-        if (retry !== 0) {
-            await sleep(INTERVAL);
-            retry++;
-        }
         const symbols = await requestWorkspaceSymbols();
         beans = symbols.beans;
         mappings = symbols.mappings;
+
+        if (retry !== 0) {
+            await sleep(INTERVAL);
+        }
+        retry++;
     } while (!beans?.length && !mappings?.length && retry * INTERVAL < TIMEOUT);
 }
 
