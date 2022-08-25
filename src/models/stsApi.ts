@@ -3,6 +3,7 @@
 
 import * as cp from "child_process";
 import * as os from "os";
+import * as _ from "lodash";
 import * as path from 'path';
 import { promisify } from "util";
 import * as vscode from 'vscode';
@@ -127,5 +128,10 @@ export async function requestWorkspaceSymbols(_projectPath?: string): Promise<{
 }> {
     const beans = await stsApi.client.sendRequest("workspace/symbol", {"query": "@+"}) as any[];
     const mappings = await stsApi.client.sendRequest("workspace/symbol", {"query": "@/"}) as any[];
-    return { beans, mappings };
+    // Dedup symbols in case of duplicated items in response
+    // Workaround for https://github.com/spring-projects/sts4/issues/820
+    return {
+        beans: _.uniqBy(beans, 'name'),
+        mappings: _.uniqBy(mappings, 'name')
+    };
 }
