@@ -21,7 +21,9 @@
   ],
   "activationEvents": [
     "onCommand:spring-boot-dashboard.refresh",
-    "onView:spring-boot-dashboard"
+    "onView:spring.apps",
+    "onView:spring.beans",
+    "onView:spring.mappings"
   ],
   "capabilities": {
     "virtualWorkspaces": false
@@ -42,15 +44,15 @@
         {
           "id": "spring",
           "icon": "resources/logo.png",
-          "title": "Spring"
+          "title": "Spring Boot Dashboard"
         }
       ]
     },
     "views": {
       "spring": [
         {
-          "id": "spring-boot-dashboard",
-          "name": "Spring Boot Dashboard",
+          "id": "spring.apps",
+          "name": "Apps",
           "when": "java:serverMode",
           "contextualTitle": "Spring",
           "icon": "resources/logo.png"
@@ -454,6 +456,7 @@
   },
   "devDependencies": {
     "@types/glob": "^7.2.0",
+    "@types/lodash": "^4.14.184",
     "@types/mocha": "^9.1.1",
     "@types/node": "^14.18.23",
     "@types/uuid": "^3.4.10",
@@ -471,6 +474,7 @@
   "dependencies": {
     "@pivotal-tools/jvm-launch-utils": "0.0.11",
     "get-port": "^5.1.1",
+    "lodash": "^4.17.21",
     "pidtree": "^0.5.0",
     "uuid": "^3.4.0",
     "vscode-extension-telemetry-wrapper": "^0.13.1",

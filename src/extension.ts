@@ -29,7 +29,7 @@ export async function activate(context: vscode.ExtensionContext) {
 export async function initializeExtension(_oprationId: string, context: vscode.ExtensionContext) {
     const controller: Controller = new Controller(appsProvider.manager, context);
 
-    context.subscriptions.push(vscode.window.registerTreeDataProvider('spring-boot-dashboard', appsProvider));
+    context.subscriptions.push(vscode.window.registerTreeDataProvider("spring.apps", appsProvider));
     context.subscriptions.push(instrumentOperationAsVsCodeCommand("spring-boot-dashboard.refresh", () => {
         appsProvider.manager.fireDidChangeApps(undefined);
     }));
