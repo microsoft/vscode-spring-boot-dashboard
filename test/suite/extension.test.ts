@@ -17,7 +17,7 @@ suite("Extension Test Suite", () => {
     });
 
     test("Can view static beans and mappings", async () => {
-        await vscode.commands.executeCommand("spring-boot-dashboard.focus");
+        await vscode.commands.executeCommand("spring.apps.focus");
         // workaround for https://github.com/microsoft/vscode-spring-boot-dashboard/issues/195
         await initSymbols(5000);
         let rootBean = await beansProvider.getChildren();
