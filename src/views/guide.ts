@@ -3,10 +3,11 @@
 
 import * as vscode from "vscode";
 import { instrumentOperationAsVsCodeCommand } from "vscode-extension-telemetry-wrapper";
+import { BootApp } from "../BootApp";
 
 const GLOBAL_STATE_KEY = "spring.actuator.acknowledged";
 
-const runningAppsWithoutActuator: Set<string> = new Set();
+const runningAppsWithoutActuator: Set<BootApp> = new Set();
 
 let _getAcknowledged: () => boolean;
 function getAcknowledged(): boolean {
@@ -18,7 +19,8 @@ export function init(context: vscode.ExtensionContext) {
         instrumentOperationAsVsCodeCommand("spring.enableActuator", async () => {
             const mavenExt = vscode.extensions.getExtension("vscjava.vscode-maven");
             if (mavenExt?.isActive && runningAppsWithoutActuator.size > 0) {
-                const pomxml = vscode.Uri.joinPath(vscode.Uri.parse(Array.from(runningAppsWithoutActuator.values())[0]), "/pom.xml");
+                const app = Array.from(runningAppsWithoutActuator.values())[0];
+                const pomxml = vscode.Uri.joinPath(vscode.Uri.parse(app.path), "/pom.xml");
                 try {
                     await vscode.workspace.fs.readFile(pomxml);
                     await vscode.commands.executeCommand("maven.project.addDependency", {
@@ -26,14 +28,21 @@ export function init(context: vscode.ExtensionContext) {
                         groupId: "org.springframework.boot",
                         artifactId: "spring-boot-starter-actuator",
                     });
-                    await vscode.window.showInformationMessage("Spring Actuator has been added to pom.xml. Please save and re-run your application for live information.");
-
+                    const OPTION_CONFIRM = "Save and Re-Run";
+                    const choice = await vscode.window.showInformationMessage("Spring Actuator has been added to pom.xml. Please save and re-run your application for live information.", OPTION_CONFIRM);
+                    if (choice === OPTION_CONFIRM) {
+                        await vscode.commands.executeCommand("spring-boot-dashboard.localapp.stop", app);
+                        const textEditor = await vscode.window.showTextDocument(pomxml);
+                        await textEditor.document.save();
+                        await vscode.commands.executeCommand("_spring.project.run", app.path);
+                    }
                     return;
                 } catch (error) {
                     console.log(error);
                 }
             }
 
+            // for supported case, fallback to open guide.
             vscode.commands.executeCommand("vscode.open", "https://docs.spring.io/spring-boot/docs/current/reference/html/actuator.html#actuator.enabling");
         }),
 
@@ -47,7 +56,7 @@ export function init(context: vscode.ExtensionContext) {
     _getAcknowledged = () => !!context.globalState.get(GLOBAL_STATE_KEY);
 }
 
-export function didRun(appWithoutActuator: string) {
+export function didRun(appWithoutActuator: BootApp) {
     runningAppsWithoutActuator.add(appWithoutActuator);
     const ack = getAcknowledged();
     if (!ack) {
@@ -55,7 +64,7 @@ export function didRun(appWithoutActuator: string) {
     }
 }
 
-export function didStop(appWithoutActuator: string) {
+export function didStop(appWithoutActuator: BootApp) {
     if (runningAppsWithoutActuator.has(appWithoutActuator)) {
         runningAppsWithoutActuator.delete(appWithoutActuator);
     }

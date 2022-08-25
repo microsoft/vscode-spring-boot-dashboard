@@ -120,7 +120,7 @@ export class Controller {
                 this._setState(app, AppState.RUNNING);
 
                 // actuator guide
-                didRun(app.path);
+                didRun(app);
             }
         }
     }
@@ -166,7 +166,7 @@ export class Controller {
 
             // actuator guide
             if (!isActuatorOnClasspath(session.configuration)) {
-                didStop(app.path);
+                didStop(app);
             }
         }
     }

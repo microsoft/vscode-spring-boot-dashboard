@@ -83,6 +83,12 @@ export async function initializeExtension(_oprationId: string, context: vscode.E
     context.subscriptions.push(instrumentOperationAsVsCodeCommand("spring.dashboard.bean.showHierarchy", showBeanHierarchy));
 
     initActuatorGuide(context);
+    context.subscriptions.push(instrumentOperationAsVsCodeCommand("_spring.project.run", async (appPath: string) => {
+        const targetApp = controller.getAppList().find(app => app.path === appPath);
+        if (targetApp) {
+            await controller.runBootApp(targetApp);
+        }
+    }));
     // console.log
     context.subscriptions.push(vscode.commands.registerCommand("_spring.console.log", console.log));
     context.subscriptions.push(vscode.commands.registerCommand("_spring.symbols", requestWorkspaceSymbols));
