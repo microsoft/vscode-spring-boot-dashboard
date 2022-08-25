@@ -3,7 +3,6 @@
 
 import * as vscode from "vscode";
 import { BootApp } from "../BootApp";
-import { initSymbols } from "../controllers/SymbolsController";
 import { LiveProcess } from "../models/liveProcess";
 import { StaticBean } from "../models/StaticSymbolTypes";
 import { getBeanDetail, getUrlOfBeanType } from "../models/stsApi";
@@ -142,7 +141,6 @@ class BeansDataProvider implements vscode.TreeDataProvider<TreeData> {
             return ret;
         }
 
-        await initSymbols();
         // all beans
         if (element instanceof LiveProcess) {
             const liveBeans =  this.store.get(element);
