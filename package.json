@@ -55,24 +55,21 @@
           "name": "Apps",
           "when": "java:serverMode",
           "contextualTitle": "Spring",
-          "icon": "resources/logo.png",
-          "size": 1
+          "icon": "resources/logo.png"
         },
         {
           "id": "spring.beans",
           "name": "Beans",
           "when": "java:serverMode",
           "contextualTitle": "Spring",
-          "icon": "resources/logo.png",
-          "size": 2
+          "icon": "resources/logo.png"
         },
         {
           "id": "spring.mappings",
           "name": "Endpoint Mappings",
           "when": "java:serverMode",
           "contextualTitle": "Spring",
-          "icon": "resources/logo.png",
-          "size": 2
+          "icon": "resources/logo.png"
         }
       ]
     },
