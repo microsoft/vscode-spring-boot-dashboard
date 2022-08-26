@@ -19,7 +19,7 @@ suite("Extension Test Suite", () => {
     test("Can view static beans and mappings", async () => {
         await vscode.commands.executeCommand("spring.apps.focus");
         // workaround for https://github.com/microsoft/vscode-spring-boot-dashboard/issues/195
-        await initSymbols(5000);
+        await initSymbols();
         let rootBean = await beansProvider.getChildren();
         while (!rootBean || rootBean.length === 0) {
             await sleep(5 * 1000 /** ms */);
@@ -59,7 +59,7 @@ suite("Extension Test Suite", () => {
         assert.ok(openedEditor?.document.fileName.endsWith("CrashController.java"), "CrashController.java are opened.");
         assert.strictEqual(openedEditor?.selection.anchor.line, 30, "The definition of CrashController should be at line 30.");
         assert.strictEqual(openedEditor?.selection.anchor.character, 1, "The definition of CrashController should be at character 1.");
-    }).timeout(120 * 1000 /** ms */);
+    }).timeout(300 * 1000 /** ms */);
 
     test("Can view dynamic beans and mappings", async () => {
         const apps = appsProvider.manager.getAppList();
@@ -112,5 +112,5 @@ suite("Extension Test Suite", () => {
         openedEditor = vscode.window.activeTextEditor;
         // open in simple browser
         assert.ok(!openedEditor, "Should open a simple browser.");
-    }).timeout(120 * 1000 /** ms */);
+    }).timeout(300 * 1000 /** ms */);
 });
