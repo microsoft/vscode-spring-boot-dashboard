@@ -5,6 +5,7 @@
 import * as cp from "child_process";
 import * as path from "path";
 import * as os from "os";
+import * as fs from "fs";
 
 import { downloadAndUnzipVSCode, resolveCliArgsFromVSCodeExecutablePath, runTests } from "@vscode/test-electron";
 
@@ -49,13 +50,18 @@ async function main(): Promise<void> {
         // Passed to --extensionTestsPath
         const extensionTestsPath: string = path.resolve(__dirname, "./suite/index");
 
+        // test fails in macOS since the limitation of path length
+        // See: https://github.com/microsoft/vscode/issues/86382#issuecomment-593765388
+        const userDir = fs.mkdtempSync(path.join(os.tmpdir(), "vscode-user"));
+
         // Download VS Code, unzip it and run the integration test
         await runTests({
             vscodeExecutablePath,
             extensionDevelopmentPath,
             extensionTestsPath,
             launchArgs: [
-                repositoryPath
+                repositoryPath,
+                `--user-data-dir=${userDir}`,
             ]
         });
 
