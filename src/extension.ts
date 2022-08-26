@@ -14,6 +14,7 @@ import { navigateToLocation } from './models/symbols';
 import { showBeanHierarchy, showDependencies, showInjectedInto } from './references-view';
 import { appsProvider } from './views/apps';
 import { beansProvider, openBeanHandler } from './views/beans';
+import { init as initActuatorGuide } from './views/guide';
 import { mappingsProvider, openEndpointHandler } from './views/mappings';
 
 export async function activate(context: vscode.ExtensionContext) {
@@ -81,6 +82,13 @@ export async function initializeExtension(_oprationId: string, context: vscode.E
     context.subscriptions.push(instrumentOperationAsVsCodeCommand("spring.dashboard.bean.showInjectedInto", showInjectedInto));
     context.subscriptions.push(instrumentOperationAsVsCodeCommand("spring.dashboard.bean.showHierarchy", showBeanHierarchy));
 
+    initActuatorGuide(context);
+    context.subscriptions.push(instrumentOperationAsVsCodeCommand("_spring.project.run", async (appPath: string) => {
+        const targetApp = controller.getAppList().find(app => app.path === appPath);
+        if (targetApp) {
+            await controller.runBootApp(targetApp);
+        }
+    }));
     // console.log
     context.subscriptions.push(vscode.commands.registerCommand("_spring.console.log", console.log));
     context.subscriptions.push(vscode.commands.registerCommand("_spring.symbols", requestWorkspaceSymbols));
