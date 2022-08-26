@@ -111,7 +111,13 @@ export class Controller {
 
         if (app) {
             this._manager.bindDebugSession(app, session);
-            this._setState(app, AppState.LAUNCHING);
+            if (isActuatorOnClasspath(session.configuration)) {
+                // actuator enabled: wait live connection to update running state.
+                this._setState(app, AppState.LAUNCHING);
+            } else {
+                // actuator absent: no live connection, set project as 'running' immediately.
+                this._setState(app, AppState.RUNNING);
+            }
         }
     }
 
@@ -276,4 +282,19 @@ export class Controller {
 
 function isRunInTerminal(session: vscode.DebugSession) {
     return session.configuration.noDebug === true && session.configuration.console !== "internalConsole";
+}
+
+function isActuatorOnClasspath(debugConfiguration: vscode.DebugConfiguration): boolean {
+    if (Array.isArray(debugConfiguration.classPaths)) {
+        return !!debugConfiguration.classPaths.find(isActuatorJarFile);
+    }
+    return false;
+}
+
+function isActuatorJarFile(f: string): boolean {
+    const fileName = path.basename(f || "");
+    if (/^spring-boot-actuator-\d+\.\d+\.\d+(.*)?.jar$/.test(fileName)) {
+        return true;
+    }
+    return false;
 }

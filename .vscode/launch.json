@@ -6,7 +6,7 @@
 	"version": "0.2.0",
     "configurations": [
         {
-            "name": "Extension",
+            "name": "Extension<Spring-PetClinic>",
             "type": "extensionHost",
             "request": "launch",
             "runtimeExecutable": "${execPath}",
@@ -20,7 +20,21 @@
             "preLaunchTask": "npm: watch"
         },
         {
-            "name": "Extension Tests",
+            "name": "Extension<Simple-Web>",
+            "type": "extensionHost",
+            "request": "launch",
+            "runtimeExecutable": "${execPath}",
+            "args": [
+                "${workspaceFolder}/test/projects/simple-web",
+                "--extensionDevelopmentPath=${workspaceFolder}"
+            ],
+            "outFiles": [
+                "${workspaceFolder}/out/**/*.js"
+            ],
+            "preLaunchTask": "npm: watch"
+        },
+        {
+            "name": "Extension Tests<Spring-Petclinic>",
             "type": "extensionHost",
             "request": "launch",
             "runtimeExecutable": "${execPath}",

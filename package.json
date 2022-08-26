@@ -21,7 +21,9 @@
   ],
   "activationEvents": [
     "onCommand:spring-boot-dashboard.refresh",
-    "onView:spring-boot-dashboard"
+    "onView:spring.apps",
+    "onView:spring.beans",
+    "onView:spring.mappings"
   ],
   "capabilities": {
     "virtualWorkspaces": false
@@ -42,15 +44,15 @@
         {
           "id": "spring",
           "icon": "resources/logo.png",
-          "title": "Spring"
+          "title": "Spring Boot Dashboard"
         }
       ]
     },
     "views": {
       "spring": [
         {
-          "id": "spring-boot-dashboard",
-          "name": "Spring Boot Dashboard",
+          "id": "spring.apps",
+          "name": "Apps",
           "when": "java:serverMode",
           "contextualTitle": "Spring",
           "icon": "resources/logo.png"
@@ -261,17 +263,17 @@
       "view/title": [
         {
           "command": "spring-boot-dashboard.localapp.run-multiple",
-          "when": "view == spring-boot-dashboard",
+          "when": "view == spring.apps",
           "group": "navigation@2"
         },
         {
           "command": "spring-boot-dashboard.localapp.stop-multiple",
-          "when": "view == spring-boot-dashboard",
+          "when": "view == spring.apps",
           "group": "navigation@3"
         },
         {
           "command": "spring-boot-dashboard.refresh",
-          "when": "view == spring-boot-dashboard",
+          "when": "view == spring.apps",
           "group": "navigation@5"
         },
         {
@@ -308,57 +310,57 @@
       "view/item/context": [
         {
           "command": "spring-boot-dashboard.localapp.run",
-          "when": "view == spring-boot-dashboard && viewItem == BootApp_inactive",
+          "when": "view == spring.apps && viewItem == BootApp_inactive",
           "group": "action@5"
         },
         {
           "command": "spring-boot-dashboard.localapp.debug",
-          "when": "view == spring-boot-dashboard && viewItem == BootApp_inactive",
+          "when": "view == spring.apps && viewItem == BootApp_inactive",
           "group": "action@6"
         },
         {
           "command": "spring-boot-dashboard.localapp.stop",
-          "when": "view == spring-boot-dashboard && viewItem == BootApp_running",
+          "when": "view == spring.apps && viewItem == BootApp_running",
           "group": "action@8"
         },
         {
           "command": "spring-boot-dashboard.localapp.open",
-          "when": "view == spring-boot-dashboard && viewItem == BootApp_running",
+          "when": "view == spring.apps && viewItem == BootApp_running",
           "group": "action@a"
         },
         {
           "command": "spring-boot-dashboard.localapp.run",
-          "when": "view == spring-boot-dashboard && viewItem == BootApp_inactive",
+          "when": "view == spring.apps && viewItem == BootApp_inactive",
           "group": "inline@5"
         },
         {
           "command": "spring-boot-dashboard.localapp.debug",
-          "when": "view == spring-boot-dashboard && viewItem == BootApp_inactive",
+          "when": "view == spring.apps && viewItem == BootApp_inactive",
           "group": "inline@6"
         },
         {
           "command": "spring-boot-dashboard.localapp.stop",
-          "when": "view == spring-boot-dashboard && viewItem == BootApp_running",
+          "when": "view == spring.apps && viewItem == BootApp_running",
           "group": "inline@8"
         },
         {
           "command": "spring-boot-dashboard.localapp.open",
-          "when": "view == spring-boot-dashboard && viewItem == BootApp_running",
+          "when": "view == spring.apps && viewItem == BootApp_running",
           "group": "inline@a"
         },
         {
           "command": "spring-boot-dashboard.localapp.run-multiple",
-          "when": "view == spring-boot-dashboard && !viewItem",
+          "when": "view == spring.apps && !viewItem",
           "group": "action@11"
         },
         {
           "command": "spring-boot-dashboard.localapp.debug-multiple",
-          "when": "view == spring-boot-dashboard && !viewItem",
+          "when": "view == spring.apps && !viewItem",
           "group": "action@12"
         },
         {
           "command": "spring-boot-dashboard.localapp.stop-multiple",
-          "when": "view == spring-boot-dashboard && !viewItem",
+          "when": "view == spring.apps && !viewItem",
           "group": "action@13"
         },
         {
@@ -440,6 +442,7 @@
   },
   "devDependencies": {
     "@types/glob": "^7.2.0",
+    "@types/lodash": "^4.14.184",
     "@types/mocha": "^9.1.1",
     "@types/node": "^14.18.23",
     "@types/uuid": "^3.4.10",
@@ -457,6 +460,7 @@
   "dependencies": {
     "@pivotal-tools/jvm-launch-utils": "0.0.11",
     "get-port": "^5.1.1",
+    "lodash": "^4.17.21",
     "pidtree": "^0.5.0",
     "uuid": "^3.4.0",
     "vscode-extension-telemetry-wrapper": "^0.13.1",
