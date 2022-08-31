@@ -39,7 +39,7 @@ export function init(context: vscode.ExtensionContext) {
                         const textEditor = await vscode.window.showTextDocument(pomUri);
                         await textEditor.document.save();
                         // force to reload project in case of pending interaction
-                        await vscode.commands.executeCommand(RELOAD_PROJECT_COMMAND, pomUri)
+                        await vscode.commands.executeCommand(RELOAD_PROJECT_COMMAND, pomUri);
                         // Workaround: wait 2s for project updating.
                         // TODO: should wait an explict signal when project is updated.
                         await sleep(2000);
