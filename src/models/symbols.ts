@@ -24,7 +24,7 @@ export async function init(timeout?: number) {
             await sleep(INTERVAL);
         }
         retry++;
-    } while (!beans?.length && retry * INTERVAL < TIMEOUT);
+    } while (!beans?.length && !mappings?.length && retry * INTERVAL < TIMEOUT);
 }
 
 export function getBeans(projectPath?: string) {
