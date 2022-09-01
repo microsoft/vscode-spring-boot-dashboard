@@ -136,7 +136,7 @@ class BeansDataProvider implements vscode.TreeDataProvider<TreeData> {
             vscode.commands.executeCommand("setContext", "spring.beans:hasLiveProcess", liveProcesses.length > 0);
 
             // Workaround to force update symbols info in case STS previous returns broken data.
-            await initSymbols(5000);
+            await initSymbols();
 
             const staticApps = Array.from(this.staticData.keys());
             const appsWithoutLiveProcess = staticApps.filter(app => !liveProcesses.find(lp => lp.appName === app.name));

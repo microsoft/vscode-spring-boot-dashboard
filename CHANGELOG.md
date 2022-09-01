@@ -5,7 +5,7 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
 ## 0.7.1
-- Fixed: beans sometimes can not be listed. [#217](https://github.com/microsoft/vscode-spring-boot-dashboard/pull/217)
+- Fixed: beans sometimes can not be listed. [#218](https://github.com/microsoft/vscode-spring-boot-dashboard/issues/218)
 
 ## 0.7.0
 - Keep focusing on tree view after navigating to defintion of beans and endpoints. [#202](https://github.com/microsoft/vscode-spring-boot-dashboard/pull/202)
