@@ -3,6 +3,7 @@
 
 import * as vscode from "vscode";
 import { BootApp } from "../BootApp";
+import { initSymbols } from "../controllers/SymbolsController";
 import { LiveProcess } from "../models/liveProcess";
 import { StaticBean } from "../models/StaticSymbolTypes";
 import { getBeanDetail, getUrlOfBeanType } from "../models/stsApi";
@@ -133,6 +134,9 @@ class BeansDataProvider implements vscode.TreeDataProvider<TreeData> {
             ret.push(...liveProcesses);
             // update context key
             vscode.commands.executeCommand("setContext", "spring.beans:hasLiveProcess", liveProcesses.length > 0);
+
+            // Workaround to force update symbols info in case STS previous returns broken data.
+            await initSymbols(5000);
 
             const staticApps = Array.from(this.staticData.keys());
             const appsWithoutLiveProcess = staticApps.filter(app => !liveProcesses.find(lp => lp.appName === app.name));
