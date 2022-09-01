@@ -17,6 +17,7 @@ export async function init(timeout?: number) {
     let retry = 0;
     do {
         const symbols = await requestWorkspaceSymbols();
+        console.log(symbols);
         beans = symbols.beans;
         mappings = symbols.mappings;
 
