@@ -2,7 +2,7 @@
   "name": "vscode-spring-boot-dashboard",
   "displayName": "Spring Boot Dashboard",
   "description": "Spring Boot Dashboard for VS Code",
-  "version": "0.6.0",
+  "version": "0.7.1",
   "license": "MIT",
   "icon": "resources/logo.png",
   "publisher": "vscjava",
@@ -60,19 +60,33 @@
         {
           "id": "spring.beans",
           "name": "Beans",
-          "when": "java:serverMode",
+          "when": "java:serverMode && !spring:actuatorRequired",
           "contextualTitle": "Spring",
           "icon": "resources/logo.png"
         },
         {
           "id": "spring.mappings",
           "name": "Endpoint Mappings",
-          "when": "java:serverMode",
+          "when": "java:serverMode && !spring:actuatorRequired",
+          "contextualTitle": "Spring",
+          "icon": "resources/logo.png"
+        },
+        {
+          "id": "spring.actuatorGuide",
+          "name": "Actuator Required",
+          "when": "java:serverMode && spring:actuatorRequired",
           "contextualTitle": "Spring",
           "icon": "resources/logo.png"
         }
       ]
     },
+    "viewsWelcome": [
+      {
+        "view": "spring.actuatorGuide",
+        "contents": "%viewsWelcome.noActuator%",
+        "when": "spring:actuatorRequired"
+      }
+    ],
     "commands": [
       {
         "command": "spring-boot-dashboard.refresh",
@@ -463,7 +477,7 @@
     "lodash": "^4.17.21",
     "pidtree": "^0.5.0",
     "uuid": "^3.4.0",
-    "vscode-extension-telemetry-wrapper": "^0.13.1",
+    "vscode-extension-telemetry-wrapper": "^0.13.2",
     "vscode-languageclient": "^7.0.0"
   }
 }
