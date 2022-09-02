@@ -71,6 +71,9 @@ suite("Extension Test Suite", () => {
             await sleep(5 * 1000 /** ms */);
         }
         assert.strictEqual(app.state, AppState.LAUNCHING, "The state of the app is launching.");
+        while (store.data.size !== 1) {
+            await sleep(5 * 1000 /** ms */);
+        }
         assert.strictEqual(store.data.size, 1, "there is one live process detected.");
         // verify all beans
         beansProvider.showAll = true;
