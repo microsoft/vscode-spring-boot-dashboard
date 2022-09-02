@@ -3,6 +3,7 @@
 import * as assert from "assert";
 import * as vscode from "vscode";
 import { AppState } from "../../src/BootApp";
+import { store } from "../../src/controllers/LiveDataController";
 import { initSymbols } from "../../src/controllers/SymbolsController";
 import { StaticEndpoint } from "../../src/models/StaticSymbolTypes";
 import { appsProvider } from "../../src/views/apps";
@@ -70,6 +71,7 @@ suite("Extension Test Suite", () => {
             await sleep(5 * 1000 /** ms */);
         }
         assert.strictEqual(app.state, AppState.LAUNCHING, "The state of the app is launching.");
+        assert.strictEqual(store.data.size, 1, "there is one live process detected.");
         // verify all beans
         beansProvider.showAll = true;
         await sleep(20 * 1000 /** ms */);
