@@ -3,7 +3,6 @@
 import * as assert from "assert";
 import * as vscode from "vscode";
 import { AppState } from "../../src/BootApp";
-import { store } from "../../src/controllers/LiveDataController";
 import { initSymbols } from "../../src/controllers/SymbolsController";
 import { StaticEndpoint } from "../../src/models/StaticSymbolTypes";
 import { appsProvider } from "../../src/views/apps";
@@ -23,6 +22,7 @@ suite("Extension Test Suite", () => {
         await initSymbols();
         let rootBean = await beansProvider.getChildren();
         while (!rootBean || rootBean.length === 0) {
+            console.log("trying to get root project item in beans view");
             await sleep(5 * 1000 /** ms */);
             rootBean = await beansProvider.getChildren();
         }
@@ -43,6 +43,7 @@ suite("Extension Test Suite", () => {
 
         let rootMap = await mappingsProvider.getChildren();
         while (!rootMap || rootMap.length === 0) {
+            console.log("trying to get root project item in mappings view");
             await sleep(5 * 1000 /** ms */);
             rootMap = await mappingsProvider.getChildren();
         }
@@ -67,19 +68,17 @@ suite("Extension Test Suite", () => {
         assert.strictEqual(apps.length, 1, "There are 1 app in the app list.");
         const app = apps[0];
         await vscode.commands.executeCommand("spring-boot-dashboard.localapp.run", app);
-        while (app.state !== AppState.LAUNCHING) {
+        while (app.state !== AppState.RUNNING) {
             await sleep(5 * 1000 /** ms */);
+            console.log("waiting until the app is at the running state");
         }
-        assert.strictEqual(app.state, AppState.LAUNCHING, "The state of the app is launching.");
-        while (store.data.size !== 1) {
-            await sleep(5 * 1000 /** ms */);
-        }
-        assert.strictEqual(store.data.size, 1, "there is one live process detected.");
+        assert.strictEqual(app.state, AppState.RUNNING, "The state of the app is running.");
         // verify all beans
         beansProvider.showAll = true;
         await sleep(20 * 1000 /** ms */);
         let rootBeanAll = await beansProvider.getChildren();
         while (!rootBeanAll || rootBeanAll.length === 0) {
+            console.log("trying to get root project item in beans view");
             await sleep(5 * 1000 /** ms */);
             rootBeanAll = await beansProvider.getChildren();
         }
@@ -100,6 +99,7 @@ suite("Extension Test Suite", () => {
         await sleep(20 * 1000 /** ms */);
         let rootMap = await mappingsProvider.getChildren();
         while (!rootMap || rootMap.length === 0) {
+            console.log("trying to get root project item in mappings view");
             await sleep(5 * 1000 /** ms */);
             rootMap = await mappingsProvider.getChildren();
         }

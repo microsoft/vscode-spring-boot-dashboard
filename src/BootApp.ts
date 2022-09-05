@@ -9,8 +9,8 @@ import { appsProvider } from "./views/apps";
 
 export enum AppState {
     INACTIVE = 'inactive',
-    RUNNING = 'running',
-    LAUNCHING = "launching" // TODO: Distinguish launching & running via JMX.
+    LAUNCHING = "launching", // TODO: Distinguish launching & running via JMX.
+    RUNNING = 'running'
 }
 
 export class BootApp {
