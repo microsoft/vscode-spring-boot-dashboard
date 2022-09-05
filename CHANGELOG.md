@@ -4,6 +4,16 @@ All notable changes to the "vscode-spring-boot-dashboard" extension will be docu
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
+## 0.7.1
+- Fixed: beans sometimes can not be listed. [#217](https://github.com/microsoft/vscode-spring-boot-dashboard/pull/217)
+
+## 0.7.0
+- Keep focusing on tree view after navigating to defintion of beans and endpoints. [#202](https://github.com/microsoft/vscode-spring-boot-dashboard/pull/202)
+- Show correct status when apps are running without actuator. [#205](https://github.com/microsoft/vscode-spring-boot-dashboard/pull/205)
+- Update title of Spring Boot Dashboard views. [#206](https://github.com/microsoft/vscode-spring-boot-dashboard/pull/206)
+- Improve performance of loading beans and endpoint mappings. [#210](https://github.com/microsoft/vscode-spring-boot-dashboard/pull/210)
+- Add guide to enable actuator when apps are running without it. [#209](https://github.com/microsoft/vscode-spring-boot-dashboard/pull/209)
+
 ## 0.6.0
 - New icon for spring beans. [#186](https://github.com/microsoft/vscode-spring-boot-dashboard/pull/186)
 - Show bean properties when live process is connected. [#192](https://github.com/microsoft/vscode-spring-boot-dashboard/pull/192)
