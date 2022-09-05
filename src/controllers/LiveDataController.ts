@@ -12,7 +12,7 @@ class LiveInformationStore {
     constructor() { }
 }
 
-export let store: LiveInformationStore;
+let store: LiveInformationStore;
 
 export async function init() {
     await initialize();
