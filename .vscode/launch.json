@@ -20,12 +20,12 @@
             "preLaunchTask": "npm: watch"
         },
         {
-            "name": "Extension<Simple-Web>",
+            "name": "Extension<Simple-App>",
             "type": "extensionHost",
             "request": "launch",
             "runtimeExecutable": "${execPath}",
             "args": [
-                "${workspaceFolder}/test/projects/simple-web",
+                "${workspaceFolder}/test/projects/simple-app",
                 "--extensionDevelopmentPath=${workspaceFolder}"
             ],
             "outFiles": [

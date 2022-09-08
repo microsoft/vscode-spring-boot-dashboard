@@ -1,10 +1,10 @@
-package com.example.simpleweb;
+package com.example.simpleapp;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 
 @SpringBootTest
-class SimpleWebApplicationTests {
+class SimpleAppApplicationTests {
 
 	@Test
 	void contextLoads() {
