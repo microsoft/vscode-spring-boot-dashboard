@@ -20,12 +20,12 @@
             "preLaunchTask": "npm: watch"
         },
         {
-            "name": "Extension<Simple-App>",
+            "name": "Extension<gs-rest-service>",
             "type": "extensionHost",
             "request": "launch",
             "runtimeExecutable": "${execPath}",
             "args": [
-                "${workspaceFolder}/test/projects/simple-app",
+                "${workspaceFolder}/test/projects/gs-rest-service/complete",
                 "--extensionDevelopmentPath=${workspaceFolder}"
             ],
             "outFiles": [

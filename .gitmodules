@@ -1,3 +1,6 @@
 [submodule "test/projects/spring-petclinic"]
 	path = test/projects/spring-petclinic
 	url = https://github.com/spring-projects/spring-petclinic
+[submodule "test/projects/gs-rest-service"]
+	path = test/projects/gs-rest-service
+	url = https://github.com/spring-guides/gs-rest-service
