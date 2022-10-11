@@ -20,9 +20,34 @@ export interface ExtensionAPI {
 	readonly onDidLiveProcessUpdate: Event<LiveProcess | string>;
 
     /**
+     * An event which fires on live process gcpauses metrics data change. Payload is processKey.
+     */
+	readonly onDidLiveProcessGcPausesMetricsUpdate: Event<LiveProcess | string>;
+
+    /**
+     * An event which fires on live process memory metrics data change. Payload is processKey.
+     */
+	readonly onDidLiveProcessMemoryMetricsUpdate: Event<LiveProcess | string>;
+
+    /**
      * A command to get live process data.
      */
     readonly getLiveProcessData: (query: SimpleQuery | BeansQuery) => Promise<any>;
+
+    /**
+     * A command to refresh live process data.
+     */
+     readonly refreshLiveProcessData: (query: SimpleQuery | BeansQuery) => Promise<any>;
+
+    /**
+     * A command to get live process metrics data.
+     */
+     readonly getLiveProcessMetricsData: (query: MetricsQuery) => Promise<any>;
+
+    /**
+     * A command to refresh live process metrics data.
+     */
+     readonly refreshLiveProcessMetricsData: (query: MetricsQuery) => Promise<any>;
 
     /**
      * A command to list all currently connected processes.
@@ -68,4 +93,11 @@ export interface LiveProcess {
 export interface LocalLiveProcess extends LiveProcess {
 	type: "local";
 	pid: string;
+}
+
+interface MetricsQuery extends LiveProcessDataQuery {
+    endpoint: "metrics";
+    metricName: string;
+    tag?: { key: string; value: string };
+
 }

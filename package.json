@@ -23,7 +23,8 @@
     "onCommand:spring-boot-dashboard.refresh",
     "onView:spring.apps",
     "onView:spring.beans",
-    "onView:spring.mappings"
+    "onView:spring.mappings",
+    "onView:memory.memoryView"
   ],
   "capabilities": {
     "virtualWorkspaces": false
@@ -77,6 +78,12 @@
           "when": "java:serverMode && spring:actuatorRequired",
           "contextualTitle": "Spring",
           "icon": "resources/logo.png"
+        },
+        {
+          "type": "webview",
+          "id": "memory.memoryView",
+          "when": "java:serverMode && spring.gcPauses:showMode == defined && spring.gcPauses:hasLiveProcess == true",
+          "name": "Memory"
         }
       ]
     },
@@ -455,6 +462,7 @@
     "update-tpn": "node scripts/update-third-party-notice.js"
   },
   "devDependencies": {
+    "@types/d3": "^7.1.0",
     "@types/glob": "^7.2.0",
     "@types/lodash": "^4.14.184",
     "@types/mocha": "^9.1.1",
@@ -478,6 +486,8 @@
     "pidtree": "^0.5.0",
     "uuid": "^3.4.0",
     "vscode-extension-telemetry-wrapper": "^0.13.2",
-    "vscode-languageclient": "^7.0.0"
+    "vscode-languageclient": "^7.0.0",
+    "d3": "^7.4.2",
+    "@vscode/webview-ui-toolkit": "^1.0.0"
   }
 }

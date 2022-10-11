@@ -53,6 +53,24 @@ export async function getMappings(processKey: string) {
     return result;
 }
 
+export async function getGcPausesMetrics(processKey: string) {
+    const result = await stsApi.getLiveProcessMetricsData({
+        processKey: processKey,
+        endpoint: "metrics",
+        metricName: "gcPauses"
+    });
+    return result;
+}
+
+export async function getMemoryMetrics(processKey: string) {
+    const result = await stsApi.getLiveProcessMetricsData({
+        processKey: processKey,
+        endpoint: "metrics",
+        metricName: "memory"
+    });
+    return result;
+}
+
 export async function getPort(processKey: string) {
     const result = await stsApi.getLiveProcessData({
         processKey: processKey,
