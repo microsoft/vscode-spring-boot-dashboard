@@ -8,7 +8,9 @@ import * as uuid from 'uuid';
 import * as vscode from 'vscode';
 import { DebugSession } from "vscode";
 import { initSymbols } from "./controllers/SymbolsController";
+import { ExtensionAPI } from "./types/javaExtensionApi";
 import { ClassPathData, MainClassData } from "./types/jdtls";
+import { sleep } from "./utils";
 import { beansProvider } from "./views/beans";
 import { mappingsProvider } from "./views/mappings";
 
@@ -25,10 +27,6 @@ function isBootAppClasspath(cp: ClassPathData): boolean {
         }
     }
     return false;
-}
-
-function sleep(milliseconds: number): Promise<void> {
-    return new Promise<void>((resolve) => setTimeout(resolve, milliseconds));
 }
 
 export class BootAppManager {
@@ -84,8 +82,6 @@ export class BootAppManager {
      * These events are used to keep the list of boot apps in sync with the workspace projects.
      */
     private async _startAppListSynchronisation(): Promise<void> {
-        //TODO: The code below will fail if jdt language server has not yet been started
-        //  How should we deal with that?
         const callbackId = uuid.v4();
 
         vscode.commands.registerCommand(callbackId, (location: string, name: string, isDeleted: boolean, entries: ClassPathData, ..._args: any[]) => {
@@ -119,6 +115,8 @@ export class BootAppManager {
             while (available_tries > 0) {
                 available_tries--;
                 try {
+                    const javaExtApi: ExtensionAPI = await vscode.extensions.getExtension("redhat.java")?.activate();
+                    await javaExtApi?.serverReady?.(); // add '?' for compatibility with old versions.
                     await vscode.commands.executeCommand('java.execute.workspaceCommand', 'sts.java.addClasspathListener', callbackId);
                     return;
                 } catch (error) {
@@ -130,6 +128,7 @@ export class BootAppManager {
                 }
             }
         }
+
         return await registerClasspathListener();
     }
 }

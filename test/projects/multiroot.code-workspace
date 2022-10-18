@@ -1,0 +1,10 @@
+{
+	"folders": [
+		{
+			"path": "./spring-petclinic"
+		},
+		{
+			"path": "./gs-rest-service"
+		}
+	],
+}
