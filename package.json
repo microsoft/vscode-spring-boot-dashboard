@@ -60,32 +60,20 @@
         {
           "id": "spring.beans",
           "name": "Beans",
-          "when": "java:serverMode && !spring:actuatorRequired",
+          "when": "java:serverMode",
           "contextualTitle": "Spring",
           "icon": "resources/logo.png"
         },
         {
           "id": "spring.mappings",
           "name": "Endpoint Mappings",
-          "when": "java:serverMode && !spring:actuatorRequired",
-          "contextualTitle": "Spring",
-          "icon": "resources/logo.png"
-        },
-        {
-          "id": "spring.actuatorGuide",
-          "name": "Actuator Required",
-          "when": "java:serverMode && spring:actuatorRequired",
+          "when": "java:serverMode",
           "contextualTitle": "Spring",
           "icon": "resources/logo.png"
         }
       ]
     },
     "viewsWelcome": [
-      {
-        "view": "spring.actuatorGuide",
-        "contents": "%viewsWelcome.noActuator%",
-        "when": "spring:actuatorRequired"
-      }
     ],
     "commands": [
       {
@@ -213,6 +201,12 @@
         "title": "Show Bean Hierarchy",
         "category": "Spring Boot Dashboard",
         "icon": "$(type-hierarchy)"
+      },
+      {
+        "command": "spring.promptToEnableActuator",
+        "title": "Enable Actuator",
+        "category": "Spring Boot Dashboard",
+        "icon": "$(warning)"
       }
     ],
     "menus": {
@@ -271,6 +265,10 @@
         },
         {
           "command": "spring.dashboard.bean.showInjectedInto",
+          "when": "never"
+        },
+        {
+          "command": "spring.promptToEnableActuator",
           "when": "never"
         }
       ],
@@ -389,12 +387,22 @@
         },
         {
           "command": "spring.staticData.refresh",
-          "when": "view == spring.beans && viewItem == bootApp",
+          "when": "view == spring.beans && viewItem =~ /^bootApp/",
+          "group": "inline@5"
+        },
+        {
+          "command": "spring.promptToEnableActuator",
+          "when": "view == spring.beans && viewItem =~ /^bootApp(?=.*?\\b\\+noActuator\\b)(?=.*?\\b\\+running\\b)/",
           "group": "inline@5"
         },
         {
           "command": "spring.staticData.refresh",
-          "when": "view == spring.mappings && viewItem == bootApp",
+          "when": "view == spring.mappings && viewItem =~ /^bootApp/",
+          "group": "inline@5"
+        },
+        {
+          "command": "spring.promptToEnableActuator",
+          "when": "view == spring.mappings && viewItem =~ /^bootApp(?=.*?\\b\\+noActuator\\b)(?=.*?\\b\\+running\\b)/",
           "group": "inline@5"
         },
         {

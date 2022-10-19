@@ -7,9 +7,11 @@ import * as path from "path";
 import * as vscode from "vscode";
 import { AppState, BootApp } from "./BootApp";
 import { BootAppManager } from "./BootAppManager";
-import { constructOpenUrl, readAll } from "./utils";
 import { MainClassData } from "./types/jdtls";
-import { didRun, didStop } from "./views/guide";
+import { constructOpenUrl, isActuatorJarFile, readAll } from "./utils";
+import { beansProvider } from "./views/beans";
+import { mappingsProvider } from "./views/mappings";
+
 const getPort = require("get-port");
 
 export class Controller {
@@ -99,9 +101,6 @@ export class Controller {
             } else {
                 // actuator absent: no live connection, set project as 'running' immediately.
                 this._setState(app, AppState.RUNNING);
-
-                // actuator guide
-                didRun(app);
             }
         }
     }
@@ -144,11 +143,6 @@ export class Controller {
         const app = this._manager.getAppBySession(session);
         if (app) {
             this._setState(app, AppState.INACTIVE);
-
-            // actuator guide
-            if (!isActuatorOnClasspath(session.configuration)) {
-                didStop(app);
-            }
         }
     }
 
@@ -233,7 +227,9 @@ export class Controller {
 
     private _setState(app: BootApp, state: AppState): void {
         app.state = state;
-        this._manager.fireDidChangeApps(undefined);
+        this._manager.fireDidChangeApps(app);
+        beansProvider.refresh(app);
+        mappingsProvider.refresh(app);
     }
 
     private _getLaunchConfig(mainClasData: MainClassData) {
@@ -277,14 +273,6 @@ function isRunInTerminal(session: vscode.DebugSession) {
 function isActuatorOnClasspath(debugConfiguration: vscode.DebugConfiguration): boolean {
     if (Array.isArray(debugConfiguration.classPaths)) {
         return !!debugConfiguration.classPaths.find(isActuatorJarFile);
-    }
-    return false;
-}
-
-function isActuatorJarFile(f: string): boolean {
-    const fileName = path.basename(f || "");
-    if (/^spring-boot-actuator-\d+\.\d+\.\d+(.*)?.jar$/.test(fileName)) {
-        return true;
     }
     return false;
 }

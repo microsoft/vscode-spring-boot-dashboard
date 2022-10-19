@@ -4,7 +4,7 @@
 import * as vscode from "vscode";
 import { requestWorkspaceSymbols } from "./models/stsApi";
 import { ClassPathData, MainClassData } from "./types/jdtls";
-import { isAlive } from "./utils";
+import { isActuatorJarFile, isAlive } from "./utils";
 import { appsProvider } from "./views/apps";
 
 export enum AppState {
@@ -23,7 +23,7 @@ export class BootApp {
     private _watchdog?: any; // used to watch running process.
 
     public mainClasses: MainClassData[];
-    public symbols: {beans: any[], mappings: any[]};
+    public symbols: { beans: any[], mappings: any[] };
 
     constructor(
         private _path: string,
@@ -35,7 +35,7 @@ export class BootApp {
         this.getMainClasses();
     }
 
-    public get activeSessionName() : string | undefined {
+    public get activeSessionName(): string | undefined {
         return this._activeSessionName;
     }
 
@@ -59,7 +59,7 @@ export class BootApp {
         this._jmxPort = port;
     }
 
-    public get jmxPort() : number | undefined {
+    public get jmxPort(): number | undefined {
         return this._jmxPort;
     }
 
@@ -110,6 +110,21 @@ export class BootApp {
     public set contextPath(contextPath: string | undefined) {
         this._contextPath = contextPath ?? "";
         appsProvider.refresh(this);
+    }
+
+    public get isActuatorOnClasspath(): boolean {
+        return !!this.classpath.entries.find(e => isActuatorJarFile(e.path));
+    }
+
+    public get iconPath(): vscode.ThemeIcon {
+        const green = new vscode.ThemeColor("charts.green");
+        if (this.state === "running") {
+            return new vscode.ThemeIcon("circle-filled", green);
+        } else if (this.state === "launching") {
+            return new vscode.ThemeIcon("sync~spin");
+        } else {
+            return new vscode.ThemeIcon("circle-outline");
+        }
     }
 
     public reset() {
