@@ -204,7 +204,7 @@
       },
       {
         "command": "spring.promptToEnableActuator",
-        "title": "Enable Actuator",
+        "title": "Live Information Unavailable",
         "category": "Spring Boot Dashboard",
         "icon": "$(warning)"
       }

@@ -119,7 +119,11 @@ export class BootApp {
     public get iconPath(): vscode.ThemeIcon {
         const green = new vscode.ThemeColor("charts.green");
         if (this.state === "running") {
-            return new vscode.ThemeIcon("circle-filled", green);
+            if (this.isActuatorOnClasspath) {
+                return new vscode.ThemeIcon("circle-filled", green);
+            } else {
+                return new vscode.ThemeIcon("circle-outline", green);
+            }
         } else if (this.state === "launching") {
             return new vscode.ThemeIcon("sync~spin");
         } else {
