@@ -16,8 +16,7 @@ export class LiveProcess {
 
     public get app(): BootApp | undefined{
         const mainClass = this.liveProcess.processName; // TODO: here assume processName is full-qualified name of mainclass
-        const runningApp = appsProvider.manager.getAppByMainClass(mainClass);
-        return runningApp;
+        return appsProvider.manager.getAppByMainClass(mainClass);
     }
 
     public get appName(): string {
