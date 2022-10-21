@@ -1,9 +1,10 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT license.
 
+import * as path from "path";
 import { Readable } from "stream";
-import pidtree = require("pidtree");
 import * as vscode from "vscode";
+import pidtree = require("pidtree");
 
 export function readAll(input: Readable) : Promise<string> {
     let buffer = "";
@@ -37,6 +38,14 @@ export async function sleep(ms: number) {
             resolve();
         }, ms);
     });
+}
+
+export function isActuatorJarFile(f: string): boolean {
+    const fileName = path.basename(f || "");
+    if (/^spring-boot-actuator-\d+\.\d+\.\d+(.*)?.jar$/.test(fileName)) {
+        return true;
+    }
+    return false;
 }
 
 /**
