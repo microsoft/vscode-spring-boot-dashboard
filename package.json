@@ -73,8 +73,7 @@
         }
       ]
     },
-    "viewsWelcome": [
-    ],
+    "viewsWelcome": [],
     "commands": [
       {
         "command": "spring-boot-dashboard.refresh",
