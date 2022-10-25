@@ -98,6 +98,5 @@ export interface LocalLiveProcess extends LiveProcess {
 interface MetricsQuery extends LiveProcessDataQuery {
     endpoint: "metrics";
     metricName: string;
-    tag?: { key: string; value: string };
-
-}
+    tags?: string;
+} 
