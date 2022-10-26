@@ -11,7 +11,7 @@ function main() {
   const processSelection = document.getElementById("process");
   processSelection.addEventListener("change", changeGraphDisplay);
 
-  setInterval(refreshData, 10000);
+  setInterval(refreshData, 5000);
   
   setVSCodeMessageListener();
 }
@@ -130,7 +130,6 @@ function getMemoryData(data, memoryZones) {
 }
 
 function displayGraphData(graphData) {
-  console.log(graphData);
   const selection = document.getElementById("graphType");
   const graphType = selection.options[selection.selectedIndex].text;
   switch (graphType) {
@@ -182,12 +181,12 @@ function setMemoryData(data, zone, dataPoint) {
 
 function plotMemoryGraph(graphData, zones, graphType) {
   const COLORS = [
-    ["#87ba80", "#74b567"],
-    ["#f7869e", "#f7486d"],
-    ["#6e8ac2", "#6283c4"],
-    ["#ff9f40", "#f58618"],
+    ["#c4e8c1", "#5eb84d"],
+    ["#f5c162", "#ffa500"],
+    ["#8fa8c8", "#75539e"],
+    ["#d4b0d4", "#e362e3"],
     ["#92bed2", "#3282bf"],
-    ["#f5d28c", "#f5b10f"],
+    ["#f5d28c", "#f0debb"]
   ];
 
   var ctx = document.getElementById("chart").getContext("2d");
@@ -201,8 +200,6 @@ function plotMemoryGraph(graphData, zones, graphType) {
       borderColor: COLORS[i][1],
       fillColor: COLORS[i][0],
       fill: true,
-      // pointStrokeColor: "#FFFFFF",
-      // pointHighlightFill: "#FFFFFF",
       data: []
     })
   });
@@ -215,8 +212,6 @@ function plotMemoryGraph(graphData, zones, graphType) {
     borderColor: "#a0a1a3",
     fillColor: "#c9cbcf",
     fill: true,
-    // pointStrokeColor: "#FFFFFF",
-    // pointHighlightFill: "#FFFFFF",
     data: []
   })
 
@@ -352,8 +347,6 @@ function plotGcGraph(graphData, type, extraData, unit, label) {
     backgroundColor: "#e86682",
     borderColor: "#ed2d56",
     fillColor: "#e86682",
-    // pointStrokeColor: "#FFFFFF",
-    // pointHighlightFill: "#FFFFFF",
     data: [],
     prevMeasurement: {},
     parsing: {

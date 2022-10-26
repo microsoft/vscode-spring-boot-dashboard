@@ -104,11 +104,10 @@ class MemoryProvider implements WebviewViewProvider{
         ]);
         const mainUri = getUri(webview, extensionUri, ["src","webview-ui", "main.js"]);
         const stylesUri = getUri(webview, extensionUri, ["src","webview-ui", "styles.css"]);
-        const graphLibPath = getUri(webview, extensionUri, ["node_modules","d3","dist","d3.js"]);
         const chartLibPath = getUri(webview, extensionUri, ["node_modules","chart.js","dist","chart.min.js"]);
         const chartjsPath = getUri(webview, extensionUri, ["node_modules","chartjs","chart.js"]);
-        const chartjsAdapter = getUri(webview, extensionUri, ["node_modules","chartjs-adapter-moment","dist","chartjs-adapter-moment.min.js"]);
-        const chartjsAdapter1 = getUri(webview, extensionUri, ["node_modules","chartjs-adapter-moment","dist","chartjs-adapter-moment.js"]);
+        const chartjsAdapterPath = getUri(webview, extensionUri, ["node_modules","chartjs-adapter-moment","dist","chartjs-adapter-moment.min.js"]);
+        const chartjsAdapterScipt = getUri(webview, extensionUri, ["node_modules","chartjs-adapter-moment","dist","chartjs-adapter-moment.js"]);
         const momentLibPath = getUri(webview, extensionUri, ["node_modules","moment","moment.js"]);
     
         // Tip: Install the es6-string-html VS Code extension to enable code highlighting below
@@ -121,11 +120,10 @@ class MemoryProvider implements WebviewViewProvider{
                         ${this.generateContentSecurityPolicy()}
                         <script type="module" src="${toolkitUri}"></script>
                         <script type="module" src="${mainUri}"></script>
-                        <script src="${graphLibPath}"></script>
                         <script src="${chartLibPath}"></script>
                         <script src="${chartjsPath}"></script>
-                        <script src="${chartjsAdapter}"></script>
-                        <script src="${chartjsAdapter1}"></script>
+                        <script src="${chartjsAdapterPath}"></script>
+                        <script src="${chartjsAdapterScipt}"></script>
                         <script src="${momentLibPath}"></script>
                         <link rel="stylesheet" href="${stylesUri}">
                         <title>Weather Checker</title>
