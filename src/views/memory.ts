@@ -72,7 +72,7 @@ class MemoryProvider implements WebviewViewProvider{
         };
         // Set the HTML content that will fill the webview view
         webviewView.webview.html = this._getWebviewContent(webviewView.webview, this._extensionUrl);
-    
+
         // Sets up an event listener to listen for messages passed from the webview view context
         // and executes code based on the message that is recieved
         this._setWebviewMessageListener(webviewView);
@@ -109,7 +109,7 @@ class MemoryProvider implements WebviewViewProvider{
         const chartjsAdapterPath = getUri(webview, extensionUri, ["node_modules","chartjs-adapter-moment","dist","chartjs-adapter-moment.min.js"]);
         const chartjsAdapterScipt = getUri(webview, extensionUri, ["node_modules","chartjs-adapter-moment","dist","chartjs-adapter-moment.js"]);
         const momentLibPath = getUri(webview, extensionUri, ["node_modules","moment","moment.js"]);
-    
+
         // Tip: Install the es6-string-html VS Code extension to enable code highlighting below
         return /*html*/ `
                 <!DOCTYPE html>
@@ -148,7 +148,7 @@ class MemoryProvider implements WebviewViewProvider{
             </html>
             `;
       }
-    
+
       private _setWebviewMessageListener(webviewView: WebviewView) {
         webviewView.webview.onDidReceiveMessage(async (message) => {
           const command = message.command;

@@ -55,7 +55,7 @@ async function updateProcessGcPausesMetrics(payload: string | LocalLiveProcess) 
 
     const gcPauses = await getGcPausesMetrics(processKey);
     memoryProvider.refreshLiveGcPausesMetrics(liveProcess, gcPauses);
-    store.data.set(processKey, { gcPauses});  
+    store.data.set(processKey, { gcPauses});
 }
 
 async function updateProcessMemoryMetrics(payload: string | LocalLiveProcess) {
@@ -63,7 +63,7 @@ async function updateProcessMemoryMetrics(payload: string | LocalLiveProcess) {
     const { processKey} = liveProcess;
 
     const memoryMetrics = await getMemoryMetrics(processKey);
-    await vscode.commands.executeCommand("setContext", "spring.gcPauses:hasLiveProcess", liveProcess !== undefined); 
+    await vscode.commands.executeCommand("setContext", "spring.gcPauses:hasLiveProcess", liveProcess !== undefined);
     memoryProvider.refreshLiveMemoryMetrics(liveProcess, memoryMetrics);
     store.data.set(processKey, { memoryMetrics});
 

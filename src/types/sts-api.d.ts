@@ -99,4 +99,4 @@ interface MetricsQuery extends LiveProcessDataQuery {
     endpoint: "metrics";
     metricName: string;
     tags?: string;
-} 
+}
