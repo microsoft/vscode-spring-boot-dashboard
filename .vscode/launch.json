@@ -34,6 +34,20 @@
             "preLaunchTask": "npm: watch"
         },
         {
+            "name": "Extension<multiroot>",
+            "type": "extensionHost",
+            "request": "launch",
+            "runtimeExecutable": "${execPath}",
+            "args": [
+                "${workspaceFolder}/test/projects/multiroot.code-workspace",
+                "--extensionDevelopmentPath=${workspaceFolder}"
+            ],
+            "outFiles": [
+                "${workspaceFolder}/out/**/*.js"
+            ],
+            "preLaunchTask": "npm: watch"
+        },
+        {
             "name": "Extension Tests<Spring-Petclinic>",
             "type": "extensionHost",
             "request": "launch",

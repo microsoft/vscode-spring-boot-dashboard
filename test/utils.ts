@@ -14,8 +14,6 @@ export async function setupTestEnv() {
     await vscode.extensions.getExtension("vscjava.vscode-spring-boot-dashboard")!.activate();
 }
 
-export async function sleep(ms: number) {
-    return new Promise((resolve) => {
-        setTimeout(resolve, ms);
-    });
+export function sleep(milliseconds: number): Promise<void> {
+    return new Promise<void>((resolve) => setTimeout(resolve, milliseconds));
 }

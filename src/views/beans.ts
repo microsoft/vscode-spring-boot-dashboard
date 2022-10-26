@@ -68,9 +68,13 @@ class BeansDataProvider implements vscode.TreeDataProvider<TreeData> {
             return item;
         } else if (element instanceof BootApp) {
             const item = new vscode.TreeItem(element.name);
-            item.iconPath = new vscode.ThemeIcon("circle-outline");
+            item.iconPath = element.iconPath;
             item.collapsibleState = vscode.TreeItemCollapsibleState.Expanded;
-            item.contextValue = "bootApp";
+
+            item.contextValue = `bootApp+${element.state}`;
+            if (!element.isActuatorOnClasspath){
+                item.contextValue += "+noActuator";
+            }
             return item;
         } else if (element instanceof BeanProperty) {
             const item = new vscode.TreeItem(element.toString());

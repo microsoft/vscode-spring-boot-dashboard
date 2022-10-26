@@ -7,9 +7,11 @@ import * as path from "path";
 import * as vscode from "vscode";
 import { AppState, BootApp } from "./BootApp";
 import { BootAppManager } from "./BootAppManager";
-import { constructOpenUrl, readAll } from "./utils";
 import { MainClassData } from "./types/jdtls";
-import { didRun, didStop } from "./views/guide";
+import { constructOpenUrl, isActuatorJarFile, readAll } from "./utils";
+import { beansProvider } from "./views/beans";
+import { mappingsProvider } from "./views/mappings";
+
 const getPort = require("get-port");
 
 export class Controller {
@@ -67,35 +69,16 @@ export class Controller {
             targetConfig = await this._createNewLaunchConfig(mainClasData);
         }
         app.activeSessionName = targetConfig.name;
-        let jmxport = await getPort();
-        app.jmxPort = jmxport;
-        let vmArgs = [
-            '-Dcom.sun.management.jmxremote',
-            `-Dcom.sun.management.jmxremote.port=${jmxport}`,
-            '-Dcom.sun.management.jmxremote.authenticate=false',
-            '-Dcom.sun.management.jmxremote.ssl=false',
-            '-Djava.rmi.server.hostname=localhost',
-            '-Dspring.application.admin.enabled=true',
-            '-Dspring.jmx.enabled=true',
-            `-Dspring.boot.project.name=${targetConfig.projectName}`
-        ];
-        if (targetConfig.vmArgs) {
-            var mergeArgs;
-            // TODO: smarter merge? What if user is trying to enable jmx themselves on a specific port they choose, for example?
-            if (typeof targetConfig.vmArgs === 'string') {
-                mergeArgs = targetConfig.vmArgs.split(/\s+/);
-            } else { // array case
-                mergeArgs = targetConfig.vmArgs;
-            }
-            vmArgs.splice(vmArgs.length, 0, ...mergeArgs);
-        }
+
+        targetConfig = await resolveDebugConfigurationWithSubstitutedVariables(targetConfig);
+        app.jmxPort = parseJMXPort(targetConfig.vmArgs);
+
         const cwdUri: vscode.Uri = vscode.Uri.parse(app.path);
         await vscode.debug.startDebugging(
             vscode.workspace.getWorkspaceFolder(cwdUri),
             Object.assign({}, targetConfig, {
                 noDebug: !debug,
                 cwd: cwdUri.fsPath,
-                vmArgs
             })
         );
     }
@@ -118,9 +101,6 @@ export class Controller {
             } else {
                 // actuator absent: no live connection, set project as 'running' immediately.
                 this._setState(app, AppState.RUNNING);
-
-                // actuator guide
-                didRun(app);
             }
         }
     }
@@ -163,11 +143,6 @@ export class Controller {
         const app = this._manager.getAppBySession(session);
         if (app) {
             this._setState(app, AppState.INACTIVE);
-
-            // actuator guide
-            if (!isActuatorOnClasspath(session.configuration)) {
-                didStop(app);
-            }
         }
     }
 
@@ -227,7 +202,7 @@ export class Controller {
 
     public async openBootApp(app: BootApp): Promise<void> {
         let openUrl: string | undefined;
-        if(app.contextPath !== undefined && app.port !== undefined) {
+        if (app.contextPath !== undefined && app.port !== undefined) {
             openUrl = constructOpenUrl(app.contextPath, app.port);
         } else {
             openUrl = await this.getOpenUrlFromJMX(app);
@@ -252,7 +227,9 @@ export class Controller {
 
     private _setState(app: BootApp, state: AppState): void {
         app.state = state;
-        this._manager.fireDidChangeApps(undefined);
+        this._manager.fireDidChangeApps(app);
+        beansProvider.refresh(app);
+        mappingsProvider.refresh(app);
     }
 
     private _getLaunchConfig(mainClasData: MainClassData) {
@@ -300,10 +277,49 @@ function isActuatorOnClasspath(debugConfiguration: vscode.DebugConfiguration): b
     return false;
 }
 
-function isActuatorJarFile(f: string): boolean {
-    const fileName = path.basename(f || "");
-    if (/^spring-boot-actuator-\d+\.\d+\.\d+(.*)?.jar$/.test(fileName)) {
-        return true;
+async function resolveDebugConfigurationWithSubstitutedVariables(debugConfiguration: vscode.DebugConfiguration): Promise<vscode.DebugConfiguration> {
+    if (!debugConfiguration.vmArgs) {
+        debugConfiguration.vmArgs = "";
+    } else if (debugConfiguration.vmArgs instanceof Array) {
+        debugConfiguration.vmArgs = debugConfiguration.vmArgs.join(" ");
     }
-    return false;
+
+    // Add default vmArgs if not specified
+    if (debugConfiguration.vmArgs.indexOf("-Dcom.sun.management.jmxremote") < 0) {
+        debugConfiguration.vmArgs += " -Dcom.sun.management.jmxremote";
+    }
+    if (debugConfiguration.vmArgs.indexOf("-Dcom.sun.management.jmxremote.port") < 0) {
+        const jmxport = await getPort();
+        debugConfiguration.vmArgs +=  ` -Dcom.sun.management.jmxremote.port=${jmxport}`;
+    }
+    if (debugConfiguration.vmArgs.indexOf("-Dcom.sun.management.jmxremote.authenticate=") < 0) {
+        debugConfiguration.vmArgs += " -Dcom.sun.management.jmxremote.authenticate=false";
+    }
+    if (debugConfiguration.vmArgs.indexOf("-Dcom.sun.management.jmxremote.ssl=") < 0) {
+        debugConfiguration.vmArgs += " -Dcom.sun.management.jmxremote.ssl=false";
+    }
+    if (debugConfiguration.vmArgs.indexOf("-Dspring.jmx.enabled=") < 0) {
+        debugConfiguration.vmArgs += " -Dspring.jmx.enabled=true";
+    }
+    if (debugConfiguration.vmArgs.indexOf("-Djava.rmi.server.hostname=") < 0) {
+        debugConfiguration.vmArgs += " -Djava.rmi.server.hostname=localhost";
+    }
+    if (debugConfiguration.vmArgs.indexOf("-Dspring.application.admin.enabled=") < 0) {
+        debugConfiguration.vmArgs += " -Dspring.application.admin.enabled=true";
+    }
+    if (debugConfiguration.vmArgs.indexOf("-Dspring.boot.project.name=") < 0) {
+        debugConfiguration.vmArgs += ` -Dspring.boot.project.name=${debugConfiguration.projectName}`;
+    }
+
+
+    return debugConfiguration;
+}
+
+function parseJMXPort(vmArgs: string): number | undefined {
+    const matched = vmArgs.match(/-Dcom\.sun\.management\.jmxremote\.port=\d+/);
+    if (matched) {
+        const port = matched[0].substring("-Dcom.sun.management.jmxremote.port=".length);
+        return parseInt(port);
+    }
+    return undefined;
 }
