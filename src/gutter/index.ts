@@ -15,8 +15,8 @@ function decorateEditor(textEditor: vscode.TextEditor) {
 
     const beans = (getBeans() ?? []).map(b => new StaticBean(b));
     const mappings = (getMappings() ?? []).map(m => new StaticEndpoint(m));
-    const beansInCurrentEditor = beans.filter(b => b.location.uri === textEditor.document.uri.toString());
-    const endpointsInCurrentEditor = mappings.filter(m => m.location.uri === textEditor.document.uri.toString());
+    const beansInCurrentEditor = beans.filter(b => isSameUriString(b.location.uri, textEditor.document.uri));
+    const endpointsInCurrentEditor = mappings.filter(m => isSameUriString(m.location.uri, textEditor.document.uri));
     if (beansInCurrentEditor.length + endpointsInCurrentEditor.length > 0) {
         setDecorationOptions(textEditor, beansInCurrentEditor, endpointsInCurrentEditor);
     }
@@ -27,7 +27,7 @@ export function init(context: vscode.ExtensionContext) {
         before: {
             backgroundColor: new vscode.ThemeColor("editor.background"),
             color: new vscode.ThemeColor("editor.foreground"),
-            width: "16px",
+            width: "2em",
             contentText: " "
         }
     };
@@ -35,7 +35,7 @@ export function init(context: vscode.ExtensionContext) {
         before: {
             backgroundColor: new vscode.ThemeColor("editor.background"),
             color: new vscode.ThemeColor("editor.foreground"),
-            width: "16px",
+            width: "2em",
             contentIconPath: vscode.Uri.joinPath(context.extensionUri, "resources", "gutter-bean.svg")
         }
     };
@@ -43,7 +43,7 @@ export function init(context: vscode.ExtensionContext) {
         before: {
             backgroundColor: new vscode.ThemeColor("editor.background"),
             color: new vscode.ThemeColor("editor.foreground"),
-            width: "16px",
+            width: "2em",
             contentIconPath: vscode.Uri.joinPath(context.extensionUri, "resources", "gutter-endpoint.svg")
         }
     };
@@ -116,4 +116,19 @@ function getEndpointGutterHover(endpoint: StaticEndpoint) {
     );
     message.isTrusted = true;
     return message;
+}
+
+function isSameUriString(a: string, b: vscode.Uri): boolean {
+    if (process.platform === "win32") {
+        // On Windows, "C:" is escaped as "c%3A" in Uri, e.g:
+        // a) beans[0].location.uri
+        // 'file:///C:/Users/somepath/spring-petclinic/src/main/java/org/springframework/samples/petclinic/PetClinicApplication.java'
+        // b) textEditor.document.uri.toString()
+        // 'file:///c%3A/Users/somepath/spring-petclinic/src/main/java/org/springframework/samples/petclinic/PetClinicApplication.java'
+        const la = a.toLowerCase();
+        const lb = decodeURIComponent(b.toString()).toLowerCase();
+        return la === lb;
+    } else {
+        return a === b.toString();
+    }
 }
