@@ -119,16 +119,6 @@ function getEndpointGutterHover(endpoint: StaticEndpoint) {
 }
 
 function isSameUriString(a: string, b: vscode.Uri): boolean {
-    if (process.platform === "win32") {
-        // On Windows, "C:" is escaped as "c%3A" in Uri, e.g:
-        // a) beans[0].location.uri
-        // 'file:///C:/Users/somepath/spring-petclinic/src/main/java/org/springframework/samples/petclinic/PetClinicApplication.java'
-        // b) textEditor.document.uri.toString()
-        // 'file:///c%3A/Users/somepath/spring-petclinic/src/main/java/org/springframework/samples/petclinic/PetClinicApplication.java'
-        const la = a.toLowerCase();
-        const lb = decodeURIComponent(b.toString()).toLowerCase();
-        return la === lb;
-    } else {
-        return a === b.toString();
-    }
+    const uriA = vscode.Uri.parse(a);
+    return uriA.path === b.path;
 }
