@@ -9,6 +9,7 @@ import { getAiKey, getExtensionId, getExtensionVersion, loadPackageInfo } from '
 import { Controller } from './Controller';
 import { init as initLiveDataController } from './controllers/LiveDataController';
 import { initSymbols } from './controllers/SymbolsController';
+import { dispose as disposeGutter, init as initGutter } from './gutter';
 import { requestWorkspaceSymbols } from './models/stsApi';
 import { navigateToLocation } from './models/symbols';
 import { showBeanHierarchy, showDependencies, showInjectedInto } from './references-view';
@@ -66,8 +67,18 @@ export async function initializeExtension(_oprationId: string, context: vscode.E
     });
 
     // live data
-    context.subscriptions.push(vscode.window.createTreeView('spring.beans', { treeDataProvider: beansProvider, showCollapseAll: true }));
-    context.subscriptions.push(vscode.window.createTreeView('spring.mappings', { treeDataProvider: mappingsProvider, showCollapseAll: true }));
+    const beansView = vscode.window.createTreeView('spring.beans', { treeDataProvider: beansProvider, showCollapseAll: true });
+    context.subscriptions.push(beansView);
+    context.subscriptions.push(instrumentOperationAsVsCodeCommand("spring.beans.reveal", (_element) => {
+        // TODO: find and focus on specific elemetn.
+        vscode.commands.executeCommand("spring.beans.focus");
+    }));
+    const mappingsView = vscode.window.createTreeView('spring.mappings', { treeDataProvider: mappingsProvider, showCollapseAll: true });
+    context.subscriptions.push(mappingsView);
+    context.subscriptions.push(instrumentOperationAsVsCodeCommand("spring.mappings.reveal", (_element) => {
+        // TODO: find and focus on specific elemetn.
+        vscode.commands.executeCommand("spring.mappings.focus");
+    }));
     await initLiveDataController();
     context.subscriptions.push(instrumentOperationAsVsCodeCommand("spring.dashboard.endpoint.open", openEndpointHandler));
     context.subscriptions.push(instrumentOperationAsVsCodeCommand("spring.dashboard.endpoint.navigate", navigateToLocation));
@@ -89,6 +100,30 @@ export async function initializeExtension(_oprationId: string, context: vscode.E
             await controller.runBootApp(targetApp);
         }
     }));
+
+    // Gutter
+    const gutterEnabled = () => {
+        const gutterOption = vscode.workspace.getConfiguration("spring.dashboard").get("enableGutter");
+        if (gutterOption === "auto" && vscode.version.includes("insider") || gutterOption === "on") {
+            // By default preview features in insiders only
+            return true;
+        } else {
+            return false;
+        }
+    };
+    if (gutterEnabled()) {
+        initGutter(context);
+    }
+    vscode.workspace.onDidChangeConfiguration(e => {
+        if (e.affectsConfiguration("spring.dashboard.enableGutter")) {
+            if (gutterEnabled()) {
+                initGutter(context);
+            } else {
+                disposeGutter();
+            }
+        }
+    });
+
     // console.log
     context.subscriptions.push(vscode.commands.registerCommand("_spring.console.log", console.log));
     context.subscriptions.push(vscode.commands.registerCommand("_spring.symbols", requestWorkspaceSymbols));
