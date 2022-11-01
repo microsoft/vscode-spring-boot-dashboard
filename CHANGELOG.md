@@ -4,6 +4,18 @@ All notable changes to the "vscode-spring-boot-dashboard" extension will be docu
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
+## 0.8.0
+### Added
+- Allow to override default vmArgs set by extension. [#226](https://github.com/microsoft/vscode-spring-boot-dashboard/pull/226)
+- [Experimental] Decorate defined beans and endpoint mappings with gutter icons. [#231](https://github.com/microsoft/vscode-spring-boot-dashboard/pull/231)
+  - By default it is only enabled on VS Code Insiders. You can explictly turn it on via setting `spring.dashboard.enableGutter`.
+
+### Changed
+- Refine guide to enable actuator. [#227](https://github.com/microsoft/vscode-spring-boot-dashboard/pull/227)
+
+### Fixed
+- Relibility fix: adopt serverReady API of JDT.LS. [#225](https://github.com/microsoft/vscode-spring-boot-dashboard/pull/225)
+
 ## 0.7.1
 - Fixed: beans sometimes can not be listed. [#217](https://github.com/microsoft/vscode-spring-boot-dashboard/pull/217)
 
