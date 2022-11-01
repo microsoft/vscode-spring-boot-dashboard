@@ -23,7 +23,8 @@
     "onCommand:spring-boot-dashboard.refresh",
     "onView:spring.apps",
     "onView:spring.beans",
-    "onView:spring.mappings"
+    "onView:spring.mappings",
+    "onLanguage:java"
   ],
   "capabilities": {
     "virtualWorkspaces": false
