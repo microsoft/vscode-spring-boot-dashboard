@@ -10,14 +10,14 @@ const RELOAD_PROJECT_COMMAND = "java.projectConfiguration.update";
 
 export function init(context: vscode.ExtensionContext) {
     context.subscriptions.push(
-        instrumentOperationAsVsCodeCommand("spring.promptToEnableActuator", async (app: BootApp) => {
+        instrumentOperationAsVsCodeCommand("spring.promptToEnableActuator", async (app: BootApp, asNotification?: boolean) => {
             const OPTION_ENABLE_ACTUATOR = "Enable Actuator";
             const OPTION_LEARN_MORE = "Learn More";
             const MESSAGE = "Spring Boot Actuator is required to fetch live information";
             const DETAILED_MESSAGE = "To enable it, spring-boot-actuator-starter will be added to your project's pom.xml or build.gradle file.";
             const option = await vscode.window.showInformationMessage(MESSAGE, {
                 detail: DETAILED_MESSAGE,
-                modal: true
+                modal: !asNotification
             }, OPTION_ENABLE_ACTUATOR, OPTION_LEARN_MORE);
             if (option === OPTION_ENABLE_ACTUATOR) {
                 await vscode.commands.executeCommand("spring.enableActuator", app);
