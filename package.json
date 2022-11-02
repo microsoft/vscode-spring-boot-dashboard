@@ -75,7 +75,7 @@
         {
           "type": "webview",
           "id": "memory.memoryView",
-          "when": "java:serverMode && spring.gcPauses:showMode == defined && spring.gcPauses:hasLiveProcess == true",
+          "when": "java:serverMode && spring.memoryGraphs:showMode == defined && spring.memoryGraphs:hasLiveProcess == true",
           "name": "Memory"
         }
       ]

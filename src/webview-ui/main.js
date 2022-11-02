@@ -11,6 +11,13 @@ function main() {
   const processSelection = document.getElementById("process");
   processSelection.addEventListener("change", changeGraphDisplay);
 
+  if(processSelection.options.length === 0) {
+    vscode.postMessage({
+      command: "LoadProcess",
+      text: "Load process list",
+    });
+  }
+
   setInterval(refreshData, 5000);
   
   setVSCodeMessageListener();
@@ -79,7 +86,7 @@ function setVSCodeMessageListener() {
         displayGraphData(graphData);
         break;
       case "displayProcess":
-        const process = JSON.parse(event.data.process);
+        const process = event.data.process;
         displayProcess(process);
         break;
       case "removeProcess":
@@ -91,7 +98,13 @@ function setVSCodeMessageListener() {
 }
 
 function displayProcess(process) {
-  if(process !== '' || process !== undefined) {
+  if(process !== '' && process !== undefined && Array.isArray(process)) {
+    const processList = document.getElementById("process");
+    for (let proc of process) { 
+      processList.insertAdjacentHTML("beforeend","<vscode-option id="+proc.liveProcess.processKey+" value="+proc.liveProcess.processKey+">"+proc.liveProcess.processName+"</vscode-option>");
+    }
+    refreshData();
+  } else if(process !== '' && process !== undefined) {
     const processList = document.getElementById("process");
     processList.insertAdjacentHTML("beforeend","<vscode-option id="+process.liveProcess.processKey+" value="+process.liveProcess.processKey+">"+process.liveProcess.processName+"</vscode-option>");
     refreshData();
@@ -183,7 +196,7 @@ function plotMemoryGraph(graphData, zones, graphType) {
   const COLORS = [
     ["#c4e8c1", "#5eb84d"],
     ["#f5c162", "#ffa500"],
-    ["#8fa8c8", "#75539e"],
+    ["#9987ad", "#75539e"],
     ["#d4b0d4", "#e362e3"],
     ["#92bed2", "#3282bf"],
     ["#f5d28c", "#f0debb"]

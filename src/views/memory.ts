@@ -47,7 +47,7 @@ class MemoryProvider implements WebviewViewProvider{
     private _extensionUrl: vscode.Uri;
 
     constructor() {
-        vscode.commands.executeCommand("setContext", "spring.gcPauses:showMode", "defined");
+        vscode.commands.executeCommand("setContext", "spring.memoryGraphs:showMode", "defined");
     }
 
     public get extensionUrl() {
@@ -60,7 +60,7 @@ class MemoryProvider implements WebviewViewProvider{
 
     public resolveWebviewView(
         webviewView: WebviewView,
-        context: WebviewViewResolveContext,
+        _context: WebviewViewResolveContext,
         _token: CancellationToken
       ) {
 
@@ -77,8 +77,6 @@ class MemoryProvider implements WebviewViewProvider{
         // and executes code based on the message that is recieved
         this._setWebviewMessageListener(webviewView);
 
-        // add live process to dropdown
-        this.addLiveProcess(this.liveProcessList.values().next().value);
       }
 
       /**
@@ -157,12 +155,17 @@ class MemoryProvider implements WebviewViewProvider{
             case "Refresh":
               const type = message.type;
               const tag = message.tag;
-              await stsApi.refreshLiveProcessMetricsData({
-                processKey: processKey,
-                endpoint: "metrics",
-                metricName: type,
-                tags: tag
-              });
+              if(processKey !== '' && processKey !== undefined){
+                await stsApi.refreshLiveProcessMetricsData({
+                  processKey: processKey,
+                  endpoint: "metrics",
+                  metricName: type,
+                  tags: tag
+                });
+              }
+              break;
+            case "LoadProcess":
+              this.addLiveProcess(Array.from(this.liveProcessList.values()));
               break;
             default:
           }
@@ -182,7 +185,7 @@ class MemoryProvider implements WebviewViewProvider{
       if (this._view) {
         this._view.webview.postMessage({
           command: "displayProcess",
-          process: JSON.stringify(liveProcess),
+          process: liveProcess,
         });
       }
 	  }
@@ -198,7 +201,6 @@ class MemoryProvider implements WebviewViewProvider{
       if(this.liveProcessList.get(process.processKey)) {
         this.liveProcessList.delete(process.processKey);
         if (this._view) {
-          this._view.show?.(true); // `show` is not implemented in 1.49 but is for 1.50 insiders
           this._view.webview.postMessage({
             command: "removeProcess",
             process: JSON.stringify(process),

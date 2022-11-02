@@ -63,7 +63,7 @@ async function updateProcessMemoryMetrics(payload: string | LocalLiveProcess) {
     const { processKey} = liveProcess;
 
     const memoryMetrics = await getMemoryMetrics(processKey);
-    await vscode.commands.executeCommand("setContext", "spring.gcPauses:hasLiveProcess", liveProcess !== undefined);
+    await vscode.commands.executeCommand("setContext", "spring.memoryGraphs:hasLiveProcess", liveProcess !== undefined);
     memoryProvider.refreshLiveMemoryMetrics(liveProcess, memoryMetrics);
     store.data.set(processKey, { memoryMetrics});
 
@@ -76,7 +76,7 @@ async function resetProcessInfo(payload: string | LocalLiveProcess) {
     mappingsProvider.refreshLive(liveProcess, undefined);
     memoryProvider.refreshLiveGcPausesMetrics(liveProcess, undefined);
     memoryProvider.refreshLiveMemoryMetrics(liveProcess, undefined);
-    await vscode.commands.executeCommand("setContext", "spring.gcPauses:hasLiveProcess", store.data.size > 0);
+    await vscode.commands.executeCommand("setContext", "spring.memoryGraphs:hasLiveProcess", store.data.size > 0);
     const disconnectedApp = appsProvider.manager.getAppByMainClass(liveProcess.processName);
     // Workaound for: app is still running if manually disconnect from live process connection.
     if (disconnectedApp && !await isAlive(disconnectedApp.pid)) {
