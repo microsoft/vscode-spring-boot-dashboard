@@ -1,12 +1,14 @@
 import * as vscode from "vscode";
+import { initSymbols } from "../controllers/SymbolsController";
 import { StaticBean, StaticEndpoint } from "../models/StaticSymbolTypes";
 import { getBeans, getMappings } from "../models/symbols";
+import { sleep } from "../utils";
 
 let DECORATION_OPTIONS_PLACEHOLDER: vscode.ThemableDecorationInstanceRenderOptions;
 let DECORATION_OPTIONS_BEAN: vscode.ThemableDecorationInstanceRenderOptions;
 let DECORATION_OPTIONS_ENDPOINT: vscode.ThemableDecorationInstanceRenderOptions;
 let DECORATION_TYPE_SPRING: vscode.TextEditorDecorationType;
-let disposable: vscode.Disposable | undefined;
+const disposables: vscode.Disposable[] = [];
 
 function decorateEditor(textEditor: vscode.TextEditor) {
     if (textEditor.document.languageId !== "java") {
@@ -53,15 +55,28 @@ export function init(context: vscode.ExtensionContext) {
     });
 
     vscode.window.visibleTextEditors.forEach(decorateEditor);
-    disposable = vscode.window.onDidChangeVisibleTextEditors((textEditors) => {
+    disposables.push(vscode.window.onDidChangeVisibleTextEditors((textEditors) => {
         textEditors.forEach(decorateEditor);
-    });
+    }));
+    disposables.push(vscode.workspace.onDidSaveTextDocument(async (e) => {
+        if (e === vscode.window.activeTextEditor?.document) {
+            // TODO: magic number here because you have to wait STS-LS to update workspace symbols before querying it.
+            await sleep(1000);
+            await initSymbols();
+            decorateEditor(vscode.window.activeTextEditor);
+        }
+    }));
+    disposables.push(vscode.workspace.onDidChangeTextDocument(async (e) => {
+        if (e.document === vscode.window.activeTextEditor?.document) {
+            decorateEditor(vscode.window.activeTextEditor);
+        }
+    }));
+
 }
 
 export function dispose() {
-    if (disposable) {
-        disposable.dispose();
-        disposable = undefined;
+    while (disposables.length > 0) {
+        disposables.pop()?.dispose();
     }
 }
 
@@ -120,5 +135,8 @@ function getEndpointGutterHover(endpoint: StaticEndpoint) {
 
 function isSameUriString(a: string, b: vscode.Uri): boolean {
     const uriA = vscode.Uri.parse(a);
-    return uriA.path === b.path;
+
+    return process.platform === "win32" ?
+        uriA.path.toLowerCase() === b.path.toLowerCase() :
+        uriA.path === b.path;
 }
