@@ -135,5 +135,8 @@ function getEndpointGutterHover(endpoint: StaticEndpoint) {
 
 function isSameUriString(a: string, b: vscode.Uri): boolean {
     const uriA = vscode.Uri.parse(a);
-    return uriA.path === b.path;
+
+    return process.platform === "win32" ?
+        uriA.path.toLowerCase() === b.path.toLowerCase() :
+        uriA.path === b.path;
 }
