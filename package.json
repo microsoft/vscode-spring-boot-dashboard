@@ -512,6 +512,7 @@
     "lodash": "^4.17.21",
     "moment": "^2.29.4",
     "pidtree": "^0.5.0",
+    "react": "^16.9.0",
     "uuid": "^3.4.0",
     "vscode-extension-telemetry-wrapper": "^0.13.2",
     "vscode-languageclient": "^7.0.0"
