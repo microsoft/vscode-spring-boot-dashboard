@@ -2,7 +2,7 @@
   "name": "vscode-spring-boot-dashboard",
   "displayName": "Spring Boot Dashboard",
   "description": "Spring Boot Dashboard for VS Code",
-  "version": "0.7.1",
+  "version": "0.8.0",
   "license": "MIT",
   "icon": "resources/logo.png",
   "publisher": "vscjava",
@@ -24,7 +24,8 @@
     "onView:spring.apps",
     "onView:spring.beans",
     "onView:spring.mappings",
-    "onView:memory.memoryView"
+    "onView:memory.memoryView",
+    "onLanguage:java"
   ],
   "capabilities": {
     "virtualWorkspaces": false
@@ -455,6 +456,22 @@
           "type": "string",
           "scope": "window",
           "description": "Defines which URL is opened when opening Spring Boot apps. Uses {port} and {contextPath} as placeholders."
+        },
+        "spring.dashboard.enableGutter": {
+          "default": "auto",
+          "type": "string",
+          "enum": [
+            "auto",
+            "on",
+            "off"
+          ],
+          "enumDescriptions": [
+            "By default enable this feature only in Insiders.",
+            "Enable",
+            "Disable"
+          ],
+          "scope": "window",
+          "description": "[Experimental] Specifies whether to show gutter icon in editors."
         }
       }
     }

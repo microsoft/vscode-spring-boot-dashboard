@@ -101,6 +101,8 @@ export class Controller {
             } else {
                 // actuator absent: no live connection, set project as 'running' immediately.
                 this._setState(app, AppState.RUNNING);
+                // Guide to enable actuator
+                this.showActuatorGuideIfNecessary(app);
             }
         }
     }
@@ -264,6 +266,21 @@ export class Controller {
         await launchConfigurations.update("configurations", configs, vscode.ConfigurationTarget.WorkspaceFolder);
         return newConfig;
     }
+
+    private showActuatorGuideIfNecessary(app: BootApp) {
+        const command = "spring.promptToEnableActuator";
+        const key = "LastTimeSeenActuatorGuide";
+
+        const lastMonth = new Date();
+        lastMonth.setMonth(lastMonth.getMonth() - 1);
+
+        const lastTimeSeen: number = this._context.globalState.get(key) ?? 0;
+        if (new Date(lastTimeSeen) < lastMonth) {
+            this._context.globalState.update(key, Date.now());
+            vscode.commands.executeCommand(command, app, true /* asNotification */);
+        }
+    }
+
 }
 
 function isRunInTerminal(session: vscode.DebugSession) {
@@ -290,7 +307,7 @@ async function resolveDebugConfigurationWithSubstitutedVariables(debugConfigurat
     }
     if (debugConfiguration.vmArgs.indexOf("-Dcom.sun.management.jmxremote.port") < 0) {
         const jmxport = await getPort();
-        debugConfiguration.vmArgs +=  ` -Dcom.sun.management.jmxremote.port=${jmxport}`;
+        debugConfiguration.vmArgs += ` -Dcom.sun.management.jmxremote.port=${jmxport}`;
     }
     if (debugConfiguration.vmArgs.indexOf("-Dcom.sun.management.jmxremote.authenticate=") < 0) {
         debugConfiguration.vmArgs += " -Dcom.sun.management.jmxremote.authenticate=false";

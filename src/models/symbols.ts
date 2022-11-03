@@ -38,7 +38,7 @@ export function getBeans(projectPath?: string) {
 
 export function getMappings(projectPath?: string) {
     if (!projectPath) {
-        return beans;
+        return mappings;
     }
 
     const path = sanitizeFilePath(projectPath);
