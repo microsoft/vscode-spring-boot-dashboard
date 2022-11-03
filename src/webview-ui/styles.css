@@ -1,0 +1,24 @@
+h1 {
+  font-size: 1.5em;
+}
+
+#search-container {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+#results-container {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background-color: var(--vscode-input-background);
+  padding: 1rem;
+  margin: 1rem 0;
+}
+
+#icon {
+  font-size: 3em;
+  padding: 0;
+  margin: 0;
+}
