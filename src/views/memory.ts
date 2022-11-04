@@ -100,8 +100,8 @@ class MemoryProvider implements WebviewViewProvider{
           "dist",
           "toolkit.js",
         ]);
-        const mainUri = getUri(webview, extensionUri, ["src","webview-ui", "main.js"]);
-        const stylesUri = getUri(webview, extensionUri, ["src","webview-ui", "styles.css"]);
+        const mainUri = getUri(webview, extensionUri, ["resources","webview-ui", "main.js"]);
+        const stylesUri = getUri(webview, extensionUri, ["resources","webview-ui", "styles.css"]);
         const chartLibPath = getUri(webview, extensionUri, ["node_modules","chart.js","dist","chart.min.js"]);
         const chartjsPath = getUri(webview, extensionUri, ["node_modules","chartjs","chart.js"]);
         const chartjsAdapterPath = getUri(webview, extensionUri, ["node_modules","chartjs-adapter-moment","dist","chartjs-adapter-moment.min.js"]);
