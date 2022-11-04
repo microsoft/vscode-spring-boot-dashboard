@@ -18,7 +18,6 @@ import { beansProvider, openBeanHandler } from './views/beans';
 import { init as initActuatorGuide } from './views/guide';
 import { mappingsProvider, openEndpointHandler } from './views/mappings';
 import { memoryProvider } from './views/memory';
-import { window } from 'vscode';
 
 export async function activate(context: vscode.ExtensionContext) {
     await loadPackageInfo(context);
@@ -130,15 +129,14 @@ export async function initializeExtension(_oprationId: string, context: vscode.E
     context.subscriptions.push(vscode.commands.registerCommand("_spring.console.log", console.log));
     context.subscriptions.push(vscode.commands.registerCommand("_spring.symbols", requestWorkspaceSymbols));
 
+    // Register the provider for a Webview View
+
     const provider = memoryProvider;
     memoryProvider.extensionUrl = context.extensionUri;
-    // Register the provider for a Webview View
-    const memoryViewDisposable = window.registerWebviewViewProvider(
+    context.subscriptions.push(vscode.window.registerWebviewViewProvider(
         "memory.memoryView",
         provider
-    );
-
-    context.subscriptions.push(memoryViewDisposable);
+    ));
 }
 
 // this method is called when your extension is deactivated

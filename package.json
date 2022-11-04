@@ -24,7 +24,6 @@
     "onView:spring.apps",
     "onView:spring.beans",
     "onView:spring.mappings",
-    "onView:memory.memoryView",
     "onLanguage:java"
   ],
   "capabilities": {
@@ -74,10 +73,12 @@
           "icon": "resources/logo.png"
         },
         {
-          "type": "webview",
           "id": "memory.memoryView",
+          "name": "Memory",
           "when": "java:serverMode && spring.memoryGraphs:showMode == defined && spring.memoryGraphs:hasLiveProcess == true",
-          "name": "Memory"
+          "contextualTitle": "Spring",
+          "type": "webview",
+          "icon": "resources/logo.png"
         }
       ]
     },
