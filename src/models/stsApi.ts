@@ -61,11 +61,11 @@ export async function getGcPausesMetrics(processKey: string) {
     return result;
 }
 
-export async function getMemoryMetrics(processKey: string) {
+export async function getMemoryMetrics(processKey: string, memory: string) {
     const result = await stsApi.getLiveProcessMetricsData({
         processKey: processKey,
         endpoint: "metrics",
-        metricName: "memory"
+        metricName: memory
     });
     return result;
 }
