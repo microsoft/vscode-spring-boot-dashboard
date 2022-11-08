@@ -160,7 +160,6 @@ class MemoryProvider implements WebviewViewProvider{
           const processKey = message.processKey;
           switch (command) {
             case "LoadMetrics":
-              console.log("in load metrics handler");
               if(processKey !== '' && processKey !== undefined){
                 await stsApi.refreshLiveProcessMetricsData({
                   processKey: processKey,
@@ -183,12 +182,9 @@ class MemoryProvider implements WebviewViewProvider{
               const type = message.type;
               if(type !== '' && type === "Heap Memory") {
                 const targetLiveProcess = Array.from(this.storeHeapMemoryMetrics.keys()).find(lp => lp.processKey === processKey) ?? new LiveProcess(processKey);
-                console.log(this.storeHeapMemoryMetrics.get(targetLiveProcess));
                 this.updateGraph(this.storeHeapMemoryMetrics.get(targetLiveProcess));
               } else if(type !== '' && type === "Non Heap Memory") {
                 const targetLiveProcess = Array.from(this.storeNonHeapMemoryMetrics.keys()).find(lp => lp.processKey === processKey) ?? new LiveProcess(processKey);
-                console.log(this.storeNonHeapMemoryMetrics);
-                console.log(this.storeNonHeapMemoryMetrics.get(targetLiveProcess));
                 this.updateGraph(this.storeNonHeapMemoryMetrics.get(targetLiveProcess));
               } else if(type !== '' && (type === "Gc Pauses" || type === "Garbage Collections")) {
                 const targetLiveProcess = Array.from(this.storeGcPausesMetrics.keys()).find(lp => lp.processKey === processKey) ?? new LiveProcess(processKey);
@@ -237,6 +233,15 @@ class MemoryProvider implements WebviewViewProvider{
       }
     }
 
+    private removeOldData(metrics: any, latestMetrics: Metrics[]) {
+      if(metrics !== undefined) {
+        metrics.push(latestMetrics);
+      }
+      if(metrics !== undefined && metrics.length > this.maxDataPoints) {
+        metrics.shift();
+      }
+    }
+
     public refreshLiveGcPausesMetrics(liveProcess: LocalLiveProcess, gcPausesMetricsDataRaw : Metrics[] | undefined) {
         if (gcPausesMetricsDataRaw === undefined) {
             // remove
@@ -254,10 +259,7 @@ class MemoryProvider implements WebviewViewProvider{
             this.storeGcPausesMetrics.set(targetLiveProcess, [gcPausesMetrics]);
           } else {
             const metrics = this.storeGcPausesMetrics.get(targetLiveProcess);
-            if(metrics !== undefined) {
-              metrics.push(gcPausesMetrics);
-              const removeStaleData = metrics.length > this.maxDataPoints ? metrics?.shift() : undefined;
-            }
+            this.removeOldData(metrics, gcPausesMetrics);
           }
         }
     }
@@ -279,10 +281,7 @@ class MemoryProvider implements WebviewViewProvider{
             this.storeHeapMemoryMetrics.set(targetLiveProcess, [memoryMetrics]);
           } else {
             const metrics = this.storeHeapMemoryMetrics.get(targetLiveProcess);
-            if(metrics !== undefined) {
-              metrics?.push(memoryMetrics);
-              const removeStaleData = metrics.length > this.maxDataPoints ? metrics?.shift() : '';
-            }
+            this.removeOldData(metrics, memoryMetrics);
           }
       }
   }
@@ -302,13 +301,9 @@ class MemoryProvider implements WebviewViewProvider{
           if(this.storeNonHeapMemoryMetrics.get(targetLiveProcess) === undefined) {
             this.addLiveProcessInfo(targetLiveProcess);
             this.storeNonHeapMemoryMetrics.set(targetLiveProcess, [memoryMetrics]);
-            console.log(this.storeNonHeapMemoryMetrics.get(targetLiveProcess));
           } else {
             const metrics = this.storeNonHeapMemoryMetrics.get(targetLiveProcess);
-            if(metrics !== undefined) {
-              metrics?.push(memoryMetrics);
-              const _removeStaleData = metrics.length > this.maxDataPoints ? metrics?.shift() : '';
-            }
+            this.removeOldData(metrics, memoryMetrics);
           }
       }
   }

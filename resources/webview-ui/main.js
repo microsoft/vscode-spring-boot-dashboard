@@ -282,7 +282,6 @@ function plotMemoryGraph(graphData, zones, graphType) {
   var chart = Chart.getChart("chart");
   
   var datapoints = chart.data.datasets[0].data.length;
-  var sets = chart.data.datasets.length
 
   setMemoryData(chart.data, graphData, zones)
   if(datapoints >= maxDataPoints) {
