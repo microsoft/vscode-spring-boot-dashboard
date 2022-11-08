@@ -5,6 +5,7 @@ window.addEventListener("load", main);
 
 // Main function that gets executed once the webview DOM loads
 function main() {
+
   const graphTypeSelection = document.getElementById("graphType");
   graphTypeSelection.addEventListener("change", changeGraphDisplay);
 
@@ -18,7 +19,6 @@ function main() {
     });
   }
 
-  // setInterval(refreshData, 5000);
   loadMetrics();
   setInterval(loadMetrics, interval);
   setInterval(fetchGraphData, interval);
@@ -32,8 +32,6 @@ function loadMetrics() {
     command: "LoadMetrics",
     text: "Load metrics for the graph",
     processKey: processKey,
-    // type: selection.value,
-    // tag: "area:heap"
   });
 }
 
@@ -48,8 +46,7 @@ function fetchGraphData() {
       processKey: processKey,
       type: graphType,
     });
-  }
-  
+  } 
 }
 
 function changeGraphDisplay() {
@@ -327,7 +324,6 @@ function setGcPausesData(chart, dataPoints , type) {
         }
         chart.datasets[0].prevMeasurement = dataPoint;
         chart.datasets[0].data.push(pt);
-        // data.labels.push(pt.time);
      }
     }
   })

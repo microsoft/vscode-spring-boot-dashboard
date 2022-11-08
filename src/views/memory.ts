@@ -47,8 +47,8 @@ class MemoryProvider implements WebviewViewProvider{
     private _view?: vscode.WebviewView;
 
     private _extensionUrl: vscode.Uri;
-    private _interval: number= vscode.workspace.getConfiguration("spring.dashboard").get("memory-view.display-data.delay-in-milliseconds") ?? 5000;
-    private _maxDataPoints: number = vscode.workspace.getConfiguration("spring.dashboard").get("memory-view.display-data.max-datapoints") ?? 10;
+    private interval: number= vscode.workspace.getConfiguration("spring.dashboard").get("memory-view.fetch-data.delay-in-milliseconds") ?? 5000;
+    private maxDataPoints: number = vscode.workspace.getConfiguration("spring.dashboard").get("memory-view.display-data.max-datapoints") ?? 10;
 
     constructor() {
         vscode.commands.executeCommand("setContext", "spring.memoryGraphs:showMode", "defined");
@@ -60,22 +60,6 @@ class MemoryProvider implements WebviewViewProvider{
 
     public set extensionUrl(value) {
         this._extensionUrl = value;
-    }
-
-    public get interval() {
-        return this._interval;
-    }
-
-    public set interval(value) {
-        this.interval = value;
-    }
-
-    public get maxDataPoints() {
-        return this._maxDataPoints;
-    }
-
-    public set maxDataPoints(value) {
-        this.maxDataPoints = value;
     }
 
     public resolveWebviewView(
@@ -127,6 +111,9 @@ class MemoryProvider implements WebviewViewProvider{
         const chartjsAdapterScipt = getUri(webview, extensionUri, ["node_modules","chartjs-adapter-moment","dist","chartjs-adapter-moment.js"]);
         const momentLibPath = getUri(webview, extensionUri, ["node_modules","moment","moment.js"]);
 
+        this.interval = vscode.workspace.getConfiguration("spring.dashboard").get("memory-view.fetch-data.delay-in-milliseconds") ?? 5000;
+        this.maxDataPoints = vscode.workspace.getConfiguration("spring.dashboard").get("memory-view.display-data.max-datapoints") ?? 10;
+
         // Tip: Install the es6-string-html VS Code extension to enable code highlighting below
         return /*html*/ `
                 <!DOCTYPE html>
@@ -142,8 +129,8 @@ class MemoryProvider implements WebviewViewProvider{
                         <script src="${chartjsAdapterPath}"></script>
                         <script src="${chartjsAdapterScipt}"></script>
                         <script src="${momentLibPath}"></script>
-                        <script type="text/javascript"> var interval = ${this._interval}; </script>
-                        <script type="text/javascript"> var maxDataPoints = ${this._maxDataPoints}; </script>
+                        <script type="text/javascript"> var interval = ${this.interval}; </script>
+                        <script type="text/javascript"> var maxDataPoints = ${this.maxDataPoints}; </script>
                         <link rel="stylesheet" href="${stylesUri}">
                         <title>Weather Checker</title>
                     </head>
@@ -269,7 +256,7 @@ class MemoryProvider implements WebviewViewProvider{
             const metrics = this.storeGcPausesMetrics.get(targetLiveProcess);
             if(metrics !== undefined) {
               metrics.push(gcPausesMetrics);
-              const removeStaleData = metrics.length > this._maxDataPoints ? metrics?.shift() : undefined;
+              const removeStaleData = metrics.length > this.maxDataPoints ? metrics?.shift() : undefined;
             }
           }
         }
@@ -294,7 +281,7 @@ class MemoryProvider implements WebviewViewProvider{
             const metrics = this.storeHeapMemoryMetrics.get(targetLiveProcess);
             if(metrics !== undefined) {
               metrics?.push(memoryMetrics);
-              const removeStaleData = metrics.length > this._maxDataPoints ? metrics?.shift() : '';
+              const removeStaleData = metrics.length > this.maxDataPoints ? metrics?.shift() : '';
             }
           }
       }
@@ -320,7 +307,7 @@ class MemoryProvider implements WebviewViewProvider{
             const metrics = this.storeNonHeapMemoryMetrics.get(targetLiveProcess);
             if(metrics !== undefined) {
               metrics?.push(memoryMetrics);
-              const _removeStaleData = metrics.length > this._maxDataPoints ? metrics?.shift() : '';
+              const _removeStaleData = metrics.length > this.maxDataPoints ? metrics?.shift() : '';
             }
           }
       }
