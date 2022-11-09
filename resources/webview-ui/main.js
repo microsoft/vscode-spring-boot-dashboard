@@ -19,13 +19,14 @@ function main() {
   }
 
   setInterval(refreshData, 5000);
-  
+
   setVSCodeMessageListener();
 }
 
 function refreshData() {
   const selection = document.getElementById("graphType");
-  const processKey = document.getElementById("process").value;
+  const processKeyB64 = document.getElementById("process").value;
+  const processKey = base64Decode(processKeyB64);
   const graphType= selection.options[selection.selectedIndex].text;
   switch (graphType) {
     case "Heap Memory":
@@ -100,23 +101,27 @@ function setVSCodeMessageListener() {
 function displayProcess(process) {
   if(process !== '' && process !== undefined && Array.isArray(process)) {
     const processList = document.getElementById("process");
-    for (let proc of process) { 
-      processList.insertAdjacentHTML("beforeend","<vscode-option id="+proc.liveProcess.processKey+" value="+proc.liveProcess.processKey+">"+proc.liveProcess.processName+"</vscode-option>");
+    for (let proc of process) {
+      const processKeyB64 = base64Encode(proc.liveProcess.processKey);
+      processList.insertAdjacentHTML("beforeend","<vscode-option id="+processKeyB64+" value="+processKeyB64+">"+proc.liveProcess.processName+"</vscode-option>");
     }
     refreshData();
   } else if(process !== '' && process !== undefined) {
     const processList = document.getElementById("process");
-    processList.insertAdjacentHTML("beforeend","<vscode-option id="+process.liveProcess.processKey+" value="+process.liveProcess.processKey+">"+process.liveProcess.processName+"</vscode-option>");
+    const processKeyB64 = base64Encode(proc.liveProcess.processKey);
+    processList.insertAdjacentHTML("beforeend","<vscode-option id="+processKeyB64+" value="+processKeyB64+">"+process.liveProcess.processName+"</vscode-option>");
     refreshData();
   }
 }
 
 function removeProcess(processKey) {
   if(processKey !== '' || processKey !== undefined) {
-    const option = document.getElementById(processKey);
+    const processKeyB64 = base64Encode(processKey);
+    const option = document.getElementById(processKeyB64);
     option.remove(option.index);
     refreshData();
-    const currentSelection = document.getElementById("process").value;
+    const currentSelectionB64 = document.getElementById("process").value;
+    const currentSelection = base64Decode(currentSelectionB64);
     let chartStatus = Chart.getChart("chart");
     if (chartStatus !== undefined && currentSelection === processKey) {
         chartStatus.destroy();
@@ -169,7 +174,7 @@ function displayGraphData(graphData) {
       break;
     default:
   }
-  
+
 }
 
 function currentUsedMemory(zones, graphData) {
@@ -178,7 +183,7 @@ function currentUsedMemory(zones, graphData) {
       .reduce((v, a) => a + v, 0);
 }
 
-function showMetrics(zones, graphData) {   
+function showMetrics(zones, graphData) {
   return `Size `+ Math.round(graphData["committed"]) + ` MB`
    +` / `+ `Used `+ Math.round(currentUsedMemory(zones, graphData)) + ` MB`
    +` / `+ `Max `+ Math.round(graphData["max"])+ ` MB`;
@@ -296,7 +301,7 @@ function plotMemoryGraph(graphData, zones, graphType) {
       memChart.data.labels.shift();
   }
   var chart = Chart.getChart("chart");
-  
+
   var datapoints = chart.data.datasets[0].data.length;
   var sets = chart.data.datasets.length
 
@@ -325,7 +330,7 @@ function formula(next, prev, type) {
 }
 
 function showGcMetrics(unit, extraData, data) {
-  return extraData.label +': '+ Math.round(data.measurements.find(x => x.statistic === extraData.prop)?.value) + unit; 
+  return extraData.label +': '+ Math.round(data.measurements.find(x => x.statistic === extraData.prop)?.value) + unit;
 }
 
 function setGcPausesData(data, point, type) {
@@ -437,7 +442,7 @@ function plotGcGraph(graphData, type, extraData, unit, label) {
   }
 
   var chart = Chart.getChart("chart");
-  
+
   var datapoints = chart.data.datasets[0].data.length;
   setGcPausesData(chart.data, graphData, type, datapoints);
   if(datapoints === 10) {
@@ -448,3 +453,12 @@ function plotGcGraph(graphData, type, extraData, unit, label) {
 
 }
 
+function base64Encode(s) {
+  return btoa(s);
+  // return Buffer.from(s).toString("base64");
+}
+
+function base64Decode(s) {
+  return atob(s);
+  // return Buffer.from(s, "base64").toString();
+}

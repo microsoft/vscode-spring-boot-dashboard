@@ -56,14 +56,16 @@ export function isActuatorJarFile(f: string): boolean {
  * @param pathSeg must starts with '/'
  * @returns url
  */
-export function constructOpenUrl(contextPath: string, port: number, pathSeg?: string) {
+export function constructOpenUrl(contextPath: string, portString: number | string, pathSeg?: string, hostname?:string) {
     const configOpenUrl: string | undefined = vscode.workspace.getConfiguration("spring.dashboard").get<string>("openUrl");
     let openUrl: string;
-
+    const port = Number(portString);
     if (configOpenUrl === undefined) {
-        openUrl = `http://localhost:${port}${contextPath}`;
+        openUrl = `http${port === 443 ? "s" : ""}://${hostname ?? "localhost"}:${port}${contextPath}`;
     } else {
         openUrl = configOpenUrl
+            .replace("{protocol}", port === 443 ? "https" : "http")
+            .replace("{hostname}", hostname ?? "localhost")
             .replace("{port}", String(port))
             .replace("{contextPath}", contextPath.toString());
     }

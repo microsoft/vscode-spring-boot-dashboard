@@ -8,7 +8,7 @@ import { initSymbols } from "../controllers/SymbolsController";
 import { LiveProcess } from "../models/liveProcess";
 import { StaticEndpoint } from "../models/StaticSymbolTypes";
 import { getContextPath, getPort } from "../models/stsApi";
-import { LocalLiveProcess } from "../types/sts-api";
+import { LocalLiveProcess, LiveProcess as STSLiveProcess} from "../types/sts-api";
 import { constructOpenUrl } from "../utils";
 
 export interface Endpoint {
@@ -153,7 +153,7 @@ class MappingsDataProvider implements vscode.TreeDataProvider<TreeData> {
         } else {
             // add / update
             const targetLiveProcess = Array.from(this.store.keys()).find(lp => lp.processKey === liveProcess.processKey) ?? new LiveProcess(liveProcess);
-            const mappings = mappingsRaw.map(raw => parseMapping(raw, liveProcess.processKey)).sort((a, b) => a.label.localeCompare(b.label));
+            const mappings = mappingsRaw.map(raw => parseMapping(raw, liveProcess)).sort((a, b) => a.label.localeCompare(b.label));
             this.store.set(targetLiveProcess, mappings);
         }
         this.onDidRefreshMappings.fire(undefined);
@@ -170,16 +170,17 @@ class MappingsDataProvider implements vscode.TreeDataProvider<TreeData> {
     }
 }
 
-function parseMapping(raw:any, processKey: string): Endpoint {
-    const pattern = raw.data.map?.details?.map.requestMappingConditions?.map.patterns?.myArrayList?.[0];
-    const method = raw.data.map?.details?.map.requestMappingConditions?.map.methods?.myArrayList?.[0];
+function parseMapping(raw:any, liveProcess: STSLiveProcess): Endpoint {
+    const pattern = raw.data.map?.details?.map?.requestMappingConditions?.map?.patterns?.myArrayList?.[0];
+    const method = raw.data.map?.details?.map?.requestMappingConditions?.map?.methods?.myArrayList?.[0];
 
     let label = pattern ?? raw.data.map?.predicate ?? "unknown";
     if (method) {
         label += ` [${method}]`;
     }
     return {
-        processKey,
+        processKey: liveProcess.processKey,
+        processName: liveProcess.processName,
         label,
         method,
         pattern,
@@ -192,9 +193,19 @@ export const mappingsProvider = new MappingsDataProvider();
 export async function openEndpointHandler(endpoint: Endpoint) {
     const port = await getPort(endpoint.processKey);
     const contextPath = await getContextPath(endpoint.processKey) ?? "";
-    const url = constructOpenUrl(contextPath, port, endpoint.pattern);
+    const hostname = getHostName((endpoint as any).processName); // workaround for remote process
+    const url = constructOpenUrl(contextPath, port, endpoint.pattern, hostname);
 
     const openWithExternalBrowser: boolean = vscode.workspace.getConfiguration("spring.dashboard").get("openWith") === "external";
     const browserCommand: string = openWithExternalBrowser ? "vscode.open" : "simpleBrowser.api.open";
     vscode.commands.executeCommand(browserCommand, vscode.Uri.parse(url));
+}
+
+function getHostName(processKey: string) {
+    const prefix = "remote process - ";
+    if (processKey.startsWith(prefix)) {
+        return processKey.slice(prefix.length);
+    } else {
+        return undefined;
+    }
 }

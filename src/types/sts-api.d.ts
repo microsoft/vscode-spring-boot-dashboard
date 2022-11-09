@@ -95,6 +95,14 @@ export interface LocalLiveProcess extends LiveProcess {
 	pid: string;
 }
 
+/**
+ * Specialized interface for type 'local' LiveProcess.
+ */
+export interface RemoteLiveProcess extends LiveProcess {
+	type: "remote";
+	pid: string;
+}
+
 interface MetricsQuery extends LiveProcessDataQuery {
     endpoint: "metrics";
     metricName: string;

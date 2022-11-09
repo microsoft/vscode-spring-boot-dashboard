@@ -139,6 +139,37 @@ export async function initializeExtension(_oprationId: string, context: vscode.E
     );
 
     context.subscriptions.push(memoryViewDisposable);
+
+    // POC: remote apps
+    context.subscriptions.push(vscode.commands.registerCommand("spring.azureApp.connect", (args) => {
+        console.log(args);
+        // args.app.properties.url = 'https://yanzh-app-yanzh-spring-petclinic.azuremicroservices.io'
+        // args.app.name = 'yanzh-spring-petclinic'
+        const url = args.app.properties.url as string;
+        const hostname = vscode.Uri.parse(url).authority;
+        vscode.commands.executeCommand("spring.azureApp.attach", hostname);
+        vscode.commands.executeCommand("spring.apps.focus");
+    }));
+    context.subscriptions.push(vscode.commands.registerCommand("spring.azureApp.detach", (args) => {
+        const command = "sts/livedata/disconnect";
+        const cmdargs = [
+        {
+          processKey: args.processKey,
+          label: args.processName,
+          action: "sts/livedata/disconnect"
+        }];
+        vscode.commands.executeCommand(command, ...cmdargs);
+    }));
+    context.subscriptions.push(vscode.commands.registerCommand("spring.azureApp.attach", (hostname) => {
+        const command = "sts/livedata/connect";
+        const args = [
+        {
+          processKey: `remote process - https://${hostname}/actuator`,
+          label: `remote process - ${hostname}`,
+          action: "sts/livedata/connect"
+        }];
+        vscode.commands.executeCommand(command, ...args);
+    }));
 }
 
 // this method is called when your extension is deactivated

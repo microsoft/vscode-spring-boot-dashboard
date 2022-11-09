@@ -214,6 +214,18 @@
         "title": "Live Information Unavailable",
         "category": "Spring Boot Dashboard",
         "icon": "$(warning)"
+      },
+      {
+        "command": "spring.azureApp.connect",
+        "title": "View Live Information",
+        "category": "Spring Boot Dashboard",
+        "icon": "$(telescope)"
+      },
+      {
+        "command": "spring.azureApp.detach",
+        "title": "Detach",
+        "category": "Spring Boot Dashboard",
+        "icon": "$(debug-disconnect)"
       }
     ],
     "menus": {
@@ -383,6 +395,11 @@
           "group": "action@13"
         },
         {
+          "command": "spring.azureApp.detach",
+          "when": "view == spring.apps && viewItem == remote-azure-spring-app",
+          "group": "inline@1"
+        },
+        {
           "command": "sts/livedata/refresh",
           "when": "view == spring.beans && viewItem == liveProcess",
           "group": "inline@5"
@@ -431,7 +448,12 @@
           "command": "spring.dashboard.bean.showInjectedInto",
           "when": "viewItem == spring:bean",
           "group": "action@7"
-        }
+        },
+        {
+					"command": "spring.azureApp.connect",
+					"when": "view == azureSpringApps && viewItem =~ /^azureSpringApps\\.app;status-running;/i",
+					"group": "2@1"
+				}
       ]
     },
     "configuration": {
@@ -452,7 +474,7 @@
           "description": "Defines which browser to use when opening Spring Boot apps."
         },
         "spring.dashboard.openUrl": {
-          "default": "http://localhost:{port}{contextPath}",
+          "default": "{protocol}://{hostname}:{port}{contextPath}",
           "type": "string",
           "scope": "window",
           "description": "Defines which URL is opened when opening Spring Boot apps. Uses {port} and {contextPath} as placeholders."

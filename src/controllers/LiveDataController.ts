@@ -1,6 +1,7 @@
 import * as vscode from "vscode";
 import { AppState } from "../BootApp";
-import { getBeans, getContextPath, getMainClass, getMappings, getPid, getPort, getGcPausesMetrics, getMemoryMetrics, initialize, stsApi } from "../models/stsApi";
+import { getBeans, getContextPath, getGcPausesMetrics, getMainClass, getMappings, getMemoryMetrics, getPid, getPort, initialize, stsApi } from "../models/stsApi";
+import { remoteAppManager } from "../RemoteAppManager";
 import { LocalLiveProcess } from "../types/sts-api";
 import { isAlive } from "../utils";
 import { appsProvider } from "../views/apps";
@@ -47,6 +48,16 @@ async function updateProcessInfo(payload: string | LocalLiveProcess) {
         runningApp.contextPath = contextPath;
         runningApp.state = AppState.RUNNING; // will refresh tree item
     }
+
+    if ((liveProcess as any).type === "remote") {
+        remoteAppManager.addRemoteApp({
+            processKey,
+            processName,
+            pid,
+            liveProcess
+        });
+        appsProvider.refresh(undefined);
+    }
 }
 
 async function updateProcessGcPausesMetrics(payload: string | LocalLiveProcess) {
@@ -81,6 +92,11 @@ async function resetProcessInfo(payload: string | LocalLiveProcess) {
     // Workaound for: app is still running if manually disconnect from live process connection.
     if (disconnectedApp && !await isAlive(disconnectedApp.pid)) {
         disconnectedApp.reset();
+    }
+
+    if ((liveProcess as any).type === "remote") {
+        remoteAppManager.removeRemoteApp(liveProcess.processKey);
+        appsProvider.refresh(undefined);
     }
 }
 

@@ -165,13 +165,11 @@ class BeansDataProvider implements vscode.TreeDataProvider<TreeData> {
                         }
                     }
                 }
+                if (!this.showAll && staticBeans?.length) {
+                    return liveBeans?.filter(b => b.defined);
+                }
             }
-
-            if (this.showAll) {
-                return liveBeans;
-            } else {
-                return liveBeans?.filter(b => b.defined);
-            }
+            return liveBeans;
         } else if (element instanceof BootApp) {
             return this.staticData.get(element);
         } else if (element instanceof Bean) {
