@@ -192,9 +192,26 @@ export const mappingsProvider = new MappingsDataProvider();
 export async function openEndpointHandler(endpoint: Endpoint) {
     const port = await getPort(endpoint.processKey);
     const contextPath = await getContextPath(endpoint.processKey) ?? "";
-    const url = constructOpenUrl(contextPath, port, endpoint.pattern);
+    let url: string | undefined = constructOpenUrl(contextPath, port, endpoint.pattern);
 
-    const openWithExternalBrowser: boolean = vscode.workspace.getConfiguration("spring.dashboard").get("openWith") === "external";
-    const browserCommand: string = openWithExternalBrowser ? "vscode.open" : "simpleBrowser.api.open";
-    vscode.commands.executeCommand(browserCommand, vscode.Uri.parse(url));
+    // promp to fill {variables}
+    if (url?.match(/\{.*\}/)) {
+        const start = url.indexOf("{");
+        const end = url.indexOf("}", start) + 1;
+        const templateVariable = url.slice(start, end);
+        url = await vscode.window.showInputBox({
+            value: url,
+            valueSelection: [start, end],
+            placeHolder: "URL to Open ...",
+            title: "Confirm URL to Open",
+            prompt: `Please fill in the value of ${templateVariable}`,
+            ignoreFocusOut: true
+        });
+    }
+
+    if (url) {
+        const openWithExternalBrowser: boolean = vscode.workspace.getConfiguration("spring.dashboard").get("openWith") === "external";
+        const browserCommand: string = openWithExternalBrowser ? "vscode.open" : "simpleBrowser.api.open";
+        vscode.commands.executeCommand(browserCommand, vscode.Uri.parse(url));
+    }
 }
