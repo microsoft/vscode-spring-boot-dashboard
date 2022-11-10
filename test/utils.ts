@@ -4,14 +4,28 @@
 import * as vscode from "vscode";
 
 export async function setupTestEnv() {
-    await vscode.extensions.getExtension("redhat.java")!.activate();
     const javaExt = vscode.extensions.getExtension("redhat.java");
-    await javaExt!.activate();
-    const api = javaExt?.exports;
+    if (!javaExt) {
+        console.error("redhat.java is not enabled.");
+        return;
+    }
+    console.log("activating redhat.java...");
+    await javaExt.activate();
+    console.log("redhat.java activated.");
+
+    const api = javaExt.exports;
     while (api.serverMode !== "Standard") {
+        console.log("wait for jdtls Standard server ready...");
         await sleep(2 * 1000/*ms*/);
     }
-    await vscode.extensions.getExtension("vscjava.vscode-spring-boot-dashboard")!.activate();
+    console.log("jdtls standard server ready.")
+
+    const dashboardExt = vscode.extensions.getExtension("vscjava.vscode-spring-boot-dashboard");
+    if (!dashboardExt) {
+        console.error("dashboard extension is not enabled.");
+        return;
+    }
+    await dashboardExt.activate();
 }
 
 export function sleep(milliseconds: number): Promise<void> {
