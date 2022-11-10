@@ -436,24 +436,24 @@
       ]
     },
     "configuration": [
-        {
-          "id": "memory view settings",
-          "title": "Memory View Settings",
-          "order": 100,
-          "properties": {
-            "spring.dashboard.memory-view.fetch-data.delay-in-milliseconds": {
-              "type": "number",
-              "default": 5000,
-              "description": "Spring boot dashboard memory view - Delay between fetching new data in milliseconds"
-            },
-            "spring.dashboard.memory-view.display-data.max-datapoints": {
-              "type": "number",
-              "default": 10,
-              "description": "Spring boot dashboard memory view - Display max data points in the graph"
-            }
+      {
+        "id": "memory view settings",
+        "title": "Memory View Settings",
+        "order": 100,
+        "properties": {
+          "spring.dashboard.memory-view.fetch-data.delay-in-milliseconds": {
+            "type": "number",
+            "default": 5000,
+            "description": "Spring boot dashboard memory view - Delay between fetching new data in milliseconds"
+          },
+          "spring.dashboard.memory-view.display-data.max-datapoints": {
+            "type": "number",
+            "default": 10,
+            "description": "Spring boot dashboard memory view - Display max data points in the graph"
           }
-        },
-        {
+        }
+      },
+      {
         "title": "Spring Boot Dashboard",
         "properties": {
           "spring.dashboard.openWith": {
@@ -529,6 +529,7 @@
     "chartjs": "^0.3.24",
     "chartjs-adapter-moment": "^1.0.0",
     "get-port": "^5.1.1",
+    "js-base64": "^3.7.2",
     "lodash": "^4.17.21",
     "moment": "^2.29.4",
     "pidtree": "^0.5.0",

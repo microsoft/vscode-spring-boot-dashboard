@@ -28,11 +28,13 @@ function main() {
 
 function loadMetrics() {
   const processKey = document.getElementById("process").value;
-  vscode.postMessage({
-    command: "LoadMetrics",
-    text: "Load metrics for the graph",
-    processKey: processKey,
-  });
+  if(processKey !== '' || processKey !== undefined) {
+    vscode.postMessage({
+      command: "LoadMetrics",
+      text: "Load metrics for the graph",
+      processKey: Base64.decode(processKey),
+    });
+  }
 }
 
 function fetchGraphData() {
@@ -43,7 +45,7 @@ function fetchGraphData() {
     vscode.postMessage({
       command: "FetchData",
       text: "Fetch data to plot the graph",
-      processKey: processKey,
+      processKey: Base64.decode(processKey),
       type: graphType,
     });
   } 
@@ -83,21 +85,23 @@ function displayProcess(process) {
   if(process !== '' && process !== undefined && Array.isArray(process)) {
     const processList = document.getElementById("process");
     for (let proc of process) { 
-      processList.insertAdjacentHTML("beforeend","<vscode-option id="+proc.liveProcess.processKey+" value="+proc.liveProcess.processKey+">"+proc.liveProcess.processName+"</vscode-option>");
+      var processKey = Base64.encode(proc.liveProcess.processKey);
+      processList.insertAdjacentHTML("beforeend","<vscode-option id="+processKey+" value="+processKey+">"+proc.liveProcess.processName+"</vscode-option>");
     }
   } else if(process !== '' && process !== undefined) {
     const processList = document.getElementById("process");
-    processList.insertAdjacentHTML("beforeend","<vscode-option id="+process.liveProcess.processKey+" value="+process.liveProcess.processKey+">"+process.liveProcess.processName+"</vscode-option>");
+    processList.insertAdjacentHTML("beforeend","<vscode-option id="+Base64.encode(process.liveProcess.processKey)+" value="+Base64.encode(process.liveProcess.processKey)+">"+process.liveProcess.processName+"</vscode-option>");
   }
 }
 
 function removeProcess(processKey) {
   if(processKey !== '' || processKey !== undefined) {
-    const option = document.getElementById(processKey);
+    var key = Base64.encode(processKey);
+    const option = document.getElementById(key);
     option.remove(option.index);
     const currentSelection = document.getElementById("process").value;
     let chartStatus = Chart.getChart("chart");
-    if (chartStatus !== undefined && currentSelection === processKey) {
+    if (chartStatus !== undefined && currentSelection === key) {
         chartStatus.destroy();
     }
   }
