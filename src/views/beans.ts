@@ -19,11 +19,11 @@ export class Bean {
     constructor(
         public processKey: string,
         public id: string
-    ) {}
+    ) { }
 }
 
 class BeanProperty {
-    constructor(public name: string, public value: string) {}
+    constructor(public name: string, public value: string) { }
 
     public toString() {
         return `${this.name}: ${this.value}`;
@@ -72,7 +72,7 @@ class BeansDataProvider implements vscode.TreeDataProvider<TreeData> {
             item.collapsibleState = vscode.TreeItemCollapsibleState.Expanded;
 
             item.contextValue = `bootApp+${element.state}`;
-            if (!element.isActuatorOnClasspath){
+            if (!element.isActuatorOnClasspath) {
                 item.contextValue += "+noActuator";
             }
             return item;
@@ -97,7 +97,7 @@ class BeansDataProvider implements vscode.TreeDataProvider<TreeData> {
             if (!element.scope) {
                 const details = await getBeanDetail(element.processKey, element.id);
                 if (details?.length) {
-                    element = {...element, ...details[0]} as Bean;
+                    element = { ...element, ...details[0] } as Bean;
                 }
             }
             if (element.scope) {
@@ -151,7 +151,7 @@ class BeansDataProvider implements vscode.TreeDataProvider<TreeData> {
 
         // all beans
         if (element instanceof LiveProcess) {
-            const liveBeans =  this.store.get(element);
+            const liveBeans = this.store.get(element);
             // Workaround: Mark beans defined in workspace
             // TODO: inaccurate match with project name. should use some unique identifier like path.
             const correspondingApp = Array.from(this.staticData.keys()).find(app => app.name === element.appName);
@@ -165,13 +165,11 @@ class BeansDataProvider implements vscode.TreeDataProvider<TreeData> {
                         }
                     }
                 }
+                if (!this.showAll && staticBeans?.length) {
+                    return liveBeans?.filter(b => b.defined);
+                }
             }
-
-            if (this.showAll) {
-                return liveBeans;
-            } else {
-                return liveBeans?.filter(b => b.defined);
-            }
+            return liveBeans;
         } else if (element instanceof BootApp) {
             return this.staticData.get(element);
         } else if (element instanceof Bean) {
