@@ -171,8 +171,8 @@ class MappingsDataProvider implements vscode.TreeDataProvider<TreeData> {
 }
 
 function parseMapping(raw:any, processKey: string): Endpoint {
-    const pattern = raw.data.map?.details?.map.requestMappingConditions?.map.patterns?.myArrayList?.[0];
-    const method = raw.data.map?.details?.map.requestMappingConditions?.map.methods?.myArrayList?.[0];
+    const pattern = raw.data.map?.details?.map?.requestMappingConditions?.map?.patterns?.myArrayList?.[0];
+    const method = raw.data.map?.details?.map?.requestMappingConditions?.map?.methods?.myArrayList?.[0];
 
     let label = pattern ?? raw.data.map?.predicate ?? "unknown";
     if (method) {
