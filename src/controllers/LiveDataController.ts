@@ -23,8 +23,9 @@ export async function init() {
     stsApi.onDidLiveProcessConnect(updateProcessInfo);
     stsApi.onDidLiveProcessDisconnect(resetProcessInfo);
     stsApi.onDidLiveProcessUpdate(updateProcessInfo);
-    stsApi.onDidLiveProcessGcPausesMetricsUpdate(updateProcessGcPausesMetrics);
-    stsApi.onDidLiveProcessMemoryMetricsUpdate(updateProcessMemoryMetrics);
+    // proposed API on vscode-spring-boot extension. check before calling.
+    stsApi.onDidLiveProcessGcPausesMetricsUpdate?.(updateProcessGcPausesMetrics);
+    stsApi.onDidLiveProcessMemoryMetricsUpdate?.(updateProcessMemoryMetrics);
 }
 
 async function updateProcessInfo(payload: string | LocalLiveProcess) {

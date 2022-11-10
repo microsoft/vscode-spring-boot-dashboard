@@ -24,7 +24,6 @@
     "onView:spring.apps",
     "onView:spring.beans",
     "onView:spring.mappings",
-    "onView:memory.memoryView",
     "onLanguage:java"
   ],
   "capabilities": {
@@ -74,10 +73,12 @@
           "icon": "resources/logo.png"
         },
         {
-          "type": "webview",
           "id": "memory.memoryView",
+          "name": "Memory",
           "when": "java:serverMode && spring.memoryGraphs:showMode == defined && spring.memoryGraphs:hasLiveProcess == true",
-          "name": "Memory"
+          "contextualTitle": "Spring",
+          "type": "webview",
+          "icon": "resources/logo.png"
         }
       ]
     },
@@ -470,10 +471,10 @@
             "description": "Defines which browser to use when opening Spring Boot apps."
           },
           "spring.dashboard.openUrl": {
-            "default": "http://localhost:{port}{contextPath}",
+            "default": "{protocol}://{hostname}:{port}{contextPath}",
             "type": "string",
             "scope": "window",
-            "description": "Defines which URL is opened when opening Spring Boot apps. Uses {port} and {contextPath} as placeholders."
+            "description": "Defines which URL is opened when opening Spring Boot apps. Uses {protocol}, {hostname}, {port} and {contextPath} as placeholders."
           },
           "spring.dashboard.enableGutter": {
             "default": "auto",
