@@ -6,7 +6,7 @@ import { Readable } from "stream";
 import * as vscode from "vscode";
 import pidtree = require("pidtree");
 
-export function readAll(input: Readable) : Promise<string> {
+export function readAll(input: Readable): Promise<string> {
     let buffer = "";
     return new Promise<string>((resolve, reject) => {
         input.on('data', data => {
@@ -52,18 +52,21 @@ export function isActuatorJarFile(f: string): boolean {
  * Construct URL based on format defined in spring.dashboard.openUrl
  *
  * @param contextPath
- * @param port
+ * @param portString
  * @param pathSeg must starts with '/'
+ * @param hostname
  * @returns url
  */
-export function constructOpenUrl(contextPath: string, port: number, pathSeg?: string) {
+export function constructOpenUrl(contextPath: string, portString: number | string, pathSeg?: string, hostname?: string) {
     const configOpenUrl: string | undefined = vscode.workspace.getConfiguration("spring.dashboard").get<string>("openUrl");
     let openUrl: string;
-
+    const port = Number(portString);
     if (configOpenUrl === undefined) {
-        openUrl = `http://localhost:${port}${contextPath}`;
+        openUrl = `http${port === 443 ? "s" : ""}://${hostname ?? "localhost"}:${port}${contextPath}`;
     } else {
         openUrl = configOpenUrl
+            .replace("{protocol}", port === 443 ? "https" : "http")
+            .replace("{hostname}", hostname ?? "localhost")
             .replace("{port}", String(port))
             .replace("{contextPath}", contextPath.toString());
     }
