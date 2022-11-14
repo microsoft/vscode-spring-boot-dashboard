@@ -110,7 +110,7 @@ class MemoryProvider implements WebviewViewProvider{
         const chartjsAdapterPath = getUri(webview, extensionUri, ["node_modules","chartjs-adapter-moment","dist","chartjs-adapter-moment.min.js"]);
         const chartjsAdapterScipt = getUri(webview, extensionUri, ["node_modules","chartjs-adapter-moment","dist","chartjs-adapter-moment.js"]);
         const momentLibPath = getUri(webview, extensionUri, ["node_modules","moment","moment.js"]);
-        
+
         this.interval = vscode.workspace.getConfiguration("spring.dashboard").get("memory-view.fetch-data.delay-in-milliseconds") ?? 5000;
         this.maxDataPoints = vscode.workspace.getConfiguration("spring.dashboard").get("memory-view.display-data.max-datapoints") ?? 10;
 
