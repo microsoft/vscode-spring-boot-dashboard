@@ -32,7 +32,7 @@ function loadMetrics() {
     vscode.postMessage({
       command: "LoadMetrics",
       text: "Load metrics for the graph",
-      processKey: Base64.decode(processKey),
+      processKey: window.atob(processKey),
     });
   }
 }
@@ -45,7 +45,7 @@ function fetchGraphData() {
     vscode.postMessage({
       command: "FetchData",
       text: "Fetch data to plot the graph",
-      processKey: Base64.decode(processKey),
+      processKey: window.atob(processKey),
       type: graphType,
     });
   } 
@@ -85,18 +85,18 @@ function displayProcess(process) {
   if(process !== '' && process !== undefined && Array.isArray(process)) {
     const processList = document.getElementById("process");
     for (let proc of process) { 
-      var processKey = Base64.encode(proc.liveProcess.processKey);
+      var processKey = window.btoa(proc.liveProcess.processKey);
       processList.insertAdjacentHTML("beforeend","<vscode-option id="+processKey+" value="+processKey+">"+proc.liveProcess.processName+"</vscode-option>");
     }
   } else if(process !== '' && process !== undefined) {
     const processList = document.getElementById("process");
-    processList.insertAdjacentHTML("beforeend","<vscode-option id="+Base64.encode(process.liveProcess.processKey)+" value="+Base64.encode(process.liveProcess.processKey)+">"+process.liveProcess.processName+"</vscode-option>");
+    processList.insertAdjacentHTML("beforeend","<vscode-option id="+window.btoa(process.liveProcess.processKey)+" value="+window.btoa(process.liveProcess.processKey)+">"+process.liveProcess.processName+"</vscode-option>");
   }
 }
 
 function removeProcess(processKey) {
   if(processKey !== '' || processKey !== undefined) {
-    var key = Base64.encode(processKey);
+    var key = window.btoa(processKey);
     const option = document.getElementById(key);
     option.remove(option.index);
     const currentSelection = document.getElementById("process").value;

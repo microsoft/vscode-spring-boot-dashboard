@@ -529,7 +529,6 @@
     "chartjs": "^0.3.24",
     "chartjs-adapter-moment": "^1.0.0",
     "get-port": "^5.1.1",
-    "js-base64": "^3.7.2",
     "lodash": "^4.17.21",
     "moment": "^2.29.4",
     "pidtree": "^0.5.0",
