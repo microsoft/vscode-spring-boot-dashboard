@@ -435,47 +435,66 @@
         }
       ]
     },
-    "configuration": {
-      "title": "Spring Boot Dashboard",
-      "properties": {
-        "spring.dashboard.openWith": {
-          "default": "integrated",
-          "type": "string",
-          "enum": [
-            "integrated",
-            "external"
-          ],
-          "enumDescriptions": [
-            "VS Code's integrated browser",
-            "External default browser"
-          ],
-          "scope": "window",
-          "description": "Defines which browser to use when opening Spring Boot apps."
-        },
-        "spring.dashboard.openUrl": {
-          "default": "{protocol}://{hostname}:{port}{contextPath}",
-          "type": "string",
-          "scope": "window",
-          "description": "Defines which URL is opened when opening Spring Boot apps. Uses {protocol}, {hostname}, {port} and {contextPath} as placeholders."
-        },
-        "spring.dashboard.enableGutter": {
-          "default": "auto",
-          "type": "string",
-          "enum": [
-            "auto",
-            "on",
-            "off"
-          ],
-          "enumDescriptions": [
-            "By default enable this feature only in Insiders.",
-            "Enable",
-            "Disable"
-          ],
-          "scope": "window",
-          "description": "[Experimental] Specifies whether to show gutter icon in editors."
+    "configuration": [
+      {
+        "id": "memory view settings",
+        "title": "Memory View Settings",
+        "order": 100,
+        "properties": {
+          "spring.dashboard.memory-view.fetch-data.delay-in-milliseconds": {
+            "type": "number",
+            "default": 5000,
+            "description": "Spring boot dashboard memory view - Delay between fetching new data in milliseconds"
+          },
+          "spring.dashboard.memory-view.display-data.max-datapoints": {
+            "type": "number",
+            "default": 10,
+            "description": "Spring boot dashboard memory view - Display max data points in the graph"
+          }
+        }
+      },
+      {
+        "title": "Spring Boot Dashboard",
+        "properties": {
+          "spring.dashboard.openWith": {
+            "default": "integrated",
+            "type": "string",
+            "enum": [
+              "integrated",
+              "external"
+            ],
+            "enumDescriptions": [
+              "VS Code's integrated browser",
+              "External default browser"
+            ],
+            "scope": "window",
+            "description": "Defines which browser to use when opening Spring Boot apps."
+          },
+          "spring.dashboard.openUrl": {
+            "default": "{protocol}://{hostname}:{port}{contextPath}",
+            "type": "string",
+            "scope": "window",
+            "description": "Defines which URL is opened when opening Spring Boot apps. Uses {protocol}, {hostname}, {port} and {contextPath} as placeholders."
+          },
+          "spring.dashboard.enableGutter": {
+            "default": "auto",
+            "type": "string",
+            "enum": [
+              "auto",
+              "on",
+              "off"
+            ],
+            "enumDescriptions": [
+              "By default enable this feature only in Insiders.",
+              "Enable",
+              "Disable"
+            ],
+            "scope": "window",
+            "description": "[Experimental] Specifies whether to show gutter icon in editors."
+          }
         }
       }
-    }
+    ]
   },
   "scripts": {
     "vscode:prepublish": "npm run compile",
