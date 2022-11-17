@@ -2,10 +2,10 @@
 const vscode = acquireVsCodeApi();
 
 window.addEventListener("load", main);
-
+var loadMetricsTimer;
+var fetchGraphDataTimer;
 // Main function that gets executed once the webview DOM loads
 function main() {
-
   const graphTypeSelection = document.getElementById("graphType");
   graphTypeSelection.addEventListener("change", changeGraphDisplay);
 
@@ -20,10 +20,24 @@ function main() {
   }
 
   loadMetrics();
-  setInterval(loadMetrics, interval);
-  setInterval(fetchGraphData, interval);
+  loadInitialGraph();
+
+  loadMetricsTimer = setInterval(loadMetrics, interval);
+  fetchGraphDataTimer = setInterval(fetchGraphData, interval);
   
   setVSCodeMessageListener();
+}
+
+function loadInitialGraph() {
+  const graphTypeSelection = document.getElementById("graphType");
+  const graphType = graphTypeSelection.options[graphTypeSelection.selectedIndex].text;
+
+  vscode.postMessage({
+    command: "FetchData",
+    text: "Fetch data to plot the graph",
+    processKey: "",
+    type: graphType,
+  });
 }
 
 function loadMetrics() {
@@ -59,6 +73,14 @@ function changeGraphDisplay() {
   }
 }
 
+function refreshMetrics() {
+  clearInterval(loadMetricsTimer);
+  clearInterval(fetchGraphDataTimer);
+  loadMetrics();
+  loadMetricsTimer = setInterval(loadMetrics, interval);
+  fetchGraphDataTimer = setInterval(fetchGraphData, interval);
+}
+
 // Sets up an event listener to listen for messages passed from the extension context
 // and executes code based on the message that is received
 function setVSCodeMessageListener() {
@@ -76,6 +98,11 @@ function setVSCodeMessageListener() {
       case "removeProcess":
         const p = JSON.parse(event.data.process);
         removeProcess(p.liveProcess.processKey);
+        break;
+      case "updateSettings":
+        interval = event.data.interval;
+        maxDataPoints = event.data.maxDataPoints;
+        refreshMetrics();
         break;
     }
   });
@@ -103,7 +130,8 @@ function removeProcess(processKey) {
     let chartStatus = Chart.getChart("chart");
     if (chartStatus !== undefined && currentSelection === key) {
         chartStatus.destroy();
-    }
+        loadInitialGraph();
+    }  
   }
 }
 
@@ -223,29 +251,17 @@ function plotMemoryGraph(graphData, zones, graphType) {
   var options = {
     animation: false,
     scales: {
-      x: [{
-        type: 'time',
-        display: true,
-        title: {
-          display: true,
-          text: 'Date'
-        },
+      x: {},
+      y: {
+        suggestedMin: 0,
+        suggestedMax: graphData["committed"],
+        stacked: true,
         ticks: {
-          major: {
-            enabled: true
-          },
-      }
-    }],
-    y: {
-      suggestedMin: 0,
-      suggestedMax: graphData["committed"],
-      stacked: true,
-      ticks: {
-        callback: function(value, index, ticks) {
-          return value + 'MB';
+          callback: function(value, index, ticks) {
+            return value + 'MB';
+          }
         }
       }
-    }
    },
     plugins: {
       title: {
@@ -280,21 +296,22 @@ function plotMemoryGraph(graphData, zones, graphType) {
         data: data,
         options: options
       });
-
       memChart.data.labels.shift();
   }
   var chart = Chart.getChart("chart");
   
   var datapoints = chart.data.datasets[0].data.length;
 
-  setMemoryData(chart.data, graphData, zones)
-  if(datapoints >= maxDataPoints) {
+  setMemoryData(chart.data, graphData, zones);
+
+  while(datapoints >= maxDataPoints) {
     chart.data.labels.shift();
     chart.data.datasets.forEach((d) => {
-    d.data.shift();
-  });
-
+      d.data.shift();
+    });
+    datapoints = datapoints - 1;
   }
+
   chart.update();
 }
 
@@ -364,27 +381,15 @@ function plotGcGraph(graphData, type, extraData, unit, label) {
   var options = {
     animation: false,
     scales: {
-      x: [{
-        type: 'time',
-        display: true,
-        title: {
-          display: true,
-          text: 'Date'
-        },
+      x: {},
+      y: {
+        min: 0,
         ticks: {
-          major: {
-            enabled: true
-          },
-      }
-    }],
-    y: {
-      min: 0,
-      ticks: {
-        callback: function(value, index, ticks) {
-          return value + unit;
+          callback: function(value, index, ticks) {
+            return value + unit;
+          }
         }
       }
-    }
    },
    plugins: {
     title: {
@@ -429,11 +434,15 @@ function plotGcGraph(graphData, type, extraData, unit, label) {
   var chart = Chart.getChart("chart");
   
   var datapoints = chart.data.datasets[0].data.length;
+
   setGcPausesData(chart.data, graphData, type);
-  if(datapoints >= maxDataPoints) {
+  
+  while(datapoints >= maxDataPoints) {
     chart.data.labels.shift();
     chart.data.datasets[0].data.shift();
+    datapoints = datapoints - 1;
   }
+  
   chart.update();
 
 }

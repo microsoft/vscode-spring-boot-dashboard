@@ -47,8 +47,8 @@ class MemoryProvider implements WebviewViewProvider{
     private _view?: vscode.WebviewView;
 
     private _extensionUrl: vscode.Uri;
-    private interval: number= vscode.workspace.getConfiguration("spring.dashboard").get("memory-view.fetch-data.delay-in-milliseconds") ?? 5000;
-    private maxDataPoints: number = vscode.workspace.getConfiguration("spring.dashboard").get("memory-view.display-data.max-datapoints") ?? 10;
+    private _interval: Number;
+    private _maxDataPoints: number;
 
     constructor() {
         vscode.commands.executeCommand("setContext", "spring.memoryGraphs:showMode", "defined");
@@ -60,6 +60,22 @@ class MemoryProvider implements WebviewViewProvider{
 
     public set extensionUrl(value) {
         this._extensionUrl = value;
+    }
+
+    public get interval() {
+        return this._interval;
+    }
+
+    public set interval(value) {
+        this._interval = value;
+    }
+
+    public get maxDataPoints() {
+        return this._maxDataPoints;
+    }
+
+    public set maxDataPoints(value) {
+        this._maxDataPoints = value;
     }
 
     public resolveWebviewView(
@@ -79,6 +95,16 @@ class MemoryProvider implements WebviewViewProvider{
         // Sets up an event listener to listen for messages passed from the webview view context
         // and executes code based on the message that is recieved
         this._setWebviewMessageListener(webviewView);
+
+        vscode.workspace.onDidChangeConfiguration(e => {
+          if (e.affectsConfiguration("spring.dashboard.memory-view.fetch-data.delay-in-milliseconds")) {
+            this.interval = vscode.workspace.getConfiguration("spring.dashboard").get("memory-view.fetch-data.delay-in-milliseconds") ?? 5000;
+          }
+          if(e.affectsConfiguration("spring.dashboard.memory-view.display-data.max-datapoints")) {
+            this.maxDataPoints = vscode.workspace.getConfiguration("spring.dashboard").get("memory-view.display-data.max-datapoints") ?? 10;
+          }
+          this.updateSettings();
+        });
 
       }
 
@@ -154,10 +180,11 @@ class MemoryProvider implements WebviewViewProvider{
             </html>
             `;
       }
+
       private _setWebviewMessageListener(webviewView: WebviewView) {
         webviewView.webview.onDidReceiveMessage(async (message) => {
           const command = message.command;
-          const processKey = message.processKey;
+          var processKey = message.processKey;
           switch (command) {
             case "LoadMetrics":
               if(processKey !== '' && processKey !== undefined){
@@ -177,16 +204,20 @@ class MemoryProvider implements WebviewViewProvider{
               break;
             case "LoadProcess":
               this.addLiveProcess(Array.from(this.liveProcessList.values()));
+              this.updateSettings();
               break;
             case "FetchData":
               const type = message.type;
-              if(type !== '' && type === "Heap Memory") {
+              if(processKey === '') {
+                processKey = this.liveProcessList.values().next().value.liveProcess.processKey;
+              }
+              if(type !== '' && type === "Heap Memory" && processKey !== undefined && processKey !== '') {
                 const targetLiveProcess = Array.from(this.storeHeapMemoryMetrics.keys()).find(lp => lp.processKey === processKey) ?? new LiveProcess(processKey);
                 this.updateGraph(this.storeHeapMemoryMetrics.get(targetLiveProcess));
-              } else if(type !== '' && type === "Non Heap Memory") {
+              } else if(type !== '' && type === "Non Heap Memory" && processKey !== undefined && processKey !== '') {
                 const targetLiveProcess = Array.from(this.storeNonHeapMemoryMetrics.keys()).find(lp => lp.processKey === processKey) ?? new LiveProcess(processKey);
                 this.updateGraph(this.storeNonHeapMemoryMetrics.get(targetLiveProcess));
-              } else if(type !== '' && (type === "Gc Pauses" || type === "Garbage Collections")) {
+              } else if(type !== '' && processKey !== '' && processKey !== undefined && (type === "Gc Pauses" || type === "Garbage Collections" )) {
                 const targetLiveProcess = Array.from(this.storeGcPausesMetrics.keys()).find(lp => lp.processKey === processKey) ?? new LiveProcess(processKey);
                 this.updateGraph(this.storeGcPausesMetrics.get(targetLiveProcess));
               }
@@ -197,10 +228,22 @@ class MemoryProvider implements WebviewViewProvider{
       }
 
     public updateGraph(result: any) {
-      if (this._view) {
+      if (this._view && result !== undefined) {
         this._view.webview.postMessage({
           command: "displayGraph",
           payload: JSON.stringify(result),
+          interval: this.interval,
+          maxDataPoints: this.maxDataPoints
+        });
+      }
+	  }
+
+    public updateSettings() {
+      if (this._view) {
+        this._view.webview.postMessage({
+          command: "updateSettings",
+          interval: this.interval,
+          maxDataPoints: this.maxDataPoints
         });
       }
 	  }
@@ -237,7 +280,7 @@ class MemoryProvider implements WebviewViewProvider{
       if(metrics !== undefined) {
         metrics.push(latestMetrics);
       }
-      if(metrics !== undefined && metrics.length > this.maxDataPoints) {
+      while(metrics !== undefined && metrics.length > this.maxDataPoints) {
         metrics.shift();
       }
     }
