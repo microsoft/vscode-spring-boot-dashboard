@@ -74,7 +74,9 @@ export async function initializeExtension(_oprationId: string, context: vscode.E
         // find and focus on specific element if possible.
         const item = beansProvider.getBeanBySymbol(element?.raw);
         if (item) {
-            beansView.reveal(item);
+            beansView.reveal(item, {
+                focus: true
+            });
         } else {
             // fallback to reveal whole view.
             vscode.commands.executeCommand("spring.beans.focus");
@@ -86,7 +88,9 @@ export async function initializeExtension(_oprationId: string, context: vscode.E
         // find and focus on specific element if possible.
         const item = mappingsProvider.getMappingBySymbol(element?.raw);
         if (item) {
-            mappingsView.reveal(item);
+            mappingsView.reveal(item, {
+                focus: true
+            });
         } else {
             // fallback to reveal whole view.
             vscode.commands.executeCommand("spring.mappings.focus");
