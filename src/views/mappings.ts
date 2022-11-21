@@ -8,25 +8,59 @@ import { initSymbols } from "../controllers/SymbolsController";
 import { LiveProcess } from "../models/liveProcess";
 import { StaticEndpoint } from "../models/StaticSymbolTypes";
 import { getContextPath, getPort } from "../models/stsApi";
+import { locationEquals } from "../symbolUtils";
 import { LocalLiveProcess } from "../types/sts-api";
 import { constructOpenUrl } from "../utils";
 
-export interface Endpoint {
+export class Endpoint {
     // raw
     processKey: string;
-    details?: any;
-    handler: string;
-    predicate: string;
+    rawDataMap: any;
 
-    // parsed
-    label: string;
-    method?: string;
-    pattern?: string;
+    corresponding?: StaticEndpoint; // whether it's defined in workspace
+    liveProcess?: LiveProcess;
+
+    constructor(
+        processKey: string,
+        rawDataMap?: any
+    ) {
+        this.processKey = processKey;
+        this.rawDataMap = rawDataMap;
+    }
+
+    get pattern(): string | undefined {
+        return this.rawDataMap?.details?.map?.requestMappingConditions?.map?.patterns?.myArrayList?.[0];
+    }
+
+    get method(): string | undefined {
+        return this.rawDataMap?.details?.map?.requestMappingConditions?.map?.methods?.myArrayList?.[0];
+    }
+
+    get label(): string {
+        let label = this.pattern ?? this.predicate ?? "unknown";
+        if (this.method) {
+            label += ` [${this.method}]`;
+        }
+        return label;
+    }
+
+    get predicate(): string | undefined {
+        return this.rawDataMap?.predicate;
+    }
+
+    get details(): any {
+        return this.rawDataMap.details;
+    }
+
+    get handler(): string {
+        return this.rawDataMap.handler;
+    }
 }
 
 
 type TreeData = Endpoint | StaticEndpoint | LiveProcess | BootApp;
 class MappingsDataProvider implements vscode.TreeDataProvider<TreeData> {
+
     private store: Map<LiveProcess, Endpoint[]> = new Map();
     private staticData: Map<BootApp, StaticEndpoint[]> = new Map();
 
@@ -119,15 +153,18 @@ class MappingsDataProvider implements vscode.TreeDataProvider<TreeData> {
         // all mappings
         if (element instanceof LiveProcess) {
             const liveMappings = this.store.get(element);
+            liveMappings?.forEach(lm => lm.liveProcess = element);
             // TODO: inaccurate match with project name. should use some unique identifier like path.
             const correspondingApp = Array.from(this.staticData.keys()).find(app => app.name === element.appName);
             let fullList = liveMappings;
             if (correspondingApp) {
                 const staticMappings = this.staticData.get(correspondingApp);
-                fullList = liveMappings?.map(lm => ({ corresponding: staticMappings?.find(sm => sm.label === lm.label), ...lm }));
+                if (staticMappings?.length) {
+                    liveMappings?.forEach(lm => lm.corresponding = staticMappings?.find(sm => sm.label === lm.label));
+                }
 
                 if (!this.showAll && staticMappings?.length) {
-                    return fullList?.filter(elem => (elem as any).corresponding);
+                    return liveMappings?.filter(lm => lm.corresponding);
                 }
             }
             return fullList;
@@ -136,6 +173,18 @@ class MappingsDataProvider implements vscode.TreeDataProvider<TreeData> {
             return this.staticData.get(element);
         }
 
+        return undefined;
+    }
+
+    public getParent(element: TreeData): vscode.ProviderResult<TreeData> {
+        if (element instanceof LiveProcess) { return undefined; }
+        else if (element instanceof BootApp) { return undefined; }
+        else if (element instanceof Endpoint) {
+            return element.liveProcess;
+        }
+        else if (element instanceof StaticEndpoint) {
+            return Array.from(this.staticData.keys()).find(k => this.staticData.get(k)?.includes(element));
+        }
         return undefined;
     }
 
@@ -153,7 +202,10 @@ class MappingsDataProvider implements vscode.TreeDataProvider<TreeData> {
         } else {
             // add / update
             const targetLiveProcess = Array.from(this.store.keys()).find(lp => lp.processKey === liveProcess.processKey) ?? new LiveProcess(liveProcess);
-            const mappings = mappingsRaw.map(raw => parseMapping(raw, liveProcess.processKey)).sort((a, b) => a.label.localeCompare(b.label));
+            const mappings = mappingsRaw.map(raw => new Endpoint(
+                liveProcess.processKey,
+                raw.data.map
+            )).sort((a, b) => a.label.localeCompare(b.label));
             this.store.set(targetLiveProcess, mappings);
         }
         this.onDidRefreshMappings.fire(undefined);
@@ -168,23 +220,25 @@ class MappingsDataProvider implements vscode.TreeDataProvider<TreeData> {
         const mappings = mappingsRaw.map(raw => new StaticEndpoint(raw)).sort((a, b) => a.label.localeCompare(b.label));
         this.staticData.set(app, mappings);
     }
-}
+    public getMappingBySymbol(symbolLike: {
+        location: vscode.Location;
+    }): Endpoint |  StaticEndpoint | undefined {
+        const location = symbolLike.location;
+        // search store for live mappings
+        for (const lp of this.store.keys()) {
+            const mappings = this.store.get(lp);
+            const found = mappings?.filter(m => m.corresponding).find(sm => locationEquals(sm.corresponding!.location, location));
+            return found;
+        }
+        // fallback to check static beans
+        for (const app of this.staticData.keys()) {
+            const staticBeans = this.staticData.get(app);
+            const found = staticBeans?.find(sb => locationEquals(sb.location, location));
+            return found;
+        }
 
-function parseMapping(raw:any, processKey: string): Endpoint {
-    const pattern = raw.data.map?.details?.map?.requestMappingConditions?.map?.patterns?.myArrayList?.[0];
-    const method = raw.data.map?.details?.map?.requestMappingConditions?.map?.methods?.myArrayList?.[0];
-
-    let label = pattern ?? raw.data.map?.predicate ?? "unknown";
-    if (method) {
-        label += ` [${method}]`;
+        return undefined;
     }
-    return {
-        processKey,
-        label,
-        method,
-        pattern,
-        ...raw.data.map
-    };
 }
 
 export const mappingsProvider = new MappingsDataProvider();
