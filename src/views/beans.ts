@@ -7,6 +7,7 @@ import { initSymbols } from "../controllers/SymbolsController";
 import { LiveProcess } from "../models/liveProcess";
 import { StaticBean } from "../models/StaticSymbolTypes";
 import { getBeanDetail, getUrlOfBeanType } from "../models/stsApi";
+import { locationEquals } from "../symbolUtils";
 import { LocalLiveProcess } from "../types/sts-api";
 
 export class Bean {
@@ -15,6 +16,8 @@ export class Bean {
     type?: string;
     resource?: string;
     defined?: boolean; // whether it's defined in workspace
+
+    liveProcess?: LiveProcess;
 
     constructor(
         public processKey: string,
@@ -35,6 +38,7 @@ type TreeData = Bean | LiveProcess | StaticBean | BootApp | BeanProperty;
 const COLOR_LIVE = new vscode.ThemeColor("charts.green");
 
 class BeansDataProvider implements vscode.TreeDataProvider<TreeData> {
+
     private store: Map<LiveProcess, Bean[]> = new Map();
     private staticData: Map<BootApp, StaticBean[]> = new Map();
 
@@ -152,6 +156,7 @@ class BeansDataProvider implements vscode.TreeDataProvider<TreeData> {
         // all beans
         if (element instanceof LiveProcess) {
             const liveBeans = this.store.get(element);
+            liveBeans?.forEach(lb => lb.liveProcess = element);
             // Workaround: Mark beans defined in workspace
             // TODO: inaccurate match with project name. should use some unique identifier like path.
             const correspondingApp = Array.from(this.staticData.keys()).find(app => app.name === element.appName);
@@ -176,6 +181,18 @@ class BeansDataProvider implements vscode.TreeDataProvider<TreeData> {
             return undefined;
         }
 
+        return undefined;
+    }
+
+    public getParent(element: TreeData): vscode.ProviderResult<TreeData> {
+        if (element instanceof LiveProcess) { return undefined; }
+        else if (element instanceof BootApp) { return undefined; }
+        else if (element instanceof Bean) {
+            return element.liveProcess;
+        }
+        else if (element instanceof StaticBean) {
+            return Array.from(this.staticData.keys()).find(k => this.staticData.get(k)?.includes(element));
+        }
         return undefined;
     }
 
@@ -207,6 +224,35 @@ class BeansDataProvider implements vscode.TreeDataProvider<TreeData> {
     public updateStaticData(app: BootApp, beansRaw: StaticBean[]) {
         const mappings = beansRaw.map(raw => new StaticBean(raw)).sort((a, b) => a.id.localeCompare(b.id));
         this.staticData.set(app, mappings);
+    }
+
+    public getBeanBySymbol(symbolLike: {
+        location: vscode.Location;
+    }): Bean | StaticBean | undefined {
+        const location = symbolLike.location;
+        // search store for live beans
+        for (const lp of this.store.keys()) {
+
+            const beans = this.store.get(lp);
+            const correspondingApp = Array.from(this.staticData.keys()).find(app => app.name === lp.appName);
+            if (correspondingApp) {
+                const staticBeans = this.staticData.get(correspondingApp);
+                const found = staticBeans?.find(sb => locationEquals(sb.location, location));
+                if (found) {
+                    const correspondingBean = beans?.find(b => b.id === found.id);
+                    return correspondingBean;
+                }
+            }
+        }
+        // fallback to check static beans
+        for (const app of this.staticData.keys()) {
+            const staticBeans = this.staticData.get(app);
+            const found = staticBeans?.find(sb => locationEquals(sb.location, location));
+            return found;
+        }
+
+        return undefined;
+
     }
 }
 
