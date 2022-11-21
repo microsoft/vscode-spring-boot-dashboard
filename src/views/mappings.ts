@@ -29,8 +29,8 @@ export class Endpoint {
     }
 
     get pattern(): string | undefined {
-        return this.rawDataMap?.details?.map?.requestMappingConditions?.map?.patterns?.myArrayList?.[0]
-    };
+        return this.rawDataMap?.details?.map?.requestMappingConditions?.map?.patterns?.myArrayList?.[0];
+    }
 
     get method(): string | undefined {
         return this.rawDataMap?.details?.map?.requestMappingConditions?.map?.methods?.myArrayList?.[0];
@@ -50,7 +50,7 @@ export class Endpoint {
 
     get details(): any {
         return this.rawDataMap.details;
-    };
+    }
 
     get handler(): string {
         return this.rawDataMap.handler;
