@@ -8,6 +8,7 @@ import { initSymbols } from "../controllers/SymbolsController";
 import { LiveProcess } from "../models/liveProcess";
 import { StaticEndpoint } from "../models/StaticSymbolTypes";
 import { getContextPath, getPort } from "../models/stsApi";
+import { locationEquals } from "../symbolUtils";
 import { LocalLiveProcess } from "../types/sts-api";
 import { constructOpenUrl } from "../utils";
 
@@ -17,6 +18,7 @@ export class Endpoint {
     rawDataMap: any;
 
     corresponding?: StaticEndpoint; // whether it's defined in workspace
+    liveProcess?: LiveProcess;
 
     constructor(
         processKey: string,
@@ -58,6 +60,7 @@ export class Endpoint {
 
 type TreeData = Endpoint | StaticEndpoint | LiveProcess | BootApp;
 class MappingsDataProvider implements vscode.TreeDataProvider<TreeData> {
+
     private store: Map<LiveProcess, Endpoint[]> = new Map();
     private staticData: Map<BootApp, StaticEndpoint[]> = new Map();
 
@@ -150,6 +153,7 @@ class MappingsDataProvider implements vscode.TreeDataProvider<TreeData> {
         // all mappings
         if (element instanceof LiveProcess) {
             const liveMappings = this.store.get(element);
+            liveMappings?.forEach(lm => lm.liveProcess = element);
             // TODO: inaccurate match with project name. should use some unique identifier like path.
             const correspondingApp = Array.from(this.staticData.keys()).find(app => app.name === element.appName);
             let fullList = liveMappings;
@@ -169,6 +173,18 @@ class MappingsDataProvider implements vscode.TreeDataProvider<TreeData> {
             return this.staticData.get(element);
         }
 
+        return undefined;
+    }
+
+    public getParent(element: TreeData): vscode.ProviderResult<TreeData> {
+        if (element instanceof LiveProcess) { return undefined; }
+        else if (element instanceof BootApp) { return undefined; }
+        else if (element instanceof Endpoint) {
+            return element.liveProcess;
+        }
+        else if (element instanceof StaticEndpoint) {
+            return Array.from(this.staticData.keys()).find(k => this.staticData.get(k)?.includes(element));
+        }
         return undefined;
     }
 
@@ -203,6 +219,25 @@ class MappingsDataProvider implements vscode.TreeDataProvider<TreeData> {
     public updateStaticData(app: BootApp, mappingsRaw: StaticEndpoint[]) {
         const mappings = mappingsRaw.map(raw => new StaticEndpoint(raw)).sort((a, b) => a.label.localeCompare(b.label));
         this.staticData.set(app, mappings);
+    }
+    public getMappingBySymbol(symbolLike: {
+        location: vscode.Location;
+    }): Endpoint |  StaticEndpoint | undefined {
+        const location = symbolLike.location;
+        // search store for live mappings
+        for (const lp of this.store.keys()) {
+            const mappings = this.store.get(lp);
+            const found = mappings?.filter(m => m.corresponding).find(sm => locationEquals(sm.corresponding!.location, location));
+            return found;
+        }
+        // fallback to check static beans
+        for (const app of this.staticData.keys()) {
+            const staticBeans = this.staticData.get(app);
+            const found = staticBeans?.find(sb => locationEquals(sb.location, location));
+            return found;
+        }
+
+        return undefined;
     }
 }
 

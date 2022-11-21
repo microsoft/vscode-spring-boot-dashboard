@@ -70,9 +70,9 @@ export async function initializeExtension(_oprationId: string, context: vscode.E
     // live data
     const beansView = vscode.window.createTreeView('spring.beans', { treeDataProvider: beansProvider, showCollapseAll: true });
     context.subscriptions.push(beansView);
-    context.subscriptions.push(instrumentOperationAsVsCodeCommand("spring.beans.reveal", (_element) => {
+    context.subscriptions.push(instrumentOperationAsVsCodeCommand("spring.beans.reveal", (element) => {
         // find and focus on specific element if possible.
-        const item = beansProvider.getBeanBySymbol(_element?.raw);
+        const item = beansProvider.getBeanBySymbol(element?.raw);
         if (item) {
             beansView.reveal(item);
         } else {
@@ -82,9 +82,15 @@ export async function initializeExtension(_oprationId: string, context: vscode.E
     }));
     const mappingsView = vscode.window.createTreeView('spring.mappings', { treeDataProvider: mappingsProvider, showCollapseAll: true });
     context.subscriptions.push(mappingsView);
-    context.subscriptions.push(instrumentOperationAsVsCodeCommand("spring.mappings.reveal", (_element) => {
-        // TODO: find and focus on specific elemetn.
-        vscode.commands.executeCommand("spring.mappings.focus");
+    context.subscriptions.push(instrumentOperationAsVsCodeCommand("spring.mappings.reveal", (element) => {
+        // find and focus on specific element if possible.
+        const item = mappingsProvider.getMappingBySymbol(element?.raw);
+        if (item) {
+            mappingsView.reveal(item);
+        } else {
+            // fallback to reveal whole view.
+            vscode.commands.executeCommand("spring.mappings.focus");
+        }
     }));
     await initLiveDataController();
     context.subscriptions.push(instrumentOperationAsVsCodeCommand("spring.dashboard.endpoint.open", openEndpointHandler));
