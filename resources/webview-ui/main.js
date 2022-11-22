@@ -250,6 +250,7 @@ function plotMemoryGraph(graphData, zones, graphType) {
   };
   var options = {
     animation: false,
+    maintainAspectRatio: false,
     scales: {
       x: {},
       y: {
@@ -284,7 +285,8 @@ function plotMemoryGraph(graphData, zones, graphType) {
       display: true,
       position: "bottom",
       labels: {
-        boxHeight: 0
+        boxHeight: 0,
+        boxWidth: 15
       }
     }
   },
@@ -380,6 +382,7 @@ function plotGcGraph(graphData, type, extraData, unit, label) {
   };
   var options = {
     animation: false,
+    maintainAspectRatio: false,
     scales: {
       x: {},
       y: {
@@ -409,7 +412,8 @@ function plotGcGraph(graphData, type, extraData, unit, label) {
     display: true,
     position: "bottom",
     labels: {
-      boxHeight: 0
+      boxHeight: 0,
+      boxWidth: 15
     }
   }
  },

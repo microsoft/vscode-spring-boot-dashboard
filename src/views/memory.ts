@@ -162,12 +162,12 @@ class MemoryProvider implements WebviewViewProvider{
                     </head>
                     <body>
               <br>
+              <div class="chart-container" style="position: relative;" height="350">
+                <canvas id="chart" height="350"></canvas>
+              </div>
               <section id="search-container">
                 <vscode-dropdown id="process">
                 </vscode-dropdown>
-              </section>
-              <br>
-              <section id="search-container">
                 <vscode-dropdown id="graphType">
                   <vscode-option value="memory">Heap Memory</vscode-option>
                   <vscode-option value="memory">Non Heap Memory</vscode-option>
@@ -175,7 +175,7 @@ class MemoryProvider implements WebviewViewProvider{
                   <vscode-option value="gcPauses">Garbage Collections</vscode-option>
                 </vscode-dropdown>
               </section>
-                <canvas id="chart" width="400" height="350"></canvas>
+              <br>
                </body>
             </html>
             `;
