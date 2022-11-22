@@ -4,6 +4,7 @@ h1 {
 
 #search-container {
   display: flex;
+  flex-direction: column;
   justify-content: center;
 }
 
@@ -25,13 +26,4 @@ h1 {
   font-size: 3em;
   padding: 0;
   margin: 0;
-}
-
-#process {
-  width: 50%;
-  margin-right: 10px;
-}
-
-#graphType {
-  width: 50%;
 }
