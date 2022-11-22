@@ -53,21 +53,25 @@ export async function getMappings(processKey: string) {
 }
 
 export async function getGcPausesMetrics(processKey: string) {
-    const result = await stsApi.getLiveProcessMetricsData({
-        processKey: processKey,
-        endpoint: "metrics",
-        metricName: "gcPauses"
-    });
-    return result;
+    if(typeof stsApi.getLiveProcessMetricsData === "function") {
+        return await stsApi.getLiveProcessMetricsData({
+            processKey: processKey,
+            endpoint: "metrics",
+            metricName: "gcPauses"
+        });
+    }
+    return "";
 }
 
 export async function getMemoryMetrics(processKey: string, memory: string) {
-    const result = await stsApi.getLiveProcessMetricsData({
-        processKey: processKey,
-        endpoint: "metrics",
-        metricName: memory
-    });
-    return result;
+    if(typeof stsApi.getLiveProcessMetricsData === "function") {
+        return await stsApi.getLiveProcessMetricsData({
+            processKey: processKey,
+            endpoint: "metrics",
+            metricName: memory
+        });
+    }
+    return "";
 }
 
 export async function getPort(processKey: string) {

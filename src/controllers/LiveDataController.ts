@@ -26,6 +26,7 @@ export async function init() {
     // proposed API on vscode-spring-boot extension. check before calling.
     stsApi.onDidLiveProcessGcPausesMetricsUpdate?.(updateProcessGcPausesMetrics);
     stsApi.onDidLiveProcessMemoryMetricsUpdate?.(updateProcessMemoryMetrics);
+
 }
 
 async function updateProcessInfo(payload: string | LocalLiveProcess) {
@@ -55,8 +56,10 @@ async function updateProcessGcPausesMetrics(payload: string | LocalLiveProcess) 
     const { processKey} = liveProcess;
 
     const gcPauses = await getGcPausesMetrics(processKey);
-    memoryProvider.refreshLiveGcPausesMetrics(liveProcess, gcPauses);
-    store.data.set(processKey, { gcPauses});
+    if(gcPauses) {
+        memoryProvider.refreshLiveGcPausesMetrics(liveProcess, gcPauses);
+        store.data.set(processKey, { gcPauses});
+    }
 }
 
 async function updateProcessMemoryMetrics(payload: string | LocalLiveProcess) {
@@ -65,10 +68,13 @@ async function updateProcessMemoryMetrics(payload: string | LocalLiveProcess) {
 
     const heapMemMetrics = await getMemoryMetrics(processKey, "heapMemory");
     const nonHeapMemMetrics = await getMemoryMetrics(processKey, "nonHeapMemory");
-    await vscode.commands.executeCommand("setContext", "spring.memoryGraphs:hasLiveProcess", liveProcess !== undefined);
-    memoryProvider.refreshLiveHeapMemoryMetrics(liveProcess, heapMemMetrics);
-    memoryProvider.refreshLiveNonHeapMemoryMetrics(liveProcess, nonHeapMemMetrics);
-    store.data.set(processKey, { heapMemMetrics, nonHeapMemMetrics});
+
+    if(heapMemMetrics || nonHeapMemMetrics) {
+        await vscode.commands.executeCommand("setContext", "spring.memoryGraphs:hasLiveProcess", liveProcess !== undefined);
+        memoryProvider.refreshLiveHeapMemoryMetrics(liveProcess, heapMemMetrics);
+        memoryProvider.refreshLiveNonHeapMemoryMetrics(liveProcess, nonHeapMemMetrics);
+        store.data.set(processKey, { heapMemMetrics, nonHeapMemMetrics});
+    }
 }
 
 async function resetProcessInfo(payload: string | LocalLiveProcess) {
