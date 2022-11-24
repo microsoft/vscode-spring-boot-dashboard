@@ -24,7 +24,7 @@ function main() {
 
   loadMetricsTimer = setInterval(loadMetrics, interval);
   fetchGraphDataTimer = setInterval(fetchGraphData, interval);
-  
+
   setVSCodeMessageListener();
 }
 
@@ -62,7 +62,7 @@ function fetchGraphData() {
       processKey: window.atob(processKey),
       type: graphType,
     });
-  } 
+  }
 }
 
 function changeGraphDisplay() {
@@ -111,9 +111,9 @@ function setVSCodeMessageListener() {
 function displayProcess(process) {
   if(process !== '' && process !== undefined && Array.isArray(process)) {
     const processList = document.getElementById("process");
-    for (let proc of process) { 
+    for (let proc of process) {
       var processKey = window.btoa(proc.processKey);
-      processList.insertAdjacentHTML("beforeend","<vscode-option id="+processKey+" value="+processKey+">"+proc.appName+"</vscode-option>");
+      processList.insertAdjacentHTML("beforeend",`<vscode-option id="${processKey}" value="${processKey}">${proc.appName} (pid: ${proc.pid})</vscode-option>`);
     }
   }
 }
@@ -128,7 +128,7 @@ function removeProcess(processKey) {
     if (chartStatus !== undefined && currentSelection === key) {
         chartStatus.destroy();
         loadInitialGraph();
-    }  
+    }
   }
 }
 
@@ -171,7 +171,7 @@ function displayGraphData(graphData) {
       break;
     default:
   }
-  
+
 }
 
 function currentUsedMemory(zones, graphData) {
@@ -180,7 +180,7 @@ function currentUsedMemory(zones, graphData) {
       .reduce((v, a) => a + v, 0);
 }
 
-function showMetrics(zones, graphData) {   
+function showMetrics(zones, graphData) {
   return `Size `+ Math.round(graphData[0]["committed"]) + ` MB`
    +` / `+ `Used `+ Math.round(currentUsedMemory(zones, graphData[0])) + ` MB`
    +` / `+ `Max `+ Math.round(graphData[0]["max"])+ ` MB`;
@@ -299,7 +299,7 @@ function plotMemoryGraph(graphData, zones, graphType) {
       memChart.data.labels.shift();
   }
   var chart = Chart.getChart("chart");
-  
+
   var datapoints = chart.data.datasets[0].data.length;
 
   setMemoryData(chart.data, graphData, zones);
@@ -325,12 +325,12 @@ function formula(next, prev, type) {
 }
 
 function showGcMetrics(unit, extraData, data) {
-  return extraData.label +': '+ Math.round(data[0].measurements.find(x => x.statistic === extraData.prop)?.value) + unit; 
+  return extraData.label +': '+ Math.round(data[0].measurements.find(x => x.statistic === extraData.prop)?.value) + unit;
 }
 
 function setGcPausesData(chart, dataPoints , type) {
   const labels = chart.labels;
-  
+
 
   dataPoints.map((d) => {
     if(!labels.includes(d[0].time)) {
@@ -435,17 +435,17 @@ function plotGcGraph(graphData, type, extraData, unit, label) {
   }
 
   var chart = Chart.getChart("chart");
-  
+
   var datapoints = chart.data.datasets[0].data.length;
 
   setGcPausesData(chart.data, graphData, type);
-  
+
   while(datapoints >= maxDataPoints) {
     chart.data.labels.shift();
     chart.data.datasets[0].data.shift();
     datapoints = datapoints - 1;
   }
-  
+
   chart.update();
 
 }
