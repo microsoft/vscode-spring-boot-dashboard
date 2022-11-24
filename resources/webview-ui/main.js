@@ -112,12 +112,9 @@ function displayProcess(process) {
   if(process !== '' && process !== undefined && Array.isArray(process)) {
     const processList = document.getElementById("process");
     for (let proc of process) { 
-      var processKey = window.btoa(proc.liveProcess.processKey);
-      processList.insertAdjacentHTML("beforeend","<vscode-option id="+processKey+" value="+processKey+">"+proc.liveProcess.processName+"</vscode-option>");
+      var processKey = window.btoa(proc.processKey);
+      processList.insertAdjacentHTML("beforeend","<vscode-option id="+processKey+" value="+processKey+">"+proc.appName+"</vscode-option>");
     }
-  } else if(process !== '' && process !== undefined) {
-    const processList = document.getElementById("process");
-    processList.insertAdjacentHTML("beforeend","<vscode-option id="+window.btoa(process.liveProcess.processKey)+" value="+window.btoa(process.liveProcess.processKey)+">"+process.liveProcess.processName+"</vscode-option>");
   }
 }
 
@@ -250,16 +247,18 @@ function plotMemoryGraph(graphData, zones, graphType) {
   };
   var options = {
     animation: false,
+    maintainAspectRatio: false,
     scales: {
       x: {},
       y: {
         suggestedMin: 0,
         suggestedMax: graphData["committed"],
         stacked: true,
-        ticks: {
-          callback: function(value, index, ticks) {
-            return value + 'MB';
-          }
+        title: {
+          display: true,
+          text: 'MB',
+          padding: -2,
+          labelOffset: -5,
         }
       }
    },
@@ -284,7 +283,8 @@ function plotMemoryGraph(graphData, zones, graphType) {
       display: true,
       position: "bottom",
       labels: {
-        boxHeight: 0
+        boxHeight: 0,
+        boxWidth: 15
       }
     }
   },
@@ -380,14 +380,16 @@ function plotGcGraph(graphData, type, extraData, unit, label) {
   };
   var options = {
     animation: false,
+    maintainAspectRatio: false,
     scales: {
       x: {},
       y: {
         min: 0,
-        ticks: {
-          callback: function(value, index, ticks) {
-            return value + unit;
-          }
+        title: {
+          display: true,
+          text: unit,
+          padding: -2,
+          labelOffset: -5
         }
       }
    },
@@ -409,7 +411,8 @@ function plotGcGraph(graphData, type, extraData, unit, label) {
     display: true,
     position: "bottom",
     labels: {
-      boxHeight: 0
+      boxHeight: 0,
+      boxWidth: 15
     }
   }
  },

@@ -160,8 +160,11 @@ class MemoryProvider implements WebviewViewProvider{
                         <link rel="stylesheet" href="${stylesUri}">
                         <title>Weather Checker</title>
                     </head>
-                    <body>
+              <body style="padding: 10px">
               <br>
+              <div class="chart-container" style="position: relative;" height="350">
+                <canvas id="chart" height="350"></canvas>
+              </div>
               <section id="search-container">
                 <vscode-dropdown id="process">
                 </vscode-dropdown>
@@ -174,8 +177,7 @@ class MemoryProvider implements WebviewViewProvider{
                   <vscode-option value="gcPauses">Gc Pauses</vscode-option>
                   <vscode-option value="gcPauses">Garbage Collections</vscode-option>
                 </vscode-dropdown>
-              </section>
-                <canvas id="chart" width="400" height="350"></canvas>
+              <br>
                </body>
             </html>
             `;
@@ -249,10 +251,26 @@ class MemoryProvider implements WebviewViewProvider{
 	  }
 
     public addLiveProcess(liveProcess: any) {
+      const processList = [];
+      if(liveProcess !== '' && liveProcess !== undefined && Array.isArray(liveProcess)) {
+        for (let proc of liveProcess) {
+          processList.push({
+            processKey: proc.liveProcess.processKey,
+            pid: proc.liveProcess.pid,
+            appName: proc.appName
+          });
+        }
+      } else if(liveProcess !== '' && liveProcess !== undefined) {
+        processList.push({
+          processKey: liveProcess.processKey,
+          pid: liveProcess.pid,
+          appName: liveProcess.appName
+        });
+      }
       if (this._view) {
         this._view.webview.postMessage({
           command: "displayProcess",
-          process: liveProcess,
+          process: processList,
         });
       }
 	  }
