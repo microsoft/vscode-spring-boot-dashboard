@@ -15,8 +15,8 @@ function decorateEditor(textEditor: vscode.TextEditor) {
         return;
     }
 
-    const beans = (getBeans() ?? []).map(b => new StaticBean(b));
-    const mappings = (getMappings() ?? []).map(m => new StaticEndpoint(m));
+    const beans = (getBeans(textEditor.document.uri) ?? []).map(b => new StaticBean(b));
+    const mappings = (getMappings(textEditor.document.uri) ?? []).map(m => new StaticEndpoint(m));
     const beansInCurrentEditor = beans.filter(b => isSameUriString(b.location.uri, textEditor.document.uri));
     const endpointsInCurrentEditor = mappings.filter(m => isSameUriString(m.location.uri, textEditor.document.uri));
     if (beansInCurrentEditor.length + endpointsInCurrentEditor.length > 0) {
