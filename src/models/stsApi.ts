@@ -6,6 +6,7 @@ import * as os from "os";
 import * as path from 'path';
 import { promisify } from "util";
 import * as vscode from 'vscode';
+import { sanitizeFilePath } from "../symbolUtils";
 import { ExtensionAPI } from "../types/sts-api";
 const execFile = promisify(cp.execFile);
 
@@ -143,12 +144,17 @@ async function getJreHome() {
     return javaExt.exports.javaRequirement?.tooling_jre;
 }
 
-export async function requestWorkspaceSymbols(_projectPath?: string): Promise<{
+export async function requestWorkspaceSymbols(projectPath?: string): Promise<{
     beans: any[],
     mappings: any[]
 }> {
-    const beans = await stsApi.client.sendRequest("workspace/symbol", {"query": "@+"}) as any[];
-    const mappings = await stsApi.client.sendRequest("workspace/symbol", {"query": "@/"}) as any[];
+    let filter = "";
+    if (projectPath) {
+        const locationPrefix = vscode.Uri.file(sanitizeFilePath(projectPath)).toString();
+        filter = `locationPrefix:${locationPrefix}?`;
+    }
+    const beans = await stsApi.client.sendRequest("workspace/symbol", {"query": `${filter}@+`}) as any[];
+    const mappings = await stsApi.client.sendRequest("workspace/symbol", {"query": `${filter}@/`}) as any[];
 
     return {
         beans,

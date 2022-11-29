@@ -11,3 +11,10 @@ function rangeEquals(ra: vscode.Range, rb: vscode.Range): boolean {
 function positionEquals(pa: vscode.Position, pb: vscode.Position): boolean {
     return pa.line === pb.line && pa.character === pb.character;
 }
+
+export function sanitizeFilePath(uriLike: string | vscode.Uri) {
+    if (uriLike instanceof vscode.Uri) {
+        return uriLike.path;
+    }
+    return vscode.Uri.parse(uriLike).path;
+}

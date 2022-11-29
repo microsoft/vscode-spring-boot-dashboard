@@ -1,10 +1,11 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT license.
 
-import { requestWorkspaceSymbols } from "./stsApi";
 import * as vscode from "vscode";
+import { sanitizeFilePath } from "../symbolUtils";
 import { sleep } from "../utils";
 import { StaticBean, StaticEndpoint } from "./StaticSymbolTypes";
+import { requestWorkspaceSymbols } from "./stsApi";
 
 let beans: any[];
 let mappings: any[];
@@ -27,26 +28,22 @@ export async function init(timeout?: number) {
     } while (!beans?.length && !mappings?.length && retry * INTERVAL < TIMEOUT);
 }
 
-export function getBeans(projectPath?: string) {
+export function getBeans(projectPath?: string | vscode.Uri) {
     if (!projectPath) {
         return beans;
     }
 
     const path = sanitizeFilePath(projectPath);
-    return beans.filter(b => sanitizeFilePath(b.location.uri).startsWith(path));
+    return beans?.filter(b => sanitizeFilePath(b.location.uri).startsWith(path));
 }
 
-export function getMappings(projectPath?: string) {
+export function getMappings(projectPath?: string | vscode.Uri) {
     if (!projectPath) {
         return mappings;
     }
 
     const path = sanitizeFilePath(projectPath);
-    return mappings.filter(b => sanitizeFilePath(b.location.uri).startsWith(path));
-}
-
-function sanitizeFilePath(uri: string) {
-    return uri.replace(/^file:\/+/, "");
+    return mappings?.filter(b => sanitizeFilePath(b.location.uri).startsWith(path));
 }
 
 export async function navigateToLocation(symbol: StaticEndpoint | StaticBean | {corresponding: StaticEndpoint}) {
