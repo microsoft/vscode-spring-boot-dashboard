@@ -54,7 +54,6 @@ export function init(context: vscode.ExtensionContext) {
         ...DECORATION_OPTIONS_PLACEHOLDER
     });
 
-    vscode.window.visibleTextEditors.forEach(decorateEditor);
     disposables.push(vscode.window.onDidChangeVisibleTextEditors((textEditors) => {
         textEditors.forEach(decorateEditor);
     }));
@@ -71,7 +70,7 @@ export function init(context: vscode.ExtensionContext) {
             decorateEditor(vscode.window.activeTextEditor);
         }
     }));
-
+    vscode.window.visibleTextEditors.forEach(decorateEditor);
 }
 
 export function dispose() {
