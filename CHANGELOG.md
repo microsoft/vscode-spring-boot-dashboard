@@ -4,6 +4,14 @@ All notable changes to the "vscode-spring-boot-dashboard" extension will be docu
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
+## 0.9.0
+### Added
+- Add memory view for running apps. See [related issues](https://github.com/microsoft/vscode-spring-boot-dashboard/issues?q=is%3Aissue+label%3Amemory-view+).
+- Allow to fill template variable before opening an endpoint. [#240](https://github.com/microsoft/vscode-spring-boot-dashboard/pull/240)
+
+### Changed
+- Enable gutter icons by default. [#254](https://github.com/microsoft/vscode-spring-boot-dashboard/pull/254)
+
 ## 0.8.0
 ### Added
 - Allow to override default vmArgs set by extension. [#226](https://github.com/microsoft/vscode-spring-boot-dashboard/pull/226)
