@@ -477,20 +477,18 @@
             "description": "Defines which URL is opened when opening Spring Boot apps. Uses {protocol}, {hostname}, {port} and {contextPath} as placeholders."
           },
           "spring.dashboard.enableGutter": {
-            "default": "auto",
+            "default": "on",
             "type": "string",
             "enum": [
-              "auto",
               "on",
               "off"
             ],
             "enumDescriptions": [
-              "By default enable this feature only in Insiders.",
               "Enable",
               "Disable"
             ],
             "scope": "window",
-            "description": "[Experimental] Specifies whether to show gutter icon in editors."
+            "description": "Specifies whether to show gutter icon in editors."
           }
         }
       }
