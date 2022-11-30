@@ -161,7 +161,6 @@ class MemoryProvider implements WebviewViewProvider{
                         <title>Weather Checker</title>
                     </head>
               <body style="padding: 10px">
-              <br>
               <div class="chart-container" style="position: relative;" height="350">
                 <canvas id="chart" height="350"></canvas>
               </div>
