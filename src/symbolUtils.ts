@@ -14,7 +14,7 @@ function positionEquals(pa: vscode.Position, pb: vscode.Position): boolean {
 
 export function sanitizeFilePath(uriLike: string | vscode.Uri) {
     if (uriLike instanceof vscode.Uri) {
-        return uriLike.path;
+        return uriLike.fsPath;
     }
-    return vscode.Uri.parse(uriLike).path;
+    return vscode.Uri.parse(uriLike).fsPath;
 }
