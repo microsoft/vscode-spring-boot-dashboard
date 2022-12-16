@@ -72,3 +72,8 @@ export function constructOpenUrl(contextPath: string, portString: number | strin
     }
     return `${openUrl}${pathSeg ?? "/"}`;
 }
+
+export async function showFilterInView(viewId: string) {
+    await vscode.commands.executeCommand(`${viewId}.focus`);
+    await vscode.commands.executeCommand("list.find");
+}
