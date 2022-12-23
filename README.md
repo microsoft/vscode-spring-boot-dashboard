@@ -1,6 +1,7 @@
 # Spring Boot Dashboard for VS Code
-[![Marketplace Version](https://vsmarketplacebadge.apphb.com/version-short/vscjava.vscode-spring-boot-dashboard.svg)](https://marketplace.visualstudio.com/items?itemName=vscjava.vscode-spring-boot-dashboard)
-[![Installs](https://vsmarketplacebadge.apphb.com/installs-short/vscjava.vscode-spring-boot-dashboard.svg)](https://marketplace.visualstudio.com/items?itemName=vscjava.vscode-spring-boot-dashboard)
+[![Marketplace Version](https://img.shields.io/visual-studio-marketplace/v/vscjava.vscode-spring-boot-dashboard.svg)](https://marketplace.visualstudio.com/items?itemName=vscjava.vscode-spring-boot-dashboard)
+[![Installs](https://img.shields.io/visual-studio-marketplace/i/vscjava.vscode-spring-boot-dashboard.svg)](https://marketplace.visualstudio.com/items?itemName=vscjava.vscode-spring-boot-dashboard)
+[![Rating](https://img.shields.io/visual-studio-marketplace/r/vscjava.vscode-spring-boot-dashboard.svg)](https://marketplace.visualstudio.com/items?itemName=vscjava.vscode-spring-boot-dashboard)
 [![MIT License](https://img.shields.io/badge/license-MIT-green.svg)](https://github.com/Microsoft/vscode-spring-boot-dashboard/blob/main/LICENSE)
 
 Spring Boot Dashboard is a lightweight extension in Visual Studio Code (VS Code). With an explorer in the side bar, you can view and manage all available Spring Boot projects in your workspace. It also supports the features to quickly start, stop or debug a Spring Boot project. For more advanced Spring support in VS Code, please check the [Spring Boot Extension Pack](https://marketplace.visualstudio.com/items?itemName=Pivotal.vscode-boot-dev-pack).
