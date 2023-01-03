@@ -164,12 +164,12 @@ class MemoryProvider implements WebviewViewProvider{
               <div class="chart-container" style="position: relative;" height="350">
                 <canvas id="chart" height="350"></canvas>
               </div>
-              <section id="search-container">
+              <section class="search-container">
                 <vscode-dropdown id="process">
                 </vscode-dropdown>
               </section>
               <br>
-              <section id="search-container">
+              <section class="search-container">
                 <vscode-dropdown id="graphType">
                   <vscode-option value="memory">Heap Memory</vscode-option>
                   <vscode-option value="memory">Non Heap Memory</vscode-option>
