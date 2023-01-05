@@ -13,6 +13,7 @@ import { dispose as disposeGutter, init as initGutter } from './gutter';
 import { requestWorkspaceSymbols } from './models/stsApi';
 import { navigateToLocation } from './models/symbols';
 import { showBeanHierarchy, showDependencies, showInjectedInto } from './references-view';
+import { showFilterInView } from './utils';
 import { appsProvider } from './views/apps';
 import { beansProvider, openBeanHandler } from './views/beans';
 import { init as initActuatorGuide } from './views/guide';
@@ -104,6 +105,10 @@ export async function initializeExtension(_oprationId: string, context: vscode.E
             vscode.commands.executeCommand("spring.mappings.focus");
         }
     }));
+    for (const viewId of ["spring.beans", "spring.mappings"]) {
+        context.subscriptions.push(instrumentOperationAsVsCodeCommand(`${viewId}.find`, async () => await showFilterInView(viewId)));
+    }
+
     await initLiveDataController();
     context.subscriptions.push(instrumentOperationAsVsCodeCommand("spring.dashboard.endpoint.open", openEndpointHandler));
     context.subscriptions.push(instrumentOperationAsVsCodeCommand("spring.dashboard.endpoint.navigate", navigateToLocation));
@@ -153,14 +158,14 @@ export async function initializeExtension(_oprationId: string, context: vscode.E
     context.subscriptions.push(vscode.commands.registerCommand("_spring.console.log", console.log));
     context.subscriptions.push(vscode.commands.registerCommand("_spring.symbols", requestWorkspaceSymbols));
 
-    // Register the provider for a Webview View
-
+    // memory view
     const provider = memoryProvider;
     memoryProvider.extensionUrl = context.extensionUri;
     context.subscriptions.push(vscode.window.registerWebviewViewProvider(
         "memory.memoryView",
         provider
     ));
+
 }
 
 // this method is called when your extension is deactivated
