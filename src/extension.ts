@@ -67,6 +67,14 @@ export async function initializeExtension(_oprationId: string, context: vscode.E
             controller.onDidStopBootApp(session);
         }
     });
+    vscode.debug.onDidReceiveDebugSessionCustomEvent(e => {
+        if (e.session.type === 'java' && e.event === 'processid') {
+            const app = appsProvider.manager.getAppList().find(app => app.activeSessionName === e.session.name);
+            if (app) {
+                app.pid = parseInt(e.body.processId);
+            }
+        }
+    });
 
     // live data
     const beansView = vscode.window.createTreeView('spring.beans', { treeDataProvider: beansProvider, showCollapseAll: true });

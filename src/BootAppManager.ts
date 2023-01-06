@@ -77,6 +77,11 @@ export class BootAppManager {
         return this.getAppList().find(app => app.mainClasses?.find((mcd: MainClassData) => mcd.mainClass === mainClass));
     }
 
+    public getAppByPid(pid: number | string): BootApp | undefined {
+        const pidNumber = typeof pid === "number" ? pid : parseInt(pid);
+        return this.getAppList().find(app => app.pid === pidNumber);
+    }
+
     /**
      * Registers for classpath change events (from redhat.java and pivotal.spring-boot extension).
      * These events are used to keep the list of boot apps in sync with the workspace projects.

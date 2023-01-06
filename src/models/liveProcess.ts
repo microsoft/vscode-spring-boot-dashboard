@@ -14,9 +14,15 @@ export class LiveProcess {
         return this.liveProcess.pid;
     }
 
-    public get app(): BootApp | undefined{
-        const mainClass = this.liveProcess.processName; // TODO: here assume processName is full-qualified name of mainclass
-        return appsProvider.manager.getAppByMainClass(mainClass);
+    public get app(): BootApp | undefined {
+        let app = appsProvider.manager.getAppByPid(this.liveProcess.pid);
+        if (!app) {
+            // fallback: here assume processName is full-qualified name of mainclass, which is not guaranteed.
+            const mainClass = this.liveProcess.processName;
+            app = appsProvider.manager.getAppByMainClass(mainClass);
+        }
+
+        return app;
     }
 
     public get appName(): string {

@@ -42,9 +42,8 @@ async function updateProcessInfo(payload: string | LocalLiveProcess) {
     const port = await getPort(processKey);
     const contextPath = await getContextPath(processKey);
     store.data.set(processKey, { processName, pid, beans, mappings, port });
-    const runningApp = appsProvider.manager.getAppByMainClass(processName);
+    const runningApp = appsProvider.manager.getAppByPid(pid);
     if (runningApp) {
-        runningApp.pid = parseInt(pid);
         runningApp.port = parseInt(port);
         runningApp.contextPath = contextPath;
         runningApp.state = AppState.RUNNING; // will refresh tree item
@@ -86,7 +85,7 @@ async function resetProcessInfo(payload: string | LocalLiveProcess) {
     memoryProvider.refreshLiveHeapMemoryMetrics(liveProcess, undefined);
     memoryProvider.refreshLiveNonHeapMemoryMetrics(liveProcess, undefined);
     await vscode.commands.executeCommand("setContext", "spring.memoryGraphs:hasLiveProcess", store.data.size > 0);
-    const disconnectedApp = appsProvider.manager.getAppByMainClass(liveProcess.processName);
+    const disconnectedApp = appsProvider.manager.getAppByPid(liveProcess.pid);
     // Workaound for: app is still running if manually disconnect from live process connection.
     if (disconnectedApp && !await isAlive(disconnectedApp.pid)) {
         disconnectedApp.reset();
