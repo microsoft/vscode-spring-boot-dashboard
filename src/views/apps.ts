@@ -4,6 +4,8 @@
 import * as vscode from "vscode";
 import { BootApp } from "../BootApp";
 import { BootAppManager } from "../BootAppManager";
+import { RemoteBootAppData } from "../extension.api";
+import { RemoteAppManager } from "../RemoteAppManager";
 
 class BootAppItem implements vscode.TreeItem {
     public readonly _app: BootApp;
@@ -51,21 +53,32 @@ class BootAppItem implements vscode.TreeItem {
     }
 }
 
-class LocalAppTreeProvider implements vscode.TreeDataProvider<BootApp> {
+type TreeData = BootApp | RemoteBootAppData;
+
+class LocalAppTreeProvider implements vscode.TreeDataProvider<TreeData> {
 
     public manager: BootAppManager;
+    public remoteAppManager: RemoteAppManager;
     public readonly onDidChangeTreeData: vscode.Event<BootApp | undefined>;
 
     constructor() {
+        this.remoteAppManager = new RemoteAppManager();
         this.manager = new BootAppManager();
         this.onDidChangeTreeData = this.manager.onDidChangeApps;
         this.manager.fireDidChangeApps(undefined);
     }
 
-    getTreeItem(element: BootApp): vscode.TreeItem | Thenable<vscode.TreeItem> {
-        return new BootAppItem(element);
+    getTreeItem(element: TreeData): vscode.TreeItem | Thenable<vscode.TreeItem> {
+        if (element instanceof BootApp) {
+            return new BootAppItem(element);
+        } else {
+            return {
+                label: element.name,
+                description: element.description
+            }
+        }
     }
-    getChildren(element?: BootApp | undefined): vscode.ProviderResult<BootApp[]> {
+    getChildren(element?: TreeData | undefined): vscode.ProviderResult<TreeData[]> {
         if (!element) {
             return this.manager.getAppList();
         } else {
