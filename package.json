@@ -530,7 +530,7 @@
     "watch": "tsc -watch -p .",
     "prepublish": "node scripts/build-java-ext.js",
     "test": "npm run compile && node ./out/test/runTest.js",
-    "tslint": "tslint -t verbose src/**/*.ts",
+    "tslint": "eslint .",
     "update-tpn": "node scripts/update-third-party-notice.js"
   },
   "devDependencies": {
@@ -540,10 +540,12 @@
     "@types/node": "^14.18.32",
     "@types/uuid": "^3.4.10",
     "@types/vscode": "1.63.0",
+    "@typescript-eslint/eslint-plugin": "^5.48.2",
+    "@typescript-eslint/parser": "^5.48.2",
     "@vscode/test-electron": "^2.1.5",
+    "eslint": "^8.32.0",
     "mocha": "^9.2.2",
-    "tslint": "^6.1.3",
-    "typescript": "^4.8.4"
+    "typescript": "^4.9.4"
   },
   "extensionDependencies": [
     "Pivotal.vscode-spring-boot",

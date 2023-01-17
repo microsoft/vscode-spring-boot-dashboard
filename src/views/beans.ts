@@ -42,7 +42,7 @@ class BeansDataProvider implements vscode.TreeDataProvider<TreeData> {
     private store: Map<LiveProcess, Bean[]> = new Map();
     private staticData: Map<BootApp, StaticBean[]> = new Map();
 
-    private _showAll: boolean = false;
+    private _showAll = false;
 
     private onDidRefreshBeans: vscode.EventEmitter<TreeData | undefined> = new vscode.EventEmitter<TreeData | undefined>();
 

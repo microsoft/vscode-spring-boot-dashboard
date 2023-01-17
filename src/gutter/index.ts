@@ -86,19 +86,23 @@ function setDecorationOptions(textEditor: vscode.TextEditor, beans: StaticBean[]
     const mappingLines = mappings.map(m => m.location.range.start.line);
     for (let lineNumber = 0; lineNumber < textEditor.document.lineCount; lineNumber++) {
         if (beanLines.includes(lineNumber)) {
-            const bean = beans.find(b => b.location.range.start.line === lineNumber)!;
-            decorations.push({
-                range: bean.location.range,
-                hoverMessage: getBeanGutterHover(bean),
-                renderOptions: DECORATION_OPTIONS_BEAN
-            });
+            const bean = beans.find(b => b.location.range.start.line === lineNumber);
+            if (bean) {
+                decorations.push({
+                    range: bean.location.range,
+                    hoverMessage: getBeanGutterHover(bean),
+                    renderOptions: DECORATION_OPTIONS_BEAN
+                });
+            }
         } else if (mappingLines.includes(lineNumber)) {
-            const mapping = mappings.find(m => m.location.range.start.line === lineNumber)!;
-            decorations.push({
-                range: mapping.location.range,
-                hoverMessage: getEndpointGutterHover(mapping),
-                renderOptions: DECORATION_OPTIONS_ENDPOINT
-            });
+            const mapping = mappings.find(m => m.location.range.start.line === lineNumber);
+            if (mapping) {
+                decorations.push({
+                    range: mapping.location.range,
+                    hoverMessage: getEndpointGutterHover(mapping),
+                    renderOptions: DECORATION_OPTIONS_ENDPOINT
+                });
+            }
         } else {
             placeholders.push({
                 range: new vscode.Range(lineNumber, 0, lineNumber, 0),

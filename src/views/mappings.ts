@@ -64,7 +64,7 @@ class MappingsDataProvider implements vscode.TreeDataProvider<TreeData> {
     private store: Map<LiveProcess, Endpoint[]> = new Map();
     private staticData: Map<BootApp, StaticEndpoint[]> = new Map();
 
-    private _showAll: boolean = false;
+    private _showAll = false;
 
     private onDidRefreshMappings: vscode.EventEmitter<TreeData | undefined> = new vscode.EventEmitter<TreeData | undefined>();
 
@@ -156,7 +156,7 @@ class MappingsDataProvider implements vscode.TreeDataProvider<TreeData> {
             liveMappings?.forEach(lm => lm.liveProcess = element);
             // TODO: inaccurate match with project name. should use some unique identifier like path.
             const correspondingApp = Array.from(this.staticData.keys()).find(app => app.name === element.appName);
-            let fullList = liveMappings;
+            const fullList = liveMappings;
             if (correspondingApp) {
                 const staticMappings = this.staticData.get(correspondingApp);
                 if (staticMappings?.length) {

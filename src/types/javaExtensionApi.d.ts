@@ -1,7 +1,7 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT license.
 
-import { CancellationToken, Command, ProviderResult, Uri, Event } from 'vscode';
+import { Event, Uri } from 'vscode';
 
 export type GetClasspathsCommand = (uri: string, options: ClasspathQueryOptions) => Promise<ClasspathResult>;
 

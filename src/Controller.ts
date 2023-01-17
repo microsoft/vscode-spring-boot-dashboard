@@ -12,7 +12,7 @@ import { constructOpenUrl, isActuatorJarFile, readAll } from "./utils";
 import { beansProvider } from "./views/beans";
 import { mappingsProvider } from "./views/mappings";
 
-const getPort = require("get-port");
+import getPort = require("get-port");
 
 export class Controller {
     private _manager: BootAppManager;
@@ -153,19 +153,19 @@ export class Controller {
             return undefined;
         }
 
-        let jvm = await findJvm();
+        const jvm = await findJvm();
         if (!jvm) {
             return undefined;
         }
 
-        let jmxurl = `service:jmx:rmi:///jndi/rmi://localhost:${app.jmxPort}/jmxrmi`;
-        let javaProcess = jvm.jarLaunch(
+        const jmxurl = `service:jmx:rmi:///jndi/rmi://localhost:${app.jmxPort}/jmxrmi`;
+        const javaProcess = jvm.jarLaunch(
             path.resolve(this._context.extensionPath, "lib", "java-extension.jar"),
             [
                 "-Djmxurl=" + jmxurl
             ]
         );
-        let stdout = javaProcess.stdout ? await readAll(javaProcess.stdout) : null;
+        const stdout = javaProcess.stdout ? await readAll(javaProcess.stdout) : null;
 
         let port: number | undefined = undefined;
         let contextPath: string | undefined = undefined;
@@ -222,7 +222,7 @@ export class Controller {
 
     private async _printJavaProcessError(javaProcess: ChildProcess) {
         if (javaProcess.stderr) {
-            let err = await readAll(javaProcess.stderr);
+            const err = await readAll(javaProcess.stderr);
             console.log(err);
         }
     }

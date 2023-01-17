@@ -41,6 +41,6 @@ const _themeIconIds = [
 ];
 
 export function getThemeIcon(kind: vscode.SymbolKind): vscode.ThemeIcon | undefined {
-	let id = _themeIconIds[kind];
+	const id = _themeIconIds[kind];
 	return id ? new vscode.ThemeIcon(id) : undefined;
 }
