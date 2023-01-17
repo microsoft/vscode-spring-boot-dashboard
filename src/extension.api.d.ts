@@ -10,10 +10,10 @@ export interface RemoteBootAppData {
     host: string;
     jmxurl: string;
 
-};
+}
 
 export interface RemoteBootAppDataProvider {
     provide(): Thenable<RemoteBootAppData[]> | RemoteBootAppData[];
-};
+}
 
 export function registerRemoteBootAppDataProvider(providerName: string, provider: RemoteBootAppDataProvider);
