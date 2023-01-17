@@ -32,31 +32,23 @@ export async function activate(context: vscode.ExtensionContext) {
 export async function initializeExtension(_oprationId: string, context: vscode.ExtensionContext) {
     const controller: Controller = new Controller(appsProvider.manager, context);
 
-    context.subscriptions.push(vscode.window.registerTreeDataProvider("spring.apps", appsProvider));
+    const appsView = vscode.window.createTreeView('spring.apps', { treeDataProvider: appsProvider, showCollapseAll: false });
+    context.subscriptions.push(appsView);
     context.subscriptions.push(instrumentOperationAsVsCodeCommand("spring-boot-dashboard.refresh", () => {
         appsProvider.manager.fireDidChangeApps(undefined);
     }));
-    context.subscriptions.push(instrumentOperationAsVsCodeCommand("spring-boot-dashboard.localapp.run", async (app: BootApp) => {
-        await controller.runBootApp(app);
-    }));
-    context.subscriptions.push(instrumentOperationAsVsCodeCommand("spring-boot-dashboard.localapp.debug", async (app: BootApp) => {
-        await controller.runBootApp(app, true);
-    }));
-    context.subscriptions.push(instrumentOperationAsVsCodeCommand("spring-boot-dashboard.localapp.stop", async (app: BootApp) => {
-        await controller.stopBootApp(app);
-    }));
-    context.subscriptions.push(instrumentOperationAsVsCodeCommand("spring-boot-dashboard.localapp.open", async (app: BootApp) => {
-        await controller.openBootApp(app);
-    }));
-    context.subscriptions.push(instrumentOperationAsVsCodeCommand("spring-boot-dashboard.localapp.run-multiple", async () => {
-        await controller.runBootApps();
-    }));
-    context.subscriptions.push(instrumentOperationAsVsCodeCommand("spring-boot-dashboard.localapp.debug-multiple", async () => {
-        await controller.runBootApps(true);
-    }));
-    context.subscriptions.push(instrumentOperationAsVsCodeCommand("spring-boot-dashboard.localapp.stop-multiple", async () => {
-        await controller.stopBootApps();
-    }));
+
+    // app related commands
+    context.subscriptions.push(
+        instrumentOperationAsVsCodeCommand("spring-boot-dashboard.localapp.run", async (app: BootApp) => await controller.runBootApp(app)),
+        instrumentOperationAsVsCodeCommand("spring-boot-dashboard.localapp.debug", async (app: BootApp) => await controller.runBootApp(app, true)),
+        instrumentOperationAsVsCodeCommand("spring-boot-dashboard.localapp.stop", async (app: BootApp) => await controller.stopBootApp(app)),
+        instrumentOperationAsVsCodeCommand("spring-boot-dashboard.localapp.open", async (app: BootApp) => await controller.openBootApp(app)),
+        instrumentOperationAsVsCodeCommand("spring-boot-dashboard.localapp.run-multiple", async () => await controller.runBootApps()),
+        instrumentOperationAsVsCodeCommand("spring-boot-dashboard.localapp.debug-multiple", async () => await controller.runBootApps(true)),
+        instrumentOperationAsVsCodeCommand("spring-boot-dashboard.localapp.stop-multiple", async () => await controller.stopBootApps()),
+    );
+
     vscode.debug.onDidStartDebugSession((session: vscode.DebugSession) => {
         if (session.type === "java") {
             controller.onDidStartBootApp(session);
