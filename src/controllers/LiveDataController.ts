@@ -10,8 +10,6 @@ import { memoryProvider } from "../views/memory";
 
 class LiveInformationStore {
     public data: Map<string, any> = new Map();
-
-    constructor() { }
 }
 
 let store: LiveInformationStore;

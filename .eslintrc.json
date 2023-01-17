@@ -1,0 +1,13 @@
+{
+    "extends": ["eslint:recommended", "plugin:@typescript-eslint/recommended"],
+    "parser": "@typescript-eslint/parser",
+    "plugins": ["@typescript-eslint"],
+    "root": true,
+    "ignorePatterns":[
+        "test",
+        "out",
+        "node_modules",
+        "scripts",
+        "resources" // skip memory view .js for now
+    ]
+}

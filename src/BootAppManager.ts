@@ -16,10 +16,10 @@ import { mappingsProvider } from "./views/mappings";
 
 function isBootAppClasspath(cp: ClassPathData): boolean {
     if (cp.entries) {
-        let entries = cp.entries;
+        const entries = cp.entries;
         for (let i = 0; i < entries.length; i++) {
             const cpe = entries[i];
-            let filename = path.basename(cpe.path);
+            const filename = path.basename(cpe.path);
 
             if (filename.endsWith('.jar') && filename.startsWith('spring-boot')) {
                 return true;
@@ -89,7 +89,7 @@ export class BootAppManager {
     private async _startAppListSynchronisation(): Promise<void> {
         const callbackId = uuid.v4();
 
-        vscode.commands.registerCommand(callbackId, (location: string, name: string, isDeleted: boolean, entries: ClassPathData, ..._args: any[]) => {
+        vscode.commands.registerCommand(callbackId, (location: string, name: string, isDeleted: boolean, entries: ClassPathData) => {
             if (isDeleted) {
                 this._boot_projects.delete(location);
             } else {
