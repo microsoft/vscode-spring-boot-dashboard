@@ -1,4 +1,5 @@
 import * as vscode from "vscode";
+import { sendInfo } from "vscode-extension-telemetry-wrapper";
 import { AppState } from "../BootApp";
 import { getBeans, getContextPath, getMainClass, getMappings, getPid, getPort, getGcPausesMetrics, getMemoryMetrics, initialize, stsApi } from "../models/stsApi";
 import { LocalLiveProcess } from "../types/sts-api";
@@ -18,9 +19,19 @@ export async function init() {
     await initialize();
     store = new LiveInformationStore();
 
-    stsApi.onDidLiveProcessConnect(updateProcessInfo);
-    stsApi.onDidLiveProcessDisconnect(resetProcessInfo);
-    stsApi.onDidLiveProcessUpdate(updateProcessInfo);
+    stsApi.onDidLiveProcessConnect((payload: LocalLiveProcess | string) => {
+        sendInfo("", { name: "onDidLiveProcessConnect" });
+        updateProcessInfo(payload);
+    });
+    stsApi.onDidLiveProcessDisconnect((payload: LocalLiveProcess | string) => {
+        sendInfo("", { name: "onDidLiveProcessDisconnect" });
+        resetProcessInfo(payload);
+    });
+    stsApi.onDidLiveProcessUpdate((payload: LocalLiveProcess | string) => {
+        sendInfo("", { name: "onDidLiveProcessUpdate" });
+        updateProcessInfo(payload);
+    });
+
     // proposed API on vscode-spring-boot extension. check before calling.
     stsApi.onDidLiveProcessGcPausesMetricsUpdate?.(updateProcessGcPausesMetrics);
     stsApi.onDidLiveProcessMemoryMetricsUpdate?.(updateProcessMemoryMetrics);
@@ -50,27 +61,27 @@ async function updateProcessInfo(payload: string | LocalLiveProcess) {
 
 async function updateProcessGcPausesMetrics(payload: string | LocalLiveProcess) {
     const liveProcess = await parsePayload(payload);
-    const { processKey} = liveProcess;
+    const { processKey } = liveProcess;
 
     const gcPauses = await getGcPausesMetrics(processKey);
-    if(gcPauses) {
+    if (gcPauses) {
         memoryProvider.refreshLiveGcPausesMetrics(liveProcess, gcPauses);
-        store.data.set(processKey, { gcPauses});
+        store.data.set(processKey, { gcPauses });
     }
 }
 
 async function updateProcessMemoryMetrics(payload: string | LocalLiveProcess) {
     const liveProcess = await parsePayload(payload);
-    const { processKey} = liveProcess;
+    const { processKey } = liveProcess;
 
     const heapMemMetrics = await getMemoryMetrics(processKey, "heapMemory");
     const nonHeapMemMetrics = await getMemoryMetrics(processKey, "nonHeapMemory");
 
-    if(heapMemMetrics || nonHeapMemMetrics) {
+    if (heapMemMetrics || nonHeapMemMetrics) {
         await vscode.commands.executeCommand("setContext", "spring.memoryGraphs:hasLiveProcess", liveProcess !== undefined);
         memoryProvider.refreshLiveHeapMemoryMetrics(liveProcess, heapMemMetrics);
         memoryProvider.refreshLiveNonHeapMemoryMetrics(liveProcess, nonHeapMemMetrics);
-        store.data.set(processKey, { heapMemMetrics, nonHeapMemMetrics});
+        store.data.set(processKey, { heapMemMetrics, nonHeapMemMetrics });
     }
 }
 
