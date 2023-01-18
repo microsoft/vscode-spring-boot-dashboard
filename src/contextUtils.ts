@@ -1,10 +1,10 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT license.
 
-import * as os from "os";
 import * as fs from "fs";
+import * as os from "os";
 import * as path from "path";
-import { Extension, ExtensionContext, extensions, Uri } from "vscode";
+import { ExtensionContext, extensions, Uri } from "vscode";
 
 let EXTENSION_CONTEXT: ExtensionContext;
 let EXTENSION_PUBLISHER: string;
@@ -44,7 +44,7 @@ export function getPathToTempFolder(...args: string[]): string {
 }
 
 export function getPathToExtensionRoot(...args: string[]): string {
-    const ext: Extension<any> | undefined = extensions.getExtension(getExtensionId());
+    const ext = extensions.getExtension(getExtensionId());
     if (!ext) {
         throw new Error("Cannot identify extension root.");
     }

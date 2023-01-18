@@ -13,6 +13,7 @@ import { beansProvider } from "./views/beans";
 import { mappingsProvider } from "./views/mappings";
 
 import getPort = require("get-port");
+import { sendInfo } from "vscode-extension-telemetry-wrapper";
 
 export class Controller {
     private _manager: BootAppManager;
@@ -94,6 +95,7 @@ export class Controller {
         }
 
         if (app) {
+            sendInfo("", { name: "onDidStartBootApp" });
             this._manager.bindDebugSession(app, session);
             if (isActuatorOnClasspath(session.configuration)) {
                 // actuator enabled: wait live connection to update running state.
