@@ -548,7 +548,7 @@
     "typescript": "^4.9.4"
   },
   "extensionDependencies": [
-    "Pivotal.vscode-spring-boot",
+    "vmware.vscode-spring-boot",
     "redhat.java",
     "vscjava.vscode-java-debug"
   ],
