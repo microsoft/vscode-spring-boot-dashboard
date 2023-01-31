@@ -53,7 +53,7 @@ class BootAppItem implements vscode.TreeItem {
     }
 }
 
-type TreeData = BootApp | RemoteBootAppData;
+type TreeData = BootApp | RemoteBootAppData | string /** for providers */;
 
 class LocalAppTreeProvider implements vscode.TreeDataProvider<TreeData> {
 
@@ -71,16 +71,30 @@ class LocalAppTreeProvider implements vscode.TreeDataProvider<TreeData> {
     getTreeItem(element: TreeData): vscode.TreeItem | Thenable<vscode.TreeItem> {
         if (element instanceof BootApp) {
             return new BootAppItem(element);
-        } else {
+        } else if (typeof element === "string") {
+            // providers
+            const item = new vscode.TreeItem(element);
+            item.iconPath = vscode.ThemeIcon.Folder; /// TODO: custom icon?
+            item.collapsibleState = vscode.TreeItemCollapsibleState.Collapsed;
+            return item;
+        }
+        else {
+            // remote apps
             return {
                 label: element.name,
-                description: element.description
+                description: element.description,
+                iconPath: new vscode.ThemeIcon("project")
             }
         }
     }
-    getChildren(element?: TreeData | undefined): vscode.ProviderResult<TreeData[]> {
+    async getChildren(element?: TreeData | undefined): Promise<TreeData[]> {
         if (!element) {
-            return this.manager.getAppList();
+            const apps = this.manager.getAppList();
+            const providers = this.remoteAppManager.getProviderNames();
+            return [...apps, ...providers];
+        } else if (typeof element === "string") {
+            const remoteApps = await this.remoteAppManager.getRemoteApps(element);
+            return remoteApps;
         } else {
             return [];
         }
