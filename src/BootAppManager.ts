@@ -83,7 +83,7 @@ export class BootAppManager {
     }
 
     /**
-     * Registers for classpath change events (from redhat.java and pivotal.spring-boot extension).
+     * Registers for classpath change events (from redhat.java and vmware.vscode-spring-boot extension).
      * These events are used to keep the list of boot apps in sync with the workspace projects.
      */
     private async _startAppListSynchronisation(): Promise<void> {
