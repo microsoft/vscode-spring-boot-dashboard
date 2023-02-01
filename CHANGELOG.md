@@ -4,6 +4,10 @@ All notable changes to the "vscode-spring-boot-dashboard" extension will be docu
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
+## 0.10.1
+### Fixed
+- Publisher id of upstream extension Spring Boot Tools changed from `Pivotal` to `vmware`. [#269](https://github.com/microsoft/vscode-spring-boot-dashboard/issues/269) [#270](https://github.com/microsoft/vscode-spring-boot-dashboard/issues/270)
+
 ## 0.10.0
 ### Added
 - Add a button to expose the built-in filtering widget. [#259](https://github.com/microsoft/vscode-spring-boot-dashboard/pull/259)
