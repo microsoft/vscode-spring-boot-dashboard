@@ -9,7 +9,7 @@ import { getAiKey, getExtensionId, getExtensionVersion, loadPackageInfo } from '
 import { Controller } from './Controller';
 import { init as initLiveDataController } from './controllers/LiveDataController';
 import { initSymbols } from './controllers/SymbolsController';
-import { RemoteBootAppDataProvider } from './extension.api';
+import { RemoteBootAppDataProvider, RemoteBootAppDataProviderOptions } from './extension.api';
 import { dispose as disposeGutter, init as initGutter } from './gutter';
 import { requestWorkspaceSymbols } from './models/stsApi';
 import { navigateToLocation } from './models/symbols';
@@ -160,7 +160,7 @@ export async function initializeExtension(_oprationId: string, context: vscode.E
     ));
 
     return {
-        registerRemoteBootAppDataProvider: (name: string, provider: RemoteBootAppDataProvider) => appsProvider.remoteAppManager.registerRemoteBootAppDataProvider(name, provider)
+        registerRemoteBootAppDataProvider: (name: string, provider: RemoteBootAppDataProvider, options?: RemoteBootAppDataProviderOptions) => appsProvider.remoteAppManager.registerRemoteBootAppDataProvider(name, provider, options)
     }
 }
 

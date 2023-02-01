@@ -74,7 +74,7 @@ class LocalAppTreeProvider implements vscode.TreeDataProvider<TreeData> {
         } else if (typeof element === "string") {
             // providers
             const item = new vscode.TreeItem(element);
-            item.iconPath = vscode.ThemeIcon.Folder; /// TODO: custom icon?
+            item.iconPath = this.remoteAppManager.getIconPath(element) ?? vscode.ThemeIcon.Folder; /// TODO: custom icon?
             item.collapsibleState = vscode.TreeItemCollapsibleState.Collapsed;
             return item;
         }
@@ -83,7 +83,7 @@ class LocalAppTreeProvider implements vscode.TreeDataProvider<TreeData> {
             return {
                 label: element.name,
                 description: element.description,
-                iconPath: new vscode.ThemeIcon("project")
+                iconPath: element.iconPath ?? new vscode.ThemeIcon("project")
             }
         }
     }

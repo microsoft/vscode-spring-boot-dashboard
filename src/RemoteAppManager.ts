@@ -1,23 +1,61 @@
-import { RemoteBootAppDataProvider } from "./extension.api";
+import { Uri, ThemeIcon } from "vscode";
+import { RemoteBootAppDataProvider, RemoteBootAppDataProviderOptions } from "./extension.api";
 
-export class RemoteAppManager {
-    providers: Map<string, RemoteBootAppDataProvider[]>;
-    constructor() {
-        this.providers = new Map();
+class RemoteAppProviderRegistryEntry {
+    public name: string;
+    public providers: RemoteBootAppDataProvider[];
+    public iconPath?: string | Uri | { light: string | Uri; dark: string | Uri } | ThemeIcon;
+
+    constructor(
+        providerName: string,
+        provider: RemoteBootAppDataProvider,
+        options?: RemoteBootAppDataProviderOptions
+    ) {
+        this.name = providerName;
+        this.providers = [provider];
+        this.iconPath = options?.iconPath;
     }
 
-    public registerRemoteBootAppDataProvider(providerName: string, provider: RemoteBootAppDataProvider) {
-        const list = this.providers.get(providerName) ?? [];
-        list.push(provider);
-        this.providers.set(providerName, list);
+    public addProvider(provider: RemoteBootAppDataProvider) {
+        this.providers.push(provider);
+    }
+
+    public updateOptions(options?: RemoteBootAppDataProviderOptions) {
+        if (options?.iconPath) {
+            if (this.iconPath) {
+                console.warn(`iconPath of provider "${this.name}" is already defined.`);
+            } else {
+                this.iconPath = options.iconPath;
+            }
+        }
+    }
+}
+
+export class RemoteAppManager {
+
+    registry: Map<string, RemoteAppProviderRegistryEntry>;
+    constructor() {
+        this.registry = new Map();
+    }
+
+    public registerRemoteBootAppDataProvider(providerName: string, provider: RemoteBootAppDataProvider, options?: RemoteBootAppDataProviderOptions) {
+        let entry = this.registry.get(providerName);
+        if (entry) {
+            entry.addProvider(provider);
+            entry.updateOptions(options);
+        } else {
+            entry = new RemoteAppProviderRegistryEntry(providerName, provider, options);
+        }
+        this.registry.set(providerName, entry);
     }
 
     public getProviderNames(): string[] {
-        return Array.from(this.providers.keys());
+        return Array.from(this.registry.keys());
     }
 
     public async getRemoteApps(providerName: string) {
-        const providers = this.providers.get(providerName);
+        const entry = this.registry.get(providerName);
+        const providers = entry?.providers;
         const ret = [];
         if (providers) {
             for (const p of providers) {
@@ -26,5 +64,9 @@ export class RemoteAppManager {
             }
         }
         return ret;
+    }
+
+    public getIconPath(providerName: string): string | ThemeIcon | Uri | { light: string | Uri; dark: string | Uri; } | undefined {
+        return this.registry.get(providerName)?.iconPath;
     }
 }
