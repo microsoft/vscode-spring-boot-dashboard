@@ -227,6 +227,18 @@
         "title": "Find...",
         "category": "Spring Boot Dashboard",
         "icon": "$(search)"
+      },
+      {
+        "command": "spring.remoteApp.connect",
+        "title": "Connect",
+        "category": "Spring Boot Dashboard",
+        "icon": "$(vm-connect)"
+      },
+      {
+        "command": "spring.remoteApp.disconnect",
+        "title": "Disconnect",
+        "category": "Spring Boot Dashboard",
+        "icon": "$(debug-disconnect)"
       }
     ],
     "menus": {
@@ -462,6 +474,16 @@
           "command": "spring.dashboard.bean.showInjectedInto",
           "when": "viewItem == spring:bean",
           "group": "action@7"
+        },
+        {
+          "command": "spring.remoteApp.connect",
+          "when": "view == spring.apps && viewItem == spring:remoteApp",
+          "group": "inline@a"
+        },
+        {
+          "command": "spring.remoteApp.disconnect",
+          "when": "view == spring.apps && viewItem == spring:remoteApp",
+          "group": "inline@d"
         }
       ]
     },

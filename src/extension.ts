@@ -9,7 +9,7 @@ import { getAiKey, getExtensionId, getExtensionVersion, loadPackageInfo } from '
 import { Controller } from './Controller';
 import { init as initLiveDataController } from './controllers/LiveDataController';
 import { initSymbols } from './controllers/SymbolsController';
-import { RemoteBootAppDataProvider, RemoteBootAppDataProviderOptions } from './extension.api';
+import { RemoteBootAppData, RemoteBootAppDataProvider, RemoteBootAppDataProviderOptions } from './extension.api';
 import { dispose as disposeGutter, init as initGutter } from './gutter';
 import { requestWorkspaceSymbols } from './models/stsApi';
 import { navigateToLocation } from './models/symbols';
@@ -158,6 +158,14 @@ export async function initializeExtension(_oprationId: string, context: vscode.E
         "memory.memoryView",
         provider
     ));
+
+    // remote apps
+    context.subscriptions.push(instrumentOperationAsVsCodeCommand("spring.remoteApp.connect", async (item: RemoteBootAppData) => {
+        await vscode.commands.executeCommand("sts/livedata/remoteConnect", item.name, item);
+    }));
+    context.subscriptions.push(instrumentOperationAsVsCodeCommand("spring.remoteApp.disconnect", async (item: RemoteBootAppData) => {
+        await vscode.commands.executeCommand("sts/livedata/disconnect", { processKey: item.host });
+    }));
 
     return {
         registerRemoteBootAppDataProvider: (name: string, provider: RemoteBootAppDataProvider, options?: RemoteBootAppDataProviderOptions) => appsProvider.remoteAppManager.registerRemoteBootAppDataProvider(name, provider, options)

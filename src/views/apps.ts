@@ -76,15 +76,19 @@ class LocalAppTreeProvider implements vscode.TreeDataProvider<TreeData> {
             const item = new vscode.TreeItem(element);
             item.iconPath = this.remoteAppManager.getIconPath(element) ?? vscode.ThemeIcon.Folder; /// TODO: custom icon?
             item.collapsibleState = vscode.TreeItemCollapsibleState.Collapsed;
+            item.contextValue = `spring:remoteAppProvider+${element}`;
             return item;
         }
         else {
             // remote apps
-            return {
-                label: element.name,
-                description: element.description,
-                iconPath: element.iconPath ?? new vscode.ThemeIcon("project")
+            const item = new vscode.TreeItem(element.name);
+            item.description = element.description;
+            item.iconPath = element.iconPath ?? new vscode.ThemeIcon("project");
+            item.contextValue = "spring:remoteApp";
+            if (element.group) {
+                item.contextValue += element.group;
             }
+            return item;
         }
     }
     async getChildren(element?: TreeData | undefined): Promise<TreeData[]> {
@@ -102,7 +106,6 @@ class LocalAppTreeProvider implements vscode.TreeDataProvider<TreeData> {
 
     public refresh(element: BootApp | undefined) {
         this.manager.fireDidChangeApps(element);
-
     }
 }
 
