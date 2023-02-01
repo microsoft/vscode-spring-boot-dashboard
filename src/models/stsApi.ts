@@ -14,7 +14,7 @@ export let stsApi: ExtensionAPI;
 
 export async function initialize() {
     if (stsApi === undefined) {
-        const stsExt = vscode.extensions.getExtension("pivotal.vscode-spring-boot");
+        const stsExt = vscode.extensions.getExtension("vmware.vscode-spring-boot");
         stsApi = await stsExt?.activate();
     }
 }
