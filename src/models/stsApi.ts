@@ -10,17 +10,23 @@ import { sanitizeFilePath } from "../symbolUtils";
 import { ExtensionAPI } from "../types/sts-api";
 const execFile = promisify(cp.execFile);
 
-export let stsApi: ExtensionAPI;
+export let stsApi: ExtensionAPI | undefined;
 
-export async function initialize() {
+export async function initialize(): Promise<ExtensionAPI> {
     if (stsApi === undefined) {
-        const stsExt = vscode.extensions.getExtension("vmware.vscode-spring-boot");
-        stsApi = await stsExt?.activate();
+        const stsExt = vscode.extensions.getExtension<ExtensionAPI>("vmware.vscode-spring-boot");
+        if (!stsExt) {
+            throw new Error("Extension vmware.vscode-spring-boot not enabled.");
+        }
+        stsApi = await stsExt.activate();
+        return stsApi;
+    } else {
+        return stsApi;
     }
 }
 
 export async function getBeansDependingOn(processKey: string, beanName: string) {
-    const beans = await stsApi.getLiveProcessData({
+    const beans = await stsApi?.getLiveProcessData({
         processKey,
         endpoint: "beans",
         dependingOn: beanName
@@ -29,7 +35,7 @@ export async function getBeansDependingOn(processKey: string, beanName: string) 
 }
 
 export async function getBeans(processKey: string) {
-    const result = await stsApi.getLiveProcessData({
+    const result = await stsApi?.getLiveProcessData({
         processKey: processKey,
         endpoint: "beans"
     });
@@ -37,7 +43,7 @@ export async function getBeans(processKey: string) {
 }
 
 export async function getBeanDetail(processKey: string, beanName: string) {
-    const bean = await stsApi.getLiveProcessData({
+    const bean = await stsApi?.getLiveProcessData({
         processKey,
         endpoint: "beans",
         beanName
@@ -46,7 +52,7 @@ export async function getBeanDetail(processKey: string, beanName: string) {
 }
 
 export async function getMappings(processKey: string) {
-    const result = await stsApi.getLiveProcessData({
+    const result = await stsApi?.getLiveProcessData({
         processKey: processKey,
         endpoint: "mappings"
     });
@@ -54,7 +60,7 @@ export async function getMappings(processKey: string) {
 }
 
 export async function getGcPausesMetrics(processKey: string) {
-    if(typeof stsApi.getLiveProcessMetricsData === "function") {
+    if(typeof stsApi?.getLiveProcessMetricsData === "function") {
         return await stsApi.getLiveProcessMetricsData({
             processKey: processKey,
             endpoint: "metrics",
@@ -65,7 +71,7 @@ export async function getGcPausesMetrics(processKey: string) {
 }
 
 export async function getMemoryMetrics(processKey: string, memory: string) {
-    if(typeof stsApi.getLiveProcessMetricsData === "function") {
+    if(typeof stsApi?.getLiveProcessMetricsData === "function") {
         return await stsApi.getLiveProcessMetricsData({
             processKey: processKey,
             endpoint: "metrics",
@@ -76,7 +82,7 @@ export async function getMemoryMetrics(processKey: string, memory: string) {
 }
 
 export async function getPort(processKey: string) {
-    const result = await stsApi.getLiveProcessData({
+    const result = await stsApi?.getLiveProcessData({
         processKey: processKey,
         endpoint: "port"
     });
@@ -84,7 +90,7 @@ export async function getPort(processKey: string) {
 }
 
 export async function getContextPath(processKey: string) {
-    const result = await stsApi.getLiveProcessData({
+    const result = await stsApi?.getLiveProcessData({
         processKey: processKey,
         endpoint: "contextPath"
     });
@@ -153,8 +159,8 @@ export async function requestWorkspaceSymbols(projectPath?: string): Promise<{
         const locationPrefix = vscode.Uri.file(sanitizeFilePath(projectPath)).toString();
         filter = `locationPrefix:${locationPrefix}?`;
     }
-    const beans = await stsApi.client.sendRequest("workspace/symbol", {"query": `${filter}@+`}) as any[];
-    const mappings = await stsApi.client.sendRequest("workspace/symbol", {"query": `${filter}@/`}) as any[];
+    const beans = await stsApi?.client.sendRequest<any[]>("workspace/symbol", {"query": `${filter}@+`}) ?? [];
+    const mappings = await stsApi?.client.sendRequest<any[]>("workspace/symbol", {"query": `${filter}@/`}) ?? [];
 
     return {
         beans,

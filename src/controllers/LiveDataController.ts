@@ -1,7 +1,7 @@
 import * as vscode from "vscode";
 import { sendInfo } from "vscode-extension-telemetry-wrapper";
 import { AppState } from "../BootApp";
-import { getBeans, getContextPath, getMainClass, getMappings, getPid, getPort, getGcPausesMetrics, getMemoryMetrics, initialize, stsApi } from "../models/stsApi";
+import { getBeans, getContextPath, getMainClass, getMappings, getPid, getPort, getGcPausesMetrics, getMemoryMetrics, initialize } from "../models/stsApi";
 import { LocalLiveProcess } from "../types/sts-api";
 import { isAlive } from "../utils";
 import { appsProvider } from "../views/apps";
@@ -16,7 +16,7 @@ class LiveInformationStore {
 let store: LiveInformationStore;
 
 export async function init() {
-    await initialize();
+    const stsApi = await initialize();
     store = new LiveInformationStore();
 
     stsApi.onDidLiveProcessConnect((payload: LocalLiveProcess | string) => {
