@@ -2,7 +2,7 @@
   "name": "vscode-spring-boot-dashboard",
   "displayName": "Spring Boot Dashboard",
   "description": "Spring Boot Dashboard for VS Code",
-  "version": "0.10.0",
+  "version": "0.10.1",
   "license": "MIT",
   "icon": "resources/logo.png",
   "publisher": "vscjava",
@@ -564,7 +564,7 @@
     "@types/vscode": "1.63.0",
     "@typescript-eslint/eslint-plugin": "^5.48.2",
     "@typescript-eslint/parser": "^5.48.2",
-    "@vscode/test-electron": "^2.1.5",
+    "@vscode/test-electron": "^2.2.3",
     "eslint": "^8.32.0",
     "mocha": "^9.2.2",
     "typescript": "^4.9.4"
