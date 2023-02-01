@@ -27,7 +27,7 @@ export async function activate(context: vscode.ExtensionContext) {
     if (getAiKey()) {
         initialize(getExtensionId(), getExtensionVersion(), getAiKey(), { firstParty: true });
     }
-    await instrumentOperation("activation", initializeExtension)(context);
+    return await instrumentOperation("activation", initializeExtension)(context);
 }
 
 export async function initializeExtension(_oprationId: string, context: vscode.ExtensionContext) {
