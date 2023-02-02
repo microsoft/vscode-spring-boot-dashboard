@@ -477,12 +477,12 @@
         },
         {
           "command": "spring.remoteApp.connect",
-          "when": "view == spring.apps && viewItem == spring:remoteApp",
+          "when": "view == spring.apps && viewItem =~ /^spring:remoteApp\\b(?!.*?\\b\\+running\\b)/",
           "group": "inline@a"
         },
         {
           "command": "spring.remoteApp.disconnect",
-          "when": "view == spring.apps && viewItem == spring:remoteApp",
+          "when": "view == spring.apps && viewItem =~ /^spring:remoteApp\\b(?=.*?\\b\\+running\\b)/",
           "group": "inline@d"
         }
       ]

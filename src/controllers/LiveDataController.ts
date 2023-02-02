@@ -38,6 +38,10 @@ export async function init() {
 
 }
 
+export function connectedProcessKeys() {
+    return Array.from(store.data.keys());
+}
+
 async function updateProcessInfo(payload: string | LocalLiveProcess) {
     const liveProcess = await parsePayload(payload);
     const { processKey, processName, pid } = liveProcess;
@@ -57,6 +61,7 @@ async function updateProcessInfo(payload: string | LocalLiveProcess) {
         runningApp.contextPath = contextPath;
         runningApp.state = AppState.RUNNING; // will refresh tree item
     }
+    appsProvider.refresh(undefined);
 }
 
 async function updateProcessGcPausesMetrics(payload: string | LocalLiveProcess) {
@@ -99,6 +104,7 @@ async function resetProcessInfo(payload: string | LocalLiveProcess) {
     if (disconnectedApp && !await isAlive(disconnectedApp.pid)) {
         disconnectedApp.reset();
     }
+    appsProvider.refresh(undefined);
 }
 
 /**

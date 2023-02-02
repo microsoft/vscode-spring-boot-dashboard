@@ -160,11 +160,15 @@ export async function initializeExtension(_oprationId: string, context: vscode.E
     ));
 
     // remote apps
+    /**
+     * sts/livedata/remoteConnect(owner: string, apps: {host: string, jmlurl: string}[])
+     * sts/livedata/disconnect(obj: {processKey: string}) // processKey of remote app is currently `remote process - ${jmxurl}`.
+     */
     context.subscriptions.push(instrumentOperationAsVsCodeCommand("spring.remoteApp.connect", async (item: RemoteBootAppData) => {
-        await vscode.commands.executeCommand("sts/livedata/remoteConnect", item.name, item);
+        await vscode.commands.executeCommand("sts/livedata/remoteConnect", item.name, [item]);
     }));
     context.subscriptions.push(instrumentOperationAsVsCodeCommand("spring.remoteApp.disconnect", async (item: RemoteBootAppData) => {
-        await vscode.commands.executeCommand("sts/livedata/disconnect", { processKey: item.host });
+        await vscode.commands.executeCommand("sts/livedata/disconnect", { processKey: `remote process - ${item.jmxurl}` });
     }));
 
     return {

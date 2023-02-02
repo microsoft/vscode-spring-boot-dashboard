@@ -4,8 +4,10 @@
 import * as vscode from "vscode";
 import { BootApp } from "../BootApp";
 import { BootAppManager } from "../BootAppManager";
+import { connectedProcessKeys } from "../controllers/LiveDataController";
 import { RemoteBootAppData } from "../extension.api";
 import { RemoteAppManager } from "../RemoteAppManager";
+import { processKey } from "../utils";
 
 class BootAppItem implements vscode.TreeItem {
     public readonly _app: BootApp;
@@ -86,7 +88,10 @@ class LocalAppTreeProvider implements vscode.TreeDataProvider<TreeData> {
             item.iconPath = element.iconPath ?? new vscode.ThemeIcon("project");
             item.contextValue = "spring:remoteApp";
             if (element.group) {
-                item.contextValue += element.group;
+                item.contextValue += `+${element.group}`;
+            }
+            if (connectedProcessKeys().includes(processKey(element))) {
+                item.contextValue += "+running";
             }
             return item;
         }
