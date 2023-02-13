@@ -4,11 +4,13 @@
 'use strict';
 import * as vscode from 'vscode';
 import { dispose as disposeTelemetryWrapper, initialize, instrumentOperation, instrumentOperationAsVsCodeCommand } from "vscode-extension-telemetry-wrapper";
+import { apiManager } from './apiManager';
 import { BootApp } from './BootApp';
 import { getAiKey, getExtensionId, getExtensionVersion, loadPackageInfo } from './contextUtils';
 import { Controller } from './Controller';
 import { init as initLiveDataController } from './controllers/LiveDataController';
 import { initSymbols } from './controllers/SymbolsController';
+import { RemoteBootAppData } from './extension.api';
 import { dispose as disposeGutter, init as initGutter } from './gutter';
 import { requestWorkspaceSymbols } from './models/stsApi';
 import { navigateToLocation } from './models/symbols';
@@ -26,7 +28,7 @@ export async function activate(context: vscode.ExtensionContext) {
     if (getAiKey()) {
         initialize(getExtensionId(), getExtensionVersion(), getAiKey(), { firstParty: true });
     }
-    await instrumentOperation("activation", initializeExtension)(context);
+    return await instrumentOperation("activation", initializeExtension)(context);
 }
 
 export async function initializeExtension(_oprationId: string, context: vscode.ExtensionContext) {
@@ -158,6 +160,20 @@ export async function initializeExtension(_oprationId: string, context: vscode.E
         provider
     ));
 
+    // remote apps
+    /**
+     * connect: sts/livedata/remoteConnect(owner: string, apps: {host: string, jmxurl: string}[])
+     * disconnect: sts/livedata/remoteConnect(owner: string, <emptyArray>)
+     */
+    context.subscriptions.push(instrumentOperationAsVsCodeCommand("spring.remoteApp.connect", async (item: RemoteBootAppData) => {
+        await vscode.commands.executeCommand("sts/livedata/remoteConnect", item.name, [item]);
+    }));
+    context.subscriptions.push(instrumentOperationAsVsCodeCommand("spring.remoteApp.disconnect", async (item: RemoteBootAppData) => {
+        await vscode.commands.executeCommand("sts/livedata/remoteConnect", item.name, []);
+    }));
+
+    apiManager.initialize();
+    return apiManager.getApiInstance();
 }
 
 // this method is called when your extension is deactivated

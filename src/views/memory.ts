@@ -191,13 +191,13 @@ class MemoryProvider implements WebviewViewProvider {
             switch (command) {
                 case "LoadMetrics":
                     if (processKey !== '' && processKey !== undefined) {
-                        await stsApi.refreshLiveProcessMetricsData({
+                        await stsApi?.refreshLiveProcessMetricsData({
                             processKey: processKey,
                             endpoint: "metrics",
                             metricName: "memory",
                         });
 
-                        await stsApi.refreshLiveProcessMetricsData({
+                        await stsApi?.refreshLiveProcessMetricsData({
                             processKey: processKey,
                             endpoint: "metrics",
                             metricName: "gcPauses",

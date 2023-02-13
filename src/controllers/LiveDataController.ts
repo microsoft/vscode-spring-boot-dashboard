@@ -1,7 +1,7 @@
 import * as vscode from "vscode";
 import { sendInfo } from "vscode-extension-telemetry-wrapper";
 import { AppState } from "../BootApp";
-import { getBeans, getContextPath, getMainClass, getMappings, getPid, getPort, getGcPausesMetrics, getMemoryMetrics, initialize, stsApi } from "../models/stsApi";
+import { getBeans, getContextPath, getMainClass, getMappings, getPid, getPort, getGcPausesMetrics, getMemoryMetrics, initialize } from "../models/stsApi";
 import { LocalLiveProcess } from "../types/sts-api";
 import { isAlive } from "../utils";
 import { appsProvider } from "../views/apps";
@@ -16,7 +16,7 @@ class LiveInformationStore {
 let store: LiveInformationStore;
 
 export async function init() {
-    await initialize();
+    const stsApi = await initialize();
     store = new LiveInformationStore();
 
     stsApi.onDidLiveProcessConnect((payload: LocalLiveProcess | string) => {
@@ -38,6 +38,10 @@ export async function init() {
 
 }
 
+export function connectedProcessKeys() {
+    return Array.from(store.data.keys());
+}
+
 async function updateProcessInfo(payload: string | LocalLiveProcess) {
     const liveProcess = await parsePayload(payload);
     const { processKey, processName, pid } = liveProcess;
@@ -57,6 +61,7 @@ async function updateProcessInfo(payload: string | LocalLiveProcess) {
         runningApp.contextPath = contextPath;
         runningApp.state = AppState.RUNNING; // will refresh tree item
     }
+    appsProvider.refresh(undefined);
 }
 
 async function updateProcessGcPausesMetrics(payload: string | LocalLiveProcess) {
@@ -99,6 +104,7 @@ async function resetProcessInfo(payload: string | LocalLiveProcess) {
     if (disconnectedApp && !await isAlive(disconnectedApp.pid)) {
         disconnectedApp.reset();
     }
+    appsProvider.refresh(undefined);
 }
 
 /**

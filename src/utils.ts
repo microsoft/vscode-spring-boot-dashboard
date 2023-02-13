@@ -77,3 +77,7 @@ export async function showFilterInView(viewId: string) {
     await vscode.commands.executeCommand(`${viewId}.focus`);
     await vscode.commands.executeCommand("list.find");
 }
+
+export function processKey(appData: {host: string, jmxurl: string}) {
+    return `remote process - ${appData.jmxurl}`;
+}

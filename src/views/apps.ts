@@ -4,6 +4,10 @@
 import * as vscode from "vscode";
 import { BootApp } from "../BootApp";
 import { BootAppManager } from "../BootAppManager";
+import { connectedProcessKeys } from "../controllers/LiveDataController";
+import { RemoteBootAppData } from "../extension.api";
+import { RemoteAppManager } from "../RemoteAppManager";
+import { processKey } from "../utils";
 
 class BootAppItem implements vscode.TreeItem {
     public readonly _app: BootApp;
@@ -51,23 +55,61 @@ class BootAppItem implements vscode.TreeItem {
     }
 }
 
-class LocalAppTreeProvider implements vscode.TreeDataProvider<BootApp> {
+type TreeData = BootApp | RemoteBootAppData | string /** for providers */;
+
+class LocalAppTreeProvider implements vscode.TreeDataProvider<TreeData> {
 
     public manager: BootAppManager;
-    public readonly onDidChangeTreeData: vscode.Event<BootApp | undefined>;
+    public remoteAppManager: RemoteAppManager;
+    private emitter: vscode.EventEmitter<TreeData | undefined>;
+    public readonly onDidChangeTreeData: vscode.Event<TreeData | undefined>;
 
     constructor() {
+        this.remoteAppManager = new RemoteAppManager();
         this.manager = new BootAppManager();
-        this.onDidChangeTreeData = this.manager.onDidChangeApps;
+        this.emitter = new vscode.EventEmitter<TreeData | undefined>();
+
+        this.onDidChangeTreeData = this.emitter.event;
+        this.manager.onDidChangeApps(e => this.emitter.fire(e));
+        this.remoteAppManager.onDidProviderDataChange(e => this.emitter.fire(e));
+
         this.manager.fireDidChangeApps(undefined);
     }
 
-    getTreeItem(element: BootApp): vscode.TreeItem | Thenable<vscode.TreeItem> {
-        return new BootAppItem(element);
+    getTreeItem(element: TreeData): vscode.TreeItem | Thenable<vscode.TreeItem> {
+        if (element instanceof BootApp) {
+            return new BootAppItem(element);
+        } else if (typeof element === "string") {
+            // providers
+            const item = new vscode.TreeItem(element);
+            item.iconPath = this.remoteAppManager.getIconPath(element) ?? vscode.ThemeIcon.Folder; /// TODO: custom icon?
+            item.collapsibleState = vscode.TreeItemCollapsibleState.Collapsed;
+            item.contextValue = `spring:remoteAppProvider+${element}`;
+            return item;
+        }
+        else {
+            // remote apps
+            const item = new vscode.TreeItem(element.name);
+            item.description = element.description;
+            item.iconPath = element.iconPath ?? new vscode.ThemeIcon("project");
+            item.contextValue = "spring:remoteApp";
+            if (element.group) {
+                item.contextValue += `+${element.group}`;
+            }
+            if (connectedProcessKeys().includes(processKey(element))) {
+                item.contextValue += "+running";
+            }
+            return item;
+        }
     }
-    getChildren(element?: BootApp | undefined): vscode.ProviderResult<BootApp[]> {
+    async getChildren(element?: TreeData | undefined): Promise<TreeData[]> {
         if (!element) {
-            return this.manager.getAppList();
+            const apps = this.manager.getAppList();
+            const providers = this.remoteAppManager.getProviderNames();
+            return [...apps, ...providers];
+        } else if (typeof element === "string") {
+            const remoteApps = await this.remoteAppManager.getRemoteApps(element);
+            return remoteApps;
         } else {
             return [];
         }
@@ -75,7 +117,6 @@ class LocalAppTreeProvider implements vscode.TreeDataProvider<BootApp> {
 
     public refresh(element: BootApp | undefined) {
         this.manager.fireDidChangeApps(element);
-
     }
 }
 
