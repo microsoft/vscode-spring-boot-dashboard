@@ -4,12 +4,13 @@
 'use strict';
 import * as vscode from 'vscode';
 import { dispose as disposeTelemetryWrapper, initialize, instrumentOperation, instrumentOperationAsVsCodeCommand } from "vscode-extension-telemetry-wrapper";
+import { apiManager } from './apiManager';
 import { BootApp } from './BootApp';
 import { getAiKey, getExtensionId, getExtensionVersion, loadPackageInfo } from './contextUtils';
 import { Controller } from './Controller';
 import { init as initLiveDataController } from './controllers/LiveDataController';
 import { initSymbols } from './controllers/SymbolsController';
-import { RemoteBootAppData, RemoteBootAppDataProvider, RemoteBootAppDataProviderOptions } from './extension.api';
+import { RemoteBootAppData } from './extension.api';
 import { dispose as disposeGutter, init as initGutter } from './gutter';
 import { requestWorkspaceSymbols } from './models/stsApi';
 import { navigateToLocation } from './models/symbols';
@@ -171,9 +172,8 @@ export async function initializeExtension(_oprationId: string, context: vscode.E
         await vscode.commands.executeCommand("sts/livedata/remoteConnect", item.name, []);
     }));
 
-    return {
-        registerRemoteBootAppDataProvider: (name: string, provider: RemoteBootAppDataProvider, options?: RemoteBootAppDataProviderOptions) => appsProvider.remoteAppManager.registerRemoteBootAppDataProvider(name, provider, options)
-    }
+    apiManager.initialize();
+    return apiManager.getApiInstance();
 }
 
 // this method is called when your extension is deactivated

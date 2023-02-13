@@ -1,4 +1,4 @@
-import { Uri, ThemeIcon } from "vscode";
+import { Event, EventEmitter, ThemeIcon, Uri } from "vscode";
 import { RemoteBootAppDataProvider, RemoteBootAppDataProviderOptions } from "./extension.api";
 
 class RemoteAppProviderRegistryEntry {
@@ -34,8 +34,14 @@ class RemoteAppProviderRegistryEntry {
 export class RemoteAppManager {
 
     registry: Map<string, RemoteAppProviderRegistryEntry>;
+    emitter: EventEmitter<string>;
+
+    public onDidProviderDataChange: Event<string>;
+
     constructor() {
         this.registry = new Map();
+        this.emitter = new EventEmitter();
+        this.onDidProviderDataChange = this.emitter.event;
     }
 
     public registerRemoteBootAppDataProvider(providerName: string, provider: RemoteBootAppDataProvider, options?: RemoteBootAppDataProviderOptions) {
@@ -47,6 +53,12 @@ export class RemoteAppManager {
             entry = new RemoteAppProviderRegistryEntry(providerName, provider, options);
         }
         this.registry.set(providerName, entry);
+
+        if (provider.onDidChangeData) {
+            provider.onDidChangeData(() => {
+                this.emitter.fire(providerName);
+            })
+        }
     }
 
     public getProviderNames(): string[] {

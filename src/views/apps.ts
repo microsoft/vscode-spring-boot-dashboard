@@ -61,12 +61,18 @@ class LocalAppTreeProvider implements vscode.TreeDataProvider<TreeData> {
 
     public manager: BootAppManager;
     public remoteAppManager: RemoteAppManager;
-    public readonly onDidChangeTreeData: vscode.Event<BootApp | undefined>;
+    private emitter: vscode.EventEmitter<TreeData | undefined>;
+    public readonly onDidChangeTreeData: vscode.Event<TreeData | undefined>;
 
     constructor() {
         this.remoteAppManager = new RemoteAppManager();
         this.manager = new BootAppManager();
-        this.onDidChangeTreeData = this.manager.onDidChangeApps;
+        this.emitter = new vscode.EventEmitter<TreeData | undefined>();
+
+        this.onDidChangeTreeData = this.emitter.event;
+        this.manager.onDidChangeApps(e => this.emitter.fire(e));
+        this.remoteAppManager.onDidProviderDataChange(e => this.emitter.fire(e));
+
         this.manager.fireDidChangeApps(undefined);
     }
 
