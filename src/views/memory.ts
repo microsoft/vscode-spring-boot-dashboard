@@ -305,71 +305,59 @@ class MemoryProvider implements WebviewViewProvider {
         }
     }
 
-    public refreshLiveGcPausesMetrics(liveProcess: LocalLiveProcess, gcPausesMetricsDataRaw: Metrics[] | undefined) {
-        if (gcPausesMetricsDataRaw === undefined) {
+    /**
+     *
+     * @param liveProcess
+     * @param category
+     * @param metricsRaw value of metrics.
+     * - empty array: initialize.
+     * - non-empty array: valid data.
+     * - undefined: remove on disconnected.
+     * @returns
+     */
+    public refreshLiveMetrics(liveProcess: LocalLiveProcess, category: "heap" | "non-heap" | "gc-pauses", metricsRaw: Metrics[] | undefined) {
+        let store;
+        switch (category) {
+            case "heap":
+                store = this.storeHeapMemoryMetrics;
+                break;
+            case "non-heap":
+                store = this.storeNonHeapMemoryMetrics;
+                break;
+            case "gc-pauses":
+                store = this.storeGcPausesMetrics;
+                break;
+            default:
+        }
+        if (!store) {
+            return;
+        }
+
+        if (metricsRaw === undefined) {
             // remove
-            const targetLiveProcess = Array.from(this.storeGcPausesMetrics.keys()).find(lp => lp.processKey === liveProcess.processKey);
+            const targetLiveProcess = Array.from(store.keys()).find(lp => lp.processKey === liveProcess.processKey);
             if (targetLiveProcess) {
-                this.storeGcPausesMetrics.delete(targetLiveProcess);
+                store.delete(targetLiveProcess);
                 this.removeLiveProcessInfo(targetLiveProcess);
             }
-        } else if (gcPausesMetricsDataRaw !== null) {
-            // add/update
-            const targetLiveProcess = Array.from(this.storeGcPausesMetrics.keys()).find(lp => lp.processKey === liveProcess.processKey) ?? new LiveProcess(liveProcess);
-            const gcPausesMetrics = gcPausesMetricsDataRaw.map(raw => parseMetrticsData(liveProcess.processKey, raw));
-            if (this.storeGcPausesMetrics.get(targetLiveProcess) === undefined) {
+        } else if (metricsRaw?.length === 0) {
+            // add
+            const targetLiveProcess = Array.from(store.keys()).find(lp => lp.processKey === liveProcess.processKey) ?? new LiveProcess(liveProcess);
+            if (!store.has(targetLiveProcess)) {
                 this.addLiveProcessInfo(targetLiveProcess);
-                this.storeGcPausesMetrics.set(targetLiveProcess, [gcPausesMetrics]);
-            } else {
-                const metrics = this.storeGcPausesMetrics.get(targetLiveProcess);
-                this.removeOldData(metrics, gcPausesMetrics);
+                store.set(targetLiveProcess, []);
+            }
+        } else {
+            // update
+            const targetLiveProcess = Array.from(store.keys()).find(lp => lp.processKey === liveProcess.processKey);
+            if (targetLiveProcess && store.has(targetLiveProcess)) {
+                const latestMetrics = metricsRaw.map(raw => parseMetrticsData(liveProcess.processKey, raw));
+                const metrics = store.get(targetLiveProcess);
+                this.removeOldData(metrics, latestMetrics);
             }
         }
     }
 
-    public refreshLiveHeapMemoryMetrics(liveProcess: LocalLiveProcess, memoryMetricsDataRaw: Metrics[] | undefined) {
-        if (memoryMetricsDataRaw === undefined) {
-            // remove
-            const targetLiveProcess = Array.from(this.storeHeapMemoryMetrics.keys()).find(lp => lp.processKey === liveProcess.processKey);
-            if (targetLiveProcess) {
-                this.storeHeapMemoryMetrics.delete(targetLiveProcess);
-                this.removeLiveProcessInfo(targetLiveProcess);
-            }
-        } else if (memoryMetricsDataRaw.length !== null) {
-            // add/update
-            const targetLiveProcess = Array.from(this.storeHeapMemoryMetrics.keys()).find(lp => lp.processKey === liveProcess.processKey) ?? new LiveProcess(liveProcess);
-            const memoryMetrics = memoryMetricsDataRaw.map(raw => parseMetrticsData(liveProcess.processKey, raw));
-            if (this.storeHeapMemoryMetrics.get(targetLiveProcess) === undefined) {
-                this.addLiveProcessInfo(targetLiveProcess);
-                this.storeHeapMemoryMetrics.set(targetLiveProcess, [memoryMetrics]);
-            } else {
-                const metrics = this.storeHeapMemoryMetrics.get(targetLiveProcess);
-                this.removeOldData(metrics, memoryMetrics);
-            }
-        }
-    }
-
-    public refreshLiveNonHeapMemoryMetrics(liveProcess: LocalLiveProcess, memoryMetricsDataRaw: Metrics[] | undefined) {
-        if (memoryMetricsDataRaw === undefined) {
-            // remove
-            const targetLiveProcess = Array.from(this.storeNonHeapMemoryMetrics.keys()).find(lp => lp.processKey === liveProcess.processKey);
-            if (targetLiveProcess) {
-                this.storeNonHeapMemoryMetrics.delete(targetLiveProcess);
-                this.removeLiveProcessInfo(targetLiveProcess);
-            }
-        } else if (memoryMetricsDataRaw.length !== null) {
-            // add/update
-            const targetLiveProcess = Array.from(this.storeNonHeapMemoryMetrics.keys()).find(lp => lp.processKey === liveProcess.processKey) ?? new LiveProcess(liveProcess);
-            const memoryMetrics = memoryMetricsDataRaw.map(raw => parseMetrticsData(liveProcess.processKey, raw));
-            if (this.storeNonHeapMemoryMetrics.get(targetLiveProcess) === undefined) {
-                this.addLiveProcessInfo(targetLiveProcess);
-                this.storeNonHeapMemoryMetrics.set(targetLiveProcess, [memoryMetrics]);
-            } else {
-                const metrics = this.storeNonHeapMemoryMetrics.get(targetLiveProcess);
-                this.removeOldData(metrics, memoryMetrics);
-            }
-        }
-    }
 }
 export const memoryProvider = new MemoryProvider();
 

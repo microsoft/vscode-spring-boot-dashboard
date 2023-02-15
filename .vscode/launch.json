@@ -10,6 +10,7 @@
             "type": "extensionHost",
             "request": "launch",
             "runtimeExecutable": "${execPath}",
+            "debugWebviews": true,
             "args": [
                 "${workspaceFolder}/test/projects/spring-petclinic",
                 "--extensionDevelopmentPath=${workspaceFolder}"
@@ -17,7 +18,14 @@
             "outFiles": [
                 "${workspaceFolder}/out/**/*.js"
             ],
-            "preLaunchTask": "npm: watch"
+            "preLaunchTask": "npm: watch",
+            "rendererDebugOptions": {
+                "webRoot": "${workspaceFolder}/resources/webview-ui",
+                "urlFilter": "*vscjava.vscode-spring-boot-dashboard*"
+            },
+            "env": {
+                "DEBUG_TELEMETRY": "true"
+            }
         },
         {
             "name": "Extension<gs-rest-service>",
