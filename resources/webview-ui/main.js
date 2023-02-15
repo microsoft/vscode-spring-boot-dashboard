@@ -12,7 +12,7 @@ function main() {
   const processSelection = document.getElementById("process");
   processSelection.addEventListener("change", changeGraphDisplay);
 
-  if(processSelection.options.length === 0) {
+  if (processSelection.options.length === 0) {
     vscode.postMessage({
       command: "LoadProcess",
       text: "Load process list",
@@ -42,7 +42,7 @@ function loadInitialGraph() {
 
 function loadMetrics() {
   const processKey = document.getElementById("process").value;
-  if(processKey !== '' || processKey !== undefined) {
+  if (processKey !== '' || processKey !== undefined) {
     vscode.postMessage({
       command: "LoadMetrics",
       text: "Load metrics for the graph",
@@ -55,7 +55,7 @@ function fetchGraphData() {
   const selection = document.getElementById("graphType");
   const graphType = selection.options[selection.selectedIndex].text;
   const processKey = document.getElementById("process").value;
-  if(selection !== "" && processKey !== "") {
+  if (selection !== "" && processKey !== "") {
     vscode.postMessage({
       command: "FetchData",
       text: "Fetch data to plot the graph",
@@ -69,7 +69,7 @@ function changeGraphDisplay() {
   let chartStatus = Chart.getChart("chart");
   fetchGraphData();
   if (chartStatus !== undefined) {
-      chartStatus.destroy();
+    chartStatus.destroy();
   }
 }
 
@@ -109,25 +109,25 @@ function setVSCodeMessageListener() {
 }
 
 function displayProcess(process) {
-  if(process !== '' && process !== undefined && Array.isArray(process)) {
+  if (process !== '' && process !== undefined && Array.isArray(process)) {
     const processList = document.getElementById("process");
     for (let proc of process) {
       var processKey = window.btoa(proc.processKey);
-      processList.insertAdjacentHTML("beforeend",`<vscode-option id="${processKey}" value="${processKey}">${proc.appName} (pid: ${proc.pid})</vscode-option>`);
+      processList.insertAdjacentHTML("beforeend", `<vscode-option id="${processKey}" value="${processKey}">${proc.appName} (pid: ${proc.pid})</vscode-option>`);
     }
   }
 }
 
 function removeProcess(processKey) {
-  if(processKey !== '' || processKey !== undefined) {
+  if (processKey !== '' || processKey !== undefined) {
     var key = window.btoa(processKey);
     const option = document.getElementById(key);
     option.remove(option.index);
     const currentSelection = document.getElementById("process").value;
     let chartStatus = Chart.getChart("chart");
     if (chartStatus !== undefined && currentSelection === key) {
-        chartStatus.destroy();
-        loadInitialGraph();
+      chartStatus.destroy();
+      loadInitialGraph();
     }
   }
 }
@@ -137,7 +137,7 @@ function getMemoryData(data, memoryZones) {
     time: data[0].time
   };
   (memoryZones).forEach((zone, i) => {
-      dataPoint[zone] = data[++i].measurements?.[0].value / 1_000_000;
+    dataPoint[zone] = data[++i].measurements?.[0].value / 1_000_000;
   });
   dataPoint["committed"] = data[data.length - 2].measurements?.[0].value / 1_000_000;
   dataPoint["max"] = data[data.length - 1].measurements?.[0].value / 1_000_000;
@@ -151,7 +151,7 @@ function displayGraphData(graphData) {
     case "Heap Memory":
       var memoryZones = graphData[0][0].availableTags?.[0].values;
       var dataPoints = graphData.map(data => getMemoryData(data, memoryZones));
-      plotMemoryGraph(dataPoints, memoryZones, graphType );
+      plotMemoryGraph(dataPoints, memoryZones, graphType);
       break;
     case "Non Heap Memory":
       var memoryZones = graphData[0][0].availableTags?.[0].values;
@@ -159,13 +159,13 @@ function displayGraphData(graphData) {
       plotMemoryGraph(dataPoints, memoryZones, graphType);
       break;
     case "Gc Pauses":
-      var extraData = {label: 'Max', prop: 'MAX', unit: 'ms'};
+      var extraData = { label: 'Max', prop: 'MAX', unit: 'ms' };
       var unit = "ms/s";
       var label = "Duration"
       plotGcGraph(graphData, "Gc Pauses", extraData, unit, label);
       break;
     case "Garbage Collections":
-      var extraData = {label: 'Count', prop: 'TOTAL_TIME'};
+      var extraData = { label: 'Count', prop: 'TOTAL_TIME' };
       var label = "Count / second"
       plotGcGraph(graphData, "Garbage Collections", extraData, "", label);
       break;
@@ -176,28 +176,28 @@ function displayGraphData(graphData) {
 
 function currentUsedMemory(zones, graphData) {
   return zones
-      .map((z) => graphData[z])
-      .reduce((v, a) => a + v, 0);
+    .map((z) => graphData[z])
+    .reduce((v, a) => a + v, 0);
 }
 
 function showMetrics(zones, graphData) {
-  return `Size `+ Math.round(graphData[0]["committed"]) + ` MB`
-   +` / `+ `Used `+ Math.round(currentUsedMemory(zones, graphData[0])) + ` MB`
-   +` / `+ `Max `+ Math.round(graphData[0]["max"])+ ` MB`;
+  return `Size ` + Math.round(graphData[0]["committed"]) + ` MB`
+    + ` / ` + `Used ` + Math.round(currentUsedMemory(zones, graphData[0])) + ` MB`
+    + ` / ` + `Max ` + Math.round(graphData[0]["max"]) + ` MB`;
 }
 
 function setMemoryData(chart, dataPoints, zones) {
   const labels = chart.labels;
   var sets = chart.datasets.length;
-    dataPoints.map((d) => {
-      if(!labels.includes(d.time)) {
-        labels.push(d.time);
-        zones.forEach((zone, i) => {
-          chart.datasets[i].data.push(d[zone]);
-        });
-        chart.datasets[sets -1].data.push(d["committed"]);
-      }
-    })
+  dataPoints.map((d) => {
+    if (!labels.includes(d.time)) {
+      labels.push(d.time);
+      zones.forEach((zone, i) => {
+        chart.datasets[i].data.push(d[zone]);
+      });
+      chart.datasets[sets - 1].data.push(d["committed"]);
+    }
+  })
 }
 
 function getLabels(data) {
@@ -261,42 +261,42 @@ function plotMemoryGraph(graphData, zones, graphType) {
           labelOffset: -5,
         }
       }
-   },
+    },
     plugins: {
       title: {
         display: true,
         position: "top",
         text: [graphType, showMetrics(zones, graphData)]
       },
-    tooltip: {
-      mode: 'index',
-      itemSort: function(a, b) {
-        return b.datasetIndex - a.datasetIndex
+      tooltip: {
+        mode: 'index',
+        itemSort: function (a, b) {
+          return b.datasetIndex - a.datasetIndex
+        },
       },
-    },
-    interaction: {
-      mode: 'nearest',
-      axis: 'x',
-      intersect: false,
-    },
-    legend: {
-      display: true,
-      position: "bottom",
-      labels: {
-        boxHeight: 0,
-        boxWidth: 15
+      interaction: {
+        mode: 'nearest',
+        axis: 'x',
+        intersect: false,
+      },
+      legend: {
+        display: true,
+        position: "bottom",
+        labels: {
+          boxHeight: 0,
+          boxWidth: 15
+        }
       }
-    }
-  },
+    },
   };
   let chartStatus = Chart.getChart("chart");
   if (chartStatus === undefined) {
-      var memChart = new Chart(ctx, {
-        type: 'line',
-        data: data,
-        options: options
-      });
-      memChart.data.labels.shift();
+    var memChart = new Chart(ctx, {
+      type: 'line',
+      data: data,
+      options: options
+    });
+    memChart.data.labels.shift();
   }
   var chart = Chart.getChart("chart");
 
@@ -304,7 +304,7 @@ function plotMemoryGraph(graphData, zones, graphType) {
 
   setMemoryData(chart.data, graphData, zones);
 
-  while(datapoints >= maxDataPoints) {
+  while (datapoints >= maxDataPoints) {
     chart.data.labels.shift();
     chart.data.datasets.forEach((d) => {
       d.data.shift();
@@ -317,34 +317,33 @@ function plotMemoryGraph(graphData, zones, graphType) {
 
 
 function formula(next, prev, type) {
-  if(type === "Gc Pauses")
-   {
+  if (type === "Gc Pauses") {
     return next.count < prev.count ? 1000 * (next.total - prev.total) / (next.count - prev.count) : 0;
-   }
+  }
   return next.count - prev.count;
 }
 
 function showGcMetrics(unit, extraData, data) {
-  return extraData.label +': '+ Math.round(data[0].measurements.find(x => x.statistic === extraData.prop)?.value) + unit;
+  return extraData.label + ': ' + Math.round(data[0].measurements.find(x => x.statistic === extraData.prop)?.value) + unit;
 }
 
-function setGcPausesData(chart, dataPoints , type) {
+function setGcPausesData(chart, dataPoints, type) {
   const labels = chart.labels;
 
 
   dataPoints.map((d) => {
-    if(!labels.includes(d[0].time)) {
+    if (!labels.includes(d[0].time)) {
       const prev = chart.datasets[0].prevMeasurement;
       labels.push(d[0].time);
       if (prev) {
         var dataPoint = getGcPausesData(d[0]);
         const pt = {
-            time: d[0].time,
-            gc: formula(dataPoint, prev, type)
+          time: d[0].time,
+          gc: formula(dataPoint, prev, type)
         }
         chart.datasets[0].prevMeasurement = dataPoint;
         chart.datasets[0].data.push(pt);
-     }
+      }
     }
   })
 }
@@ -392,46 +391,46 @@ function plotGcGraph(graphData, type, extraData, unit, label) {
           labelOffset: -5
         }
       }
-   },
-   plugins: {
-    title: {
-      display: true,
-      position: "top",
-      text: ['Gc Pauses', showGcMetrics(unit, extraData, graphData[0])]
     },
-   tooltip: {
-    mode: 'index'
-   },
-   interaction: {
-    mode: 'nearest',
-    axis: 'x',
-    intersect: false,
-  },
-  legend: {
-    display: true,
-    position: "bottom",
-    labels: {
-      boxHeight: 0,
-      boxWidth: 15
-    }
-  }
- },
+    plugins: {
+      title: {
+        display: true,
+        position: "top",
+        text: ['Gc Pauses', showGcMetrics(unit, extraData, graphData[0])]
+      },
+      tooltip: {
+        mode: 'index'
+      },
+      interaction: {
+        mode: 'nearest',
+        axis: 'x',
+        intersect: false,
+      },
+      legend: {
+        display: true,
+        position: "bottom",
+        labels: {
+          boxHeight: 0,
+          boxWidth: 15
+        }
+      }
+    },
   };
   let chartStatus = Chart.getChart("chart");
   if (chartStatus === undefined) {
-      var gcChart = new Chart(ctx, {
-        type: 'line',
-        data: data,
-        options: options
-      });
+    var gcChart = new Chart(ctx, {
+      type: 'line',
+      data: data,
+      options: options
+    });
 
-      var gcPause = {
-        total: graphData[0][0].measurements.find(x => x.statistic === 'TOTAL_TIME')?.value,
-        count: graphData[0][0].measurements.find(x => x.statistic === 'COUNT')?.value,
-        max: graphData[0][0].measurements.find(x => x.statistic === 'MAX')?.value
-      }
-      gcChart.data.datasets[0].prevMeasurement= gcPause
-      gcChart.data.labels.shift();
+    var gcPause = {
+      total: graphData[0][0].measurements.find(x => x.statistic === 'TOTAL_TIME')?.value,
+      count: graphData[0][0].measurements.find(x => x.statistic === 'COUNT')?.value,
+      max: graphData[0][0].measurements.find(x => x.statistic === 'MAX')?.value
+    }
+    gcChart.data.datasets[0].prevMeasurement = gcPause
+    gcChart.data.labels.shift();
   }
 
   var chart = Chart.getChart("chart");
@@ -440,7 +439,7 @@ function plotGcGraph(graphData, type, extraData, unit, label) {
 
   setGcPausesData(chart.data, graphData, type);
 
-  while(datapoints >= maxDataPoints) {
+  while (datapoints >= maxDataPoints) {
     chart.data.labels.shift();
     chart.data.datasets[0].data.shift();
     datapoints = datapoints - 1;
