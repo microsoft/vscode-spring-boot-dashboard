@@ -82,22 +82,22 @@ class LocalAppTreeProvider implements vscode.TreeDataProvider<TreeData> {
         } else if (typeof element === "string") {
             // providers
             const item = new vscode.TreeItem(element);
-            item.iconPath = this.remoteAppManager.getIconPath(element) ?? vscode.ThemeIcon.Folder; /// TODO: custom icon?
-            item.collapsibleState = vscode.TreeItemCollapsibleState.Collapsed;
+            item.iconPath = this.remoteAppManager.getIconPath(element) ?? vscode.ThemeIcon.Folder;
+            item.collapsibleState = vscode.TreeItemCollapsibleState.Expanded;
             item.contextValue = `spring:remoteAppProvider+${element}`;
             return item;
         }
         else {
             // remote apps
             const item = new vscode.TreeItem(element.name);
-            item.description = element.description;
             item.iconPath = element.iconPath ?? new vscode.ThemeIcon("project");
             item.contextValue = "spring:remoteApp";
             if (element.group) {
                 item.contextValue += `+${element.group}`;
             }
             if (connectedProcessKeys().includes(processKey(element))) {
-                item.contextValue += "+running";
+                item.contextValue += "+connected";
+                item.description = "connected";
             }
             return item;
         }

@@ -477,13 +477,23 @@
         },
         {
           "command": "spring.remoteApp.connect",
-          "when": "view == spring.apps && viewItem =~ /^spring:remoteApp\\b(?!.*?\\b\\+running\\b)/",
+          "when": "view == spring.apps && viewItem =~ /^spring:remoteApp\\b(?!.*?\\b\\+connected\\b)/",
           "group": "inline@a"
         },
         {
+          "command": "spring.remoteApp.connect",
+          "when": "view == spring.apps && viewItem =~ /^spring:remoteApp\\b(?!.*?\\b\\+connected\\b)/",
+          "group": "action@a"
+        },
+        {
           "command": "spring.remoteApp.disconnect",
-          "when": "view == spring.apps && viewItem =~ /^spring:remoteApp\\b(?=.*?\\b\\+running\\b)/",
+          "when": "view == spring.apps && viewItem =~ /^spring:remoteApp\\b(?=.*?\\b\\+connected\\b)/",
           "group": "inline@d"
+        },
+        {
+          "command": "spring.remoteApp.disconnect",
+          "when": "view == spring.apps && viewItem =~ /^spring:remoteApp\\b(?=.*?\\b\\+connected\\b)/",
+          "group": "action@d"
         }
       ]
     },
