@@ -22,6 +22,9 @@
             "rendererDebugOptions": {
                 "webRoot": "${workspaceFolder}/resources/webview-ui",
                 "urlFilter": "*vscjava.vscode-spring-boot-dashboard*"
+            },
+            "env": {
+                "DEBUG_TELEMETRY": "true"
             }
         },
         {

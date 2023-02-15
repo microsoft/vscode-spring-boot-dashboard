@@ -305,6 +305,16 @@ class MemoryProvider implements WebviewViewProvider {
         }
     }
 
+    /**
+     *
+     * @param liveProcess
+     * @param category
+     * @param metricsRaw value of metrics.
+     * - empty array: initialize.
+     * - non-empty array: valid data.
+     * - undefined: remove on disconnected.
+     * @returns
+     */
     public refreshLiveMetrics(liveProcess: LocalLiveProcess, category: "heap" | "non-heap" | "gc-pauses", metricsRaw: Metrics[] | undefined) {
         let store;
         switch (category) {
@@ -330,19 +340,21 @@ class MemoryProvider implements WebviewViewProvider {
                 store.delete(targetLiveProcess);
                 this.removeLiveProcessInfo(targetLiveProcess);
             }
-        } else if (metricsRaw !== null) {
-            // add/update
+        } else if (metricsRaw?.length === 0) {
+            // add
             const targetLiveProcess = Array.from(store.keys()).find(lp => lp.processKey === liveProcess.processKey) ?? new LiveProcess(liveProcess);
-            const gcPausesMetrics = metricsRaw.map(raw => parseMetrticsData(liveProcess.processKey, raw));
-            if (store.get(targetLiveProcess) === undefined) {
+            if (!store.has(targetLiveProcess)) {
                 this.addLiveProcessInfo(targetLiveProcess);
-                store.set(targetLiveProcess, [gcPausesMetrics]);
-            } else {
-                const metrics = store.get(targetLiveProcess);
-                this.removeOldData(metrics, gcPausesMetrics);
+                store.set(targetLiveProcess, []);
             }
         } else {
-            console.log(metricsRaw);
+            // update
+            const targetLiveProcess = Array.from(store.keys()).find(lp => lp.processKey === liveProcess.processKey);
+            if (targetLiveProcess && store.has(targetLiveProcess)) {
+                const latestMetrics = metricsRaw.map(raw => parseMetrticsData(liveProcess.processKey, raw));
+                const metrics = store.get(targetLiveProcess);
+                this.removeOldData(metrics, latestMetrics);
+            }
         }
     }
 

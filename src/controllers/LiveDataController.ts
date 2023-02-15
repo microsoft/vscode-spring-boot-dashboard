@@ -64,7 +64,9 @@ async function updateProcessInfo(payload: string | LocalLiveProcess) {
     appsProvider.refresh(undefined);
 
     // memory view
-    // memoryProvider.refreshLiveMetrics(liveProcess, "heap", []);
+    memoryProvider.refreshLiveMetrics(liveProcess, "heap", []);
+    memoryProvider.refreshLiveMetrics(liveProcess, "non-heap", []);
+    memoryProvider.refreshLiveMetrics(liveProcess, "gc-pauses", []);
 }
 
 async function updateProcessGcPausesMetrics(payload: string | LocalLiveProcess) {
@@ -74,7 +76,6 @@ async function updateProcessGcPausesMetrics(payload: string | LocalLiveProcess) 
     const gcPauses = await getGcPausesMetrics(processKey);
     if (gcPauses) {
         memoryProvider.refreshLiveMetrics(liveProcess, "gc-pauses", gcPauses);
-        store.data.set(processKey, { gcPauses });
     }
 }
 
@@ -85,11 +86,14 @@ async function updateProcessMemoryMetrics(payload: string | LocalLiveProcess) {
     const heapMemMetrics = await getMemoryMetrics(processKey, "heapMemory");
     const nonHeapMemMetrics = await getMemoryMetrics(processKey, "nonHeapMemory");
 
+    if (!store.data.has(processKey)) {
+        return;
+    }
+
     if (heapMemMetrics || nonHeapMemMetrics) {
         await vscode.commands.executeCommand("setContext", "spring.memoryGraphs:hasLiveProcess", liveProcess !== undefined);
         memoryProvider.refreshLiveMetrics(liveProcess, "heap", heapMemMetrics);
         memoryProvider.refreshLiveMetrics(liveProcess, "non-heap", nonHeapMemMetrics);
-        store.data.set(processKey, { heapMemMetrics, nonHeapMemMetrics });
     }
 }
 
