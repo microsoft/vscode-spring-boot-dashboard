@@ -1,5 +1,5 @@
-import { Event, EventEmitter, ThemeIcon, Uri } from "vscode";
-import { RemoteBootAppDataProvider, RemoteBootAppDataProviderOptions } from "./extension.api";
+import { commands, Event, EventEmitter, ThemeIcon, Uri } from "vscode";
+import { RemoteBootAppData, RemoteBootAppDataProvider, RemoteBootAppDataProviderOptions } from "./extension.api";
 
 class RemoteAppProviderRegistryEntry {
     public name: string;
@@ -81,4 +81,12 @@ export class RemoteAppManager {
     public getIconPath(providerName: string): string | ThemeIcon | Uri | { light: string | Uri; dark: string | Uri; } | undefined {
         return this.registry.get(providerName)?.iconPath;
     }
+}
+
+export async function connectRemoteApp(appData: RemoteBootAppData) {
+    await commands.executeCommand("sts/livedata/remoteConnect", appData.name, [appData]);
+}
+
+export async function disconnectRemoteApp(appData: RemoteBootAppData) {
+    await commands.executeCommand("sts/livedata/remoteConnect", appData.name, []);
 }

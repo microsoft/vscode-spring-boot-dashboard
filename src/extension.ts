@@ -10,11 +10,11 @@ import { getAiKey, getExtensionId, getExtensionVersion, loadPackageInfo } from '
 import { Controller } from './Controller';
 import { init as initLiveDataController } from './controllers/LiveDataController';
 import { initSymbols } from './controllers/SymbolsController';
-import { RemoteBootAppData } from './extension.api';
 import { dispose as disposeGutter, init as initGutter } from './gutter';
 import { requestWorkspaceSymbols } from './models/stsApi';
 import { navigateToLocation } from './models/symbols';
 import { showBeanHierarchy, showDependencies, showInjectedInto } from './references-view';
+import { connectRemoteApp, disconnectRemoteApp } from './RemoteAppManager';
 import { showFilterInView } from './utils';
 import { appsProvider } from './views/apps';
 import { beansProvider, openBeanHandler } from './views/beans';
@@ -165,12 +165,8 @@ export async function initializeExtension(_oprationId: string, context: vscode.E
      * connect: sts/livedata/remoteConnect(owner: string, apps: {host: string, jmxurl: string}[])
      * disconnect: sts/livedata/remoteConnect(owner: string, <emptyArray>)
      */
-    context.subscriptions.push(instrumentOperationAsVsCodeCommand("spring.remoteApp.connect", async (item: RemoteBootAppData) => {
-        await vscode.commands.executeCommand("sts/livedata/remoteConnect", item.name, [item]);
-    }));
-    context.subscriptions.push(instrumentOperationAsVsCodeCommand("spring.remoteApp.disconnect", async (item: RemoteBootAppData) => {
-        await vscode.commands.executeCommand("sts/livedata/remoteConnect", item.name, []);
-    }));
+    context.subscriptions.push(instrumentOperationAsVsCodeCommand("spring.remoteApp.connect", connectRemoteApp));
+    context.subscriptions.push(instrumentOperationAsVsCodeCommand("spring.remoteApp.disconnect", disconnectRemoteApp));
 
     apiManager.initialize();
     return apiManager.getApiInstance();

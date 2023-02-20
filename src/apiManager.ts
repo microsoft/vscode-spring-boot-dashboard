@@ -1,4 +1,5 @@
 import { ExtensionAPI } from "./extension.api";
+import { connectRemoteApp, disconnectRemoteApp } from "./RemoteAppManager";
 import { appsProvider } from "./views/apps";
 
 class ApiManager {
@@ -9,7 +10,9 @@ class ApiManager {
         this.api = {
             registerRemoteBootAppDataProvider(providerName, provider, options) {
                 appsProvider.remoteAppManager.registerRemoteBootAppDataProvider(providerName, provider, options)
-            }
+            },
+            connectRemoteApp,
+            disconnectRemoteApp
         };
     }
 

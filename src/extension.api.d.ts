@@ -5,6 +5,8 @@ import { Event, ThemeIcon, Uri } from "vscode";
 
 export interface ExtensionAPI {
     registerRemoteBootAppDataProvider: (providerName: string, provider: RemoteBootAppDataProvider, options?: RemoteBootAppDataProviderOptions) => void;
+    connectRemoteApp: (appData: RemoteBootAppData) => void;
+    disconnectRemoteApp: (appData: RemoteBootAppData) => void;
 }
 
 export interface RemoteBootAppData {
