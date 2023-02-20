@@ -180,10 +180,11 @@
       .reduce((v, a) => a + v, 0);
   }
 
-  function showMetrics(zones, graphData) {
-    return `Size ` + Math.round(graphData[0]["committed"]) + ` MB`
-      + ` / ` + `Used ` + Math.round(currentUsedMemory(zones, graphData[0])) + ` MB`
-      + ` / ` + `Max ` + Math.round(graphData[0]["max"]) + ` MB`;
+  function getMetricsOverview(zones, graphData) {
+    const lastData = graphData[graphData.length - 1];
+    return `Size ` + Math.round(lastData["committed"]) + ` MB`
+      + ` / ` + `Used ` + Math.round(currentUsedMemory(zones, lastData)) + ` MB`
+      + ` / ` + `Max ` + Math.round(lastData["max"]) + ` MB`;
   }
 
   function setMemoryData(chart, dataPoints, zones) {
@@ -266,7 +267,7 @@
         title: {
           display: true,
           position: "top",
-          text: [graphType, showMetrics(zones, graphData)]
+          text: [graphType, getMetricsOverview(zones, graphData)]
         },
         tooltip: {
           mode: 'index',
@@ -302,6 +303,8 @@
 
     var datapoints = chart.data.datasets[0].data.length;
 
+    // update title
+    chart.options.plugins.title.text = [graphType, getMetricsOverview(zones, graphData)];
     setMemoryData(chart.data, graphData, zones);
 
     while (datapoints >= maxDataPoints) {
@@ -323,13 +326,13 @@
     return next.count - prev.count;
   }
 
-  function showGcMetrics(unit, extraData, data) {
-    return extraData.label + ': ' + Math.round(data[0].measurements.find(x => x.statistic === extraData.prop)?.value) + unit;
+  function getGcMetricsOverview(unit, extraData, data) {
+    const lastData = data[data.length - 1];
+    return extraData.label + ': ' + Math.round(lastData.measurements.find(x => x.statistic === extraData.prop)?.value) + unit;
   }
 
   function setGcPausesData(chart, dataPoints, type) {
     const labels = chart.labels;
-
 
     dataPoints.map((d) => {
       if (!labels.includes(d[0].time)) {
@@ -396,7 +399,7 @@
         title: {
           display: true,
           position: "top",
-          text: ['Gc Pauses', showGcMetrics(unit, extraData, graphData[0])]
+          text: ['Gc Pauses', getGcMetricsOverview(unit, extraData, graphData[0])]
         },
         tooltip: {
           mode: 'index'
@@ -437,6 +440,8 @@
 
     var datapoints = chart.data.datasets[0].data.length;
 
+    // update title
+    chart.options.plugins.title.text = ['Gc Pauses', getGcMetricsOverview(unit, extraData, graphData[0])];
     setGcPausesData(chart.data, graphData, type);
 
     while (datapoints >= maxDataPoints) {
