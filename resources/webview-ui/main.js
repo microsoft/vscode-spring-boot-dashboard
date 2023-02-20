@@ -182,9 +182,11 @@
 
   function getMetricsOverview(zones, graphData) {
     const lastData = graphData[graphData.length - 1];
-    return `Size ` + Math.round(lastData["committed"]) + ` MB`
-      + ` / ` + `Used ` + Math.round(currentUsedMemory(zones, lastData)) + ` MB`
-      + ` / ` + `Max ` + Math.round(lastData["max"]) + ` MB`;
+    return [
+      `Size ${Math.round(lastData["committed"])} MB`,
+      `Used ${Math.round(currentUsedMemory(zones, lastData))} MB`,
+      `Max ${Math.round(lastData["max"])} MB`
+    ].join(" / ");
   }
 
   function setMemoryData(chart, dataPoints, zones) {
@@ -199,11 +201,6 @@
         chart.datasets[sets - 1].data.push(d["committed"]);
       }
     })
-  }
-
-  function getLabels(data) {
-    var res = data.map(m => m.time);
-    return res;
   }
 
   function plotMemoryGraph(graphData, zones, graphType) {
@@ -222,7 +219,7 @@
       dataset.push({
         label: zone,
         stacked: true,
-        stack: "stack 0",
+        stack: "Used",
         backgroundColor: COLORS[i][0],
         borderColor: COLORS[i][1],
         fillColor: COLORS[i][0],
@@ -238,7 +235,7 @@
       backgroundColor: "#c9cbcf",
       borderColor: "#a0a1a3",
       fillColor: "#c9cbcf",
-      fill: true,
+      fill: false,
       data: []
     })
 
@@ -247,10 +244,15 @@
       datasets: dataset
     };
     var options = {
+      color: cssVar("--vscode-foreground"),
       animation: false,
       maintainAspectRatio: false,
       scales: {
-        x: {},
+        x: {
+          grid: {
+            display: false
+          }
+        },
         y: {
           suggestedMin: 0,
           suggestedMax: graphData["committed"],
@@ -260,6 +262,9 @@
             text: 'MB',
             padding: -2,
             labelOffset: -5,
+          },
+          grid: {
+            z: 100
           }
         }
       },
@@ -267,7 +272,8 @@
         title: {
           display: true,
           position: "top",
-          text: [graphType, getMetricsOverview(zones, graphData)]
+          text: [graphType, getMetricsOverview(zones, graphData)],
+          color: cssVar("--vscode-foreground")
         },
         tooltip: {
           mode: 'index',
@@ -286,7 +292,8 @@
           labels: {
             boxHeight: 0,
             boxWidth: 15
-          }
+          },
+          color: cssVar("--vscode-foreground")
         }
       },
     };
@@ -452,6 +459,10 @@
 
     chart.update();
 
+  }
+
+  function cssVar(name) {
+    return getComputedStyle(document.documentElement).getPropertyValue(name);
   }
 
 }())

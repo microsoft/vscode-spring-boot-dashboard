@@ -146,40 +146,38 @@ class MemoryProvider implements WebviewViewProvider {
         return /*html*/ `
                 <!DOCTYPE html>
                 <html lang="en">
-                    <head>
-                        <meta charset="UTF-8">
-                        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-                        ${this.generateContentSecurityPolicy()}
-                        <script type="module" src="${toolkitUri}"></script>
-                        <script type="module" src="${mainUri}"></script>
-                        <script src="${chartLibPath}"></script>
-                        <script src="${chartjsPath}"></script>
-                        <script src="${chartjsAdapterPath}"></script>
-                        <script src="${chartjsAdapterScipt}"></script>
-                        <script src="${momentLibPath}"></script>
-                        <script type="text/javascript"> var interval = ${this.interval}; </script>
-                        <script type="text/javascript"> var maxDataPoints = ${this.maxDataPoints}; </script>
-                        <link rel="stylesheet" href="${stylesUri}">
-                        <title>Weather Checker</title>
-                    </head>
-              <body style="padding: 10px">
-              <div class="chart-container" style="position: relative;" height="350">
-                <canvas id="chart" height="350"></canvas>
-              </div>
-              <section class="search-container">
-                <vscode-dropdown id="process">
-                </vscode-dropdown>
-              </section>
-              <br>
-              <section class="search-container">
-                <vscode-dropdown id="graphType">
-                  <vscode-option value="memory">Heap Memory</vscode-option>
-                  <vscode-option value="memory">Non Heap Memory</vscode-option>
-                  <vscode-option value="gcPauses">Gc Pauses</vscode-option>
-                  <vscode-option value="gcPauses">Garbage Collections</vscode-option>
-                </vscode-dropdown>
-              <br>
-               </body>
+                <head>
+                    <meta charset="UTF-8">
+                    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                    ${this.generateContentSecurityPolicy()}
+                    <script type="module" src="${toolkitUri}"></script>
+                    <script type="module" src="${mainUri}"></script>
+                    <script src="${chartLibPath}"></script>
+                    <script src="${chartjsPath}"></script>
+                    <script src="${chartjsAdapterPath}"></script>
+                    <script src="${chartjsAdapterScipt}"></script>
+                    <script src="${momentLibPath}"></script>
+                    <script type="text/javascript"> var interval = ${this.interval}; </script>
+                    <script type="text/javascript"> var maxDataPoints = ${this.maxDataPoints}; </script>
+                    <link rel="stylesheet" href="${stylesUri}" />
+                    <title>Weather Checker</title>
+                </head>
+                <body style="padding: 10px">
+                    <div class="chart-container" style="position: relative;" height="350">
+                        <canvas id="chart" height="350"></canvas>
+                    </div>
+                    <section class="search-container">
+                        <vscode-dropdown id="process"></vscode-dropdown>
+                    </section>
+                    <section class="search-container">
+                        <vscode-dropdown id="graphType">
+                            <vscode-option value="memory">Heap Memory</vscode-option>
+                            <vscode-option value="memory">Non Heap Memory</vscode-option>
+                            <vscode-option value="gcPauses">Gc Pauses</vscode-option>
+                            <vscode-option value="gcPauses">Garbage Collections</vscode-option>
+                        </vscode-dropdown>
+                    </section>
+                </body>
             </html>
             `;
     }
