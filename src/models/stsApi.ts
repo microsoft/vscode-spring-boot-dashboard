@@ -60,7 +60,7 @@ export async function getMappings(processKey: string) {
 }
 
 export async function getGcPausesMetrics(processKey: string) {
-    if(typeof stsApi?.getLiveProcessMetricsData === "function") {
+    if (typeof stsApi?.getLiveProcessMetricsData === "function") {
         return await stsApi.getLiveProcessMetricsData({
             processKey: processKey,
             endpoint: "metrics",
@@ -71,7 +71,7 @@ export async function getGcPausesMetrics(processKey: string) {
 }
 
 export async function getMemoryMetrics(processKey: string, memory: string) {
-    if(typeof stsApi?.getLiveProcessMetricsData === "function") {
+    if (typeof stsApi?.getLiveProcessMetricsData === "function") {
         return await stsApi.getLiveProcessMetricsData({
             processKey: processKey,
             endpoint: "metrics",
@@ -104,10 +104,12 @@ export async function getContextPath(processKey: string) {
  */
 export async function getUrlOfBeanType(beanType: string) {
     const bindingKey = `L${beanType.replace(/\./g, "/")};`;
-    const uriString = await vscode.commands.executeCommand<string>("sts.java.javadocHoverLink", {
-        bindingKey,
-        lookInOtherProjects: true
-    });
+    const uriString = await vscode.commands.executeCommand<string>("java.execute.workspaceCommand",
+        "sts.java.javadocHoverLink", {
+            bindingKey,
+            lookInOtherProjects: true
+        }
+    );
     return uriString;
 }
 
@@ -159,8 +161,8 @@ export async function requestWorkspaceSymbols(projectPath?: string): Promise<{
         const locationPrefix = vscode.Uri.file(sanitizeFilePath(projectPath)).toString();
         filter = `locationPrefix:${locationPrefix}?`;
     }
-    const beans = await stsApi?.client.sendRequest<any[]>("workspace/symbol", {"query": `${filter}@+`}) ?? [];
-    const mappings = await stsApi?.client.sendRequest<any[]>("workspace/symbol", {"query": `${filter}@/`}) ?? [];
+    const beans = await stsApi?.client.sendRequest<any[]>("workspace/symbol", { "query": `${filter}@+` }) ?? [];
+    const mappings = await stsApi?.client.sendRequest<any[]>("workspace/symbol", { "query": `${filter}@/` }) ?? [];
 
     return {
         beans,
