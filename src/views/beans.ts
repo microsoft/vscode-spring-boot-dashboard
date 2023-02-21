@@ -9,6 +9,7 @@ import { StaticBean } from "../models/StaticSymbolTypes";
 import { getBeanDetail, getUrlOfBeanType } from "../models/stsApi";
 import { locationEquals } from "../symbolUtils";
 import { LocalLiveProcess } from "../types/sts-api";
+import { BootAppItem } from "./items/BootAppItem";
 
 export class Bean {
     dependencies?: string[];
@@ -66,7 +67,7 @@ class BeansDataProvider implements vscode.TreeDataProvider<TreeData> {
         if (element instanceof LiveProcess) {
             const item = new vscode.TreeItem(element.appName);
             item.description = `pid: ${element.pid}`;
-            item.iconPath = new vscode.ThemeIcon("circle-filled", COLOR_LIVE);
+            item.iconPath = BootAppItem.RUNNING_ICON(); // TODO: should use customized icon based on connection type
             item.collapsibleState = vscode.TreeItemCollapsibleState.Expanded;
             item.contextValue = "liveProcess";
             return item;

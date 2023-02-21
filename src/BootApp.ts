@@ -6,6 +6,7 @@ import { requestWorkspaceSymbols } from "./models/stsApi";
 import { ClassPathData, MainClassData } from "./types/jdtls";
 import { isActuatorJarFile, isAlive } from "./utils";
 import { appsProvider } from "./views/apps";
+import { BootAppItem } from "./views/items/BootAppItem";
 
 export enum AppState {
     INACTIVE = 'inactive',
@@ -116,18 +117,13 @@ export class BootApp {
         return !!this.classpath.entries.find(e => isActuatorJarFile(e.path));
     }
 
-    public get iconPath(): vscode.ThemeIcon {
-        const green = new vscode.ThemeColor("charts.green");
+    public get iconPath(): vscode.ThemeIcon | { dark: string, light: string } {
         if (this.state === "running") {
-            if (this.isActuatorOnClasspath) {
-                return new vscode.ThemeIcon("circle-filled", green);
-            } else {
-                return new vscode.ThemeIcon("circle-outline", green);
-            }
+            return BootAppItem.RUNNING_ICON();
         } else if (this.state === "launching") {
             return new vscode.ThemeIcon("sync~spin");
         } else {
-            return new vscode.ThemeIcon("circle-outline");
+            return BootAppItem.STOPPED_ICON();
         }
     }
 
