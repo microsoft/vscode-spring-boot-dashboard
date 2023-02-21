@@ -8,54 +8,10 @@ import { connectedProcessKeys } from "../controllers/LiveDataController";
 import { RemoteBootAppData } from "../extension.api";
 import { RemoteAppManager } from "../RemoteAppManager";
 import { processKey } from "../utils";
+import { BootAppItem } from "./items/BootAppItem";
+import { WorkspaceFolderItem } from "./items/folders";
 
-class BootAppItem implements vscode.TreeItem {
-    public readonly _app: BootApp;
-
-    constructor(app: BootApp) {
-        this._app = app;
-    }
-
-    public get label(): string {
-        return this._app.name;
-    }
-
-    public get description(): string | undefined {
-        const list = [];
-        if (this._app.port) {
-            list.push(`:${this._app.port}`);
-        }
-        if (this._app.contextPath) {
-            list.push(this._app.contextPath);
-        }
-        if (list.length > 0) {
-            return `[${list.join(", ")}]`;
-        }
-        return undefined;
-    }
-
-    public get iconPath(): string | vscode.ThemeIcon {
-        const green = new vscode.ThemeColor("charts.green");
-        switch (this.state) {
-            case "running":
-                return new vscode.ThemeIcon("circle-filled", green);
-            case "launching":
-                return new vscode.ThemeIcon("sync~spin");
-            default:
-                return new vscode.ThemeIcon("circle-outline",);
-        }
-    }
-
-    public get state(): string {
-        return this._app.state;
-    }
-
-    public get contextValue(): string {
-        return `BootApp_${this._app.state}`;
-    }
-}
-
-type TreeData = BootApp | RemoteBootAppData | string /** for providers */;
+type TreeData = BootApp | RemoteBootAppData | WorkspaceFolderItem | string /** for providers */;
 
 class LocalAppTreeProvider implements vscode.TreeDataProvider<TreeData> {
 
@@ -79,6 +35,8 @@ class LocalAppTreeProvider implements vscode.TreeDataProvider<TreeData> {
     getTreeItem(element: TreeData): vscode.TreeItem | Thenable<vscode.TreeItem> {
         if (element instanceof BootApp) {
             return new BootAppItem(element);
+        } else if (element instanceof WorkspaceFolderItem) {
+            return element;
         } else if (typeof element === "string") {
             // providers
             const item = new vscode.TreeItem(element);
@@ -104,9 +62,14 @@ class LocalAppTreeProvider implements vscode.TreeDataProvider<TreeData> {
     }
     async getChildren(element?: TreeData | undefined): Promise<TreeData[]> {
         if (!element) {
-            const apps = this.manager.getAppList();
             const providers = this.remoteAppManager.getProviderNames();
-            return [...apps, ...providers];
+            if (providers.length > 0) {
+                return [new WorkspaceFolderItem(), ...providers]
+            } else {
+                return this.manager.getAppList();
+            }
+        } else if (element instanceof WorkspaceFolderItem) {
+            return this.manager.getAppList();
         } else if (typeof element === "string") {
             const remoteApps = await this.remoteAppManager.getRemoteApps(element);
             return remoteApps;

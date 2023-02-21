@@ -11,6 +11,7 @@ import { getContextPath, getPort } from "../models/stsApi";
 import { locationEquals } from "../symbolUtils";
 import { LocalLiveProcess } from "../types/sts-api";
 import { constructOpenUrl } from "../utils";
+import { BootAppItem } from "./items/BootAppItem";
 
 export class Endpoint {
     // raw
@@ -88,7 +89,7 @@ class MappingsDataProvider implements vscode.TreeDataProvider<TreeData> {
         if (element instanceof LiveProcess) {
             const item = new vscode.TreeItem(element.appName);
             item.description = `pid: ${element.pid}`;
-            item.iconPath = new vscode.ThemeIcon("circle-filled", new vscode.ThemeColor("charts.green"));
+            item.iconPath = BootAppItem.RUNNING_ICON();
             item.collapsibleState = vscode.TreeItemCollapsibleState.Expanded;
             item.contextValue = "liveProcess";
             return item;
