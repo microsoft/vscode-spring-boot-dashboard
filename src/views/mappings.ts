@@ -9,7 +9,7 @@ import { LiveProcess } from "../models/liveProcess";
 import { StaticEndpoint } from "../models/StaticSymbolTypes";
 import { getContextPath, getPort } from "../models/stsApi";
 import { locationEquals } from "../symbolUtils";
-import { LocalLiveProcess } from "../types/sts-api";
+import * as sts from "../types/sts-api";
 import { constructOpenUrl } from "../utils";
 import { BootAppItem } from "./items/BootAppItem";
 
@@ -193,7 +193,7 @@ class MappingsDataProvider implements vscode.TreeDataProvider<TreeData> {
         this.onDidRefreshMappings.fire(item);
     }
 
-    public refreshLive(liveProcess: LocalLiveProcess, mappingsRaw: any[] | undefined) {
+    public refreshLive(liveProcess: sts.LiveProcess, mappingsRaw: any[] | undefined) {
         if (mappingsRaw === undefined) {
             // remove
             const targetLiveProcess = Array.from(this.store.keys()).find(lp => lp.processKey === liveProcess.processKey);

@@ -8,7 +8,7 @@ import { LiveProcess } from "../models/liveProcess";
 import { StaticBean } from "../models/StaticSymbolTypes";
 import { getBeanDetail, getUrlOfBeanType } from "../models/stsApi";
 import { locationEquals } from "../symbolUtils";
-import { LocalLiveProcess } from "../types/sts-api";
+import * as sts from "../types/sts-api";
 import { BootAppItem } from "./items/BootAppItem";
 
 export class Bean {
@@ -201,7 +201,7 @@ class BeansDataProvider implements vscode.TreeDataProvider<TreeData> {
         this.onDidRefreshBeans.fire(item);
     }
 
-    public refreshLive(liveProcess: LocalLiveProcess, beanIds: string[] | undefined) {
+    public refreshLive(liveProcess: sts.LiveProcess, beanIds: string[] | undefined) {
         if (beanIds === undefined) {
             // remove
             const targetLiveProcess = Array.from(this.store.keys()).find(lp => lp.processKey === liveProcess.processKey);
