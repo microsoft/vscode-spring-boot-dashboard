@@ -33,6 +33,7 @@ class RemoteAppProviderRegistryEntry {
 
 export class RemoteAppManager {
 
+    apps: Map<string, RemoteBootAppData[]>;
     registry: Map<string, RemoteAppProviderRegistryEntry>;
     emitter: EventEmitter<string>;
 
@@ -41,6 +42,7 @@ export class RemoteAppManager {
     constructor() {
         this.registry = new Map();
         this.emitter = new EventEmitter();
+        this.apps = new Map();
         this.onDidProviderDataChange = this.emitter.event;
     }
 
@@ -75,11 +77,27 @@ export class RemoteAppManager {
                 ret.push(...apps);
             }
         }
+        // cache
+        this.apps.set(providerName, ret);
+        return ret;
+    }
+
+    public getAllRemoteApps() {
+        const ret = [];
+        for (const providerName of this.getProviderNames()) {
+            const apps = this.apps.get(providerName) ?? [];
+            ret.push(...apps);
+        }
         return ret;
     }
 
     public getIconPath(providerName: string): string | ThemeIcon | Uri | { light: string | Uri; dark: string | Uri; } | undefined {
         return this.registry.get(providerName)?.iconPath;
+    }
+
+    public getRemoteAppByHost(host: string) {
+        const apps = this.getAllRemoteApps();
+        return apps.find(a => a.host === host);
     }
 }
 

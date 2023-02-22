@@ -81,19 +81,20 @@ interface BeansQuery extends LiveProcessDataQuery {
  * Common information provided by all live process notifications, for all types
  * of events and for all types of processes.
  */
-export interface LiveProcess {
-	type: string;
+export interface LocalLiveProcess {
+	type: "local";
+	processKey: string;
+	processName: string;
+    pid: string;
+}
+
+export interface RemoteLiveProcess {
+    type: "remote";
 	processKey: string;
 	processName: string;
 }
 
-/**
- * Specialized interface for type 'local' LiveProcess.
- */
-export interface LocalLiveProcess extends LiveProcess {
-	type: "local";
-	pid: string;
-}
+export type LiveProcess = LocalLiveProcess | RemoteLiveProcess;
 
 interface MetricsQuery extends LiveProcessDataQuery {
     endpoint: "metrics";

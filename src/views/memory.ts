@@ -13,7 +13,7 @@ import {
 } from "vscode";
 import { LiveProcess } from "../models/liveProcess";
 import { stsApi } from "../models/stsApi";
-import { LocalLiveProcess } from "../types/sts-api";
+import * as sts from "../types/sts-api";
 
 interface Measurement {
     statistic: string;
@@ -313,7 +313,7 @@ class MemoryProvider implements WebviewViewProvider {
      * - undefined: remove on disconnected.
      * @returns
      */
-    public refreshLiveMetrics(liveProcess: LocalLiveProcess, category: "heap" | "non-heap" | "gc-pauses", metricsRaw: Metrics[] | undefined) {
+    public refreshLiveMetrics(liveProcess: sts.LiveProcess, category: "heap" | "non-heap" | "gc-pauses", metricsRaw: Metrics[] | undefined) {
         let store;
         switch (category) {
             case "heap":
