@@ -4,8 +4,9 @@
 import * as vscode from "vscode";
 import { sanitizeFilePath } from "../symbolUtils";
 import { sleep } from "../utils";
+import { Endpoint } from "../views/mappings";
 import { StaticBean, StaticEndpoint } from "./StaticSymbolTypes";
-import { requestWorkspaceSymbols } from "./stsApi";
+import { requestWorkspaceSymbols, requestWorkspaceSymbolsByQuery } from "./stsApi";
 
 let beans: any[];
 let mappings: any[];
@@ -46,8 +47,29 @@ export function getMappings(projectPath?: string | vscode.Uri) {
     return mappings?.filter(b => sanitizeFilePath(b.location.uri).startsWith(path));
 }
 
-export async function navigateToLocation(symbol: StaticEndpoint | StaticBean | {corresponding: StaticEndpoint}) {
-    const location = (symbol instanceof StaticBean || symbol instanceof StaticEndpoint) ? symbol.location : symbol.corresponding.location;
+export async function navigateToLocation(symbol: StaticEndpoint | StaticBean | Endpoint) {
+    let location;
+    if (symbol instanceof StaticBean || symbol instanceof StaticEndpoint) {
+        location = symbol.location;
+    } else if (symbol.corresponding) {
+        location = symbol.corresponding.location;
+    } else {
+        const query = `@${symbol.pattern} -- ${symbol.method}`; // workaround to query symbols
+        const symbols = await requestWorkspaceSymbolsByQuery(query);
+        if (symbols.length > 0) {
+            const exactMatched = symbols.find(s => query === s.name);
+            if (exactMatched) {
+                location = exactMatched.location;
+            } else {
+                location = symbols[0].location;
+            }
+        }
+    }
+
+    if (!location) {
+        return;
+    }
+
     const {uri, range} = location;
     await vscode.commands.executeCommand("vscode.open", vscode.Uri.parse(uri), { preserveFocus: true, selection: range});
 }

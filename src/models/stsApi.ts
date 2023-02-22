@@ -169,3 +169,8 @@ export async function requestWorkspaceSymbols(projectPath?: string): Promise<{
         mappings
     };
 }
+
+export async function requestWorkspaceSymbolsByQuery(query: string): Promise<any[]> {
+    const res = await stsApi?.client.sendRequest<any[]>("workspace/symbol", { "query": query }) ?? [];
+    return res;
+}

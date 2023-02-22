@@ -2,7 +2,7 @@ import * as vscode from "vscode";
 import { sendInfo } from "vscode-extension-telemetry-wrapper";
 import { AppState } from "../BootApp";
 import { getBeans, getContextPath, getMainClass, getMappings, getPid, getPort, getGcPausesMetrics, getMemoryMetrics, initialize } from "../models/stsApi";
-import { LocalLiveProcess } from "../types/sts-api";
+import { LiveProcess } from "../types/sts-api";
 import { isAlive } from "../utils";
 import { appsProvider } from "../views/apps";
 import { beansProvider } from "../views/beans";
@@ -19,15 +19,15 @@ export async function init() {
     const stsApi = await initialize();
     store = new LiveInformationStore();
 
-    stsApi.onDidLiveProcessConnect((payload: LocalLiveProcess | string) => {
+    stsApi.onDidLiveProcessConnect((payload: LiveProcess | string) => {
         sendInfo("", { name: "onDidLiveProcessConnect" });
         updateProcessInfo(payload);
     });
-    stsApi.onDidLiveProcessDisconnect((payload: LocalLiveProcess | string) => {
+    stsApi.onDidLiveProcessDisconnect((payload: LiveProcess | string) => {
         sendInfo("", { name: "onDidLiveProcessDisconnect" });
         resetProcessInfo(payload);
     });
-    stsApi.onDidLiveProcessUpdate((payload: LocalLiveProcess | string) => {
+    stsApi.onDidLiveProcessUpdate((payload: LiveProcess | string) => {
         sendInfo("", { name: "onDidLiveProcessUpdate" });
         updateProcessInfo(payload);
     });
@@ -42,9 +42,9 @@ export function connectedProcessKeys() {
     return Array.from(store.data.keys());
 }
 
-async function updateProcessInfo(payload: string | LocalLiveProcess) {
+async function updateProcessInfo(payload: string | LiveProcess) {
     const liveProcess = await parsePayload(payload);
-    const { processKey, processName, pid } = liveProcess;
+    const { processKey, processName, type } = liveProcess;
 
     const beans = await getBeans(processKey);
     beansProvider.refreshLive(liveProcess, beans);
@@ -54,13 +54,17 @@ async function updateProcessInfo(payload: string | LocalLiveProcess) {
 
     const port = await getPort(processKey);
     const contextPath = await getContextPath(processKey);
-    store.data.set(processKey, { processName, pid, beans, mappings, port });
-    const runningApp = appsProvider.manager.getAppByPid(pid);
-    if (runningApp) {
-        runningApp.port = parseInt(port);
-        runningApp.contextPath = contextPath;
-        runningApp.state = AppState.RUNNING; // will refresh tree item
+    store.data.set(processKey, { processName, beans, mappings, port });
+
+    if (type === "local") {
+        const runningApp = appsProvider.manager.getAppByPid(liveProcess.pid);
+        if (runningApp) {
+            runningApp.port = parseInt(port);
+            runningApp.contextPath = contextPath;
+            runningApp.state = AppState.RUNNING; // will refresh tree item
+        }
     }
+
     appsProvider.refresh(undefined);
 
     // memory view
@@ -69,7 +73,7 @@ async function updateProcessInfo(payload: string | LocalLiveProcess) {
     memoryProvider.refreshLiveMetrics(liveProcess, "gc-pauses", []);
 }
 
-async function updateProcessGcPausesMetrics(payload: string | LocalLiveProcess) {
+async function updateProcessGcPausesMetrics(payload: string | LiveProcess) {
     const liveProcess = await parsePayload(payload);
     const { processKey } = liveProcess;
 
@@ -79,7 +83,7 @@ async function updateProcessGcPausesMetrics(payload: string | LocalLiveProcess) 
     }
 }
 
-async function updateProcessMemoryMetrics(payload: string | LocalLiveProcess) {
+async function updateProcessMemoryMetrics(payload: string | LiveProcess) {
     const liveProcess = await parsePayload(payload);
     const { processKey } = liveProcess;
 
@@ -97,7 +101,7 @@ async function updateProcessMemoryMetrics(payload: string | LocalLiveProcess) {
     }
 }
 
-async function resetProcessInfo(payload: string | LocalLiveProcess) {
+async function resetProcessInfo(payload: string | LiveProcess) {
     const liveProcess = await parsePayload(payload);
     store.data.delete(liveProcess.processKey);
     beansProvider.refreshLive(liveProcess, undefined);
@@ -106,11 +110,14 @@ async function resetProcessInfo(payload: string | LocalLiveProcess) {
     memoryProvider.refreshLiveMetrics(liveProcess, "non-heap", undefined);
     memoryProvider.refreshLiveMetrics(liveProcess, "gc-pauses", undefined);
     await vscode.commands.executeCommand("setContext", "spring.memoryGraphs:hasLiveProcess", store.data.size > 0);
-    const disconnectedApp = appsProvider.manager.getAppByPid(liveProcess.pid);
-    // Workaound for: app is still running if manually disconnect from live process connection.
-    if (disconnectedApp && !await isAlive(disconnectedApp.pid)) {
-        disconnectedApp.reset();
+    if (liveProcess.type === "local") {
+        const disconnectedApp = appsProvider.manager.getAppByPid(liveProcess.pid);
+        // Workaound for: app is still running if manually disconnect from live process connection.
+        if (disconnectedApp && !await isAlive(disconnectedApp.pid)) {
+            disconnectedApp.reset();
+        }
     }
+
     appsProvider.refresh(undefined);
 }
 
@@ -121,7 +128,7 @@ async function resetProcessInfo(payload: string | LocalLiveProcess) {
  * @param payload string for v1.33, LocalLiveProcess for v1.34
  * @returns
  */
-async function parsePayload(payload: string | LocalLiveProcess): Promise<LocalLiveProcess> {
+async function parsePayload(payload: string | LiveProcess): Promise<LiveProcess> {
     if (typeof payload === "string") {
         const processKey = payload;
         const processName = await getMainClass(processKey);
