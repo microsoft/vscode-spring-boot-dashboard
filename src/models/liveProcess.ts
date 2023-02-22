@@ -21,7 +21,7 @@ export class LiveProcess {
             this.app = app;
         } else if (liveProcess.type === "remote") {
             const host = liveProcess.processName.split(" - ")?.[1]; // TODO: should request upstream API for identifier of a unique remote app.
-            let remoteApp = appsProvider.remoteAppManager.getRemoteAppByHost(host);
+            const remoteApp = appsProvider.remoteAppManager.getRemoteAppByHost(host);
             this.remoteApp = remoteApp;
         } else {
             // Not coverred.
