@@ -87,8 +87,15 @@ class MappingsDataProvider implements vscode.TreeDataProvider<TreeData> {
 
     getTreeItem(element: TreeData): vscode.TreeItem | Thenable<vscode.TreeItem> {
         if (element instanceof LiveProcess) {
-            const item = new vscode.TreeItem(element.appName);
-            item.description = `pid: ${element.pid}`;
+            let item;
+            if (element.type === "local") {
+                item = new vscode.TreeItem(element.appName);
+                item.description = `pid: ${element.pid}`;
+            } else {
+                item = new vscode.TreeItem(element.remoteAppName);
+                item.description = element.remoteApp?.jmxurl;
+            }
+
             item.iconPath = BootAppItem.RUNNING_ICON();
             item.collapsibleState = vscode.TreeItemCollapsibleState.Expanded;
             item.contextValue = "liveProcess";
@@ -247,7 +254,15 @@ export const mappingsProvider = new MappingsDataProvider();
 export async function openEndpointHandler(endpoint: Endpoint) {
     const port = await getPort(endpoint.processKey);
     const contextPath = await getContextPath(endpoint.processKey) ?? "";
-    let url: string | undefined = constructOpenUrl(contextPath, port, endpoint.pattern);
+    let hostname;
+    if (endpoint.liveProcess?.type === "remote") {
+        // TODO: should request upstream API for valid hostname
+        const jmxurl = endpoint.liveProcess.remoteApp?.jmxurl;
+        if (jmxurl) {
+            hostname = vscode.Uri.parse(jmxurl).authority;
+        }
+    }
+    let url: string | undefined = constructOpenUrl(contextPath, port, endpoint.pattern, hostname);
 
     // promp to fill {variables}
     if (url?.match(/\{.*\}/)) {

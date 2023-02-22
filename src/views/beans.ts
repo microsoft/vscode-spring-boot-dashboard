@@ -65,8 +65,15 @@ class BeansDataProvider implements vscode.TreeDataProvider<TreeData> {
 
     async getTreeItem(element: TreeData): Promise<vscode.TreeItem> {
         if (element instanceof LiveProcess) {
-            const item = new vscode.TreeItem(element.appName);
-            item.description = `pid: ${element.pid}`;
+            let item;
+            if (element.type === "local") {
+                item = new vscode.TreeItem(element.appName);
+                item.description = `pid: ${element.pid}`;
+            } else {
+                item = new vscode.TreeItem(element.remoteAppName);
+                item.description = element.remoteApp?.jmxurl;
+            }
+
             item.iconPath = BootAppItem.RUNNING_ICON(); // TODO: should use customized icon based on connection type
             item.collapsibleState = vscode.TreeItemCollapsibleState.Expanded;
             item.contextValue = "liveProcess";

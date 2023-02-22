@@ -1,12 +1,34 @@
 import { BootApp } from "../BootApp";
+import { RemoteBootAppData } from "../extension.api";
 import * as sts from "../types/sts-api";
 import { appsProvider } from "../views/apps";
 
 
 export class LiveProcess {
-    constructor(private liveProcess: sts.LiveProcess) { }
+    app: BootApp | undefined;
+    remoteApp: RemoteBootAppData | undefined;
 
-    public get type(): string {
+    constructor(
+        private liveProcess: sts.LiveProcess
+    ) {
+        if (liveProcess.type === "local") {
+            let app = appsProvider.manager.getAppByPid(liveProcess.pid);
+            if (!app) {
+                // fallback: here assume processName is full-qualified name of mainclass, which is not guaranteed.
+                const mainClass = liveProcess.processName;
+                app = appsProvider.manager.getAppByMainClass(mainClass);
+            }
+            this.app = app;
+        } else if (liveProcess.type === "remote") {
+            const host = liveProcess.processName.split(" - ")?.[1]; // TODO: should request upstream API for identifier of a unique remote app.
+            let remoteApp = appsProvider.remoteAppManager.getRemoteAppByHost(host);
+            this.remoteApp = remoteApp;
+        } else {
+            // Not coverred.
+        }
+    }
+
+    public get type(): "local" | "remote" {
         return this.liveProcess.type;
     }
 
@@ -18,22 +40,11 @@ export class LiveProcess {
         return this.liveProcess.type === "local" ? this.liveProcess.pid : undefined;
     }
 
-    public get app(): BootApp | undefined {
-        if (this.liveProcess.type === "remote") {
-            return undefined;
-        }
-
-        let app = appsProvider.manager.getAppByPid(this.liveProcess.pid);
-        if (!app) {
-            // fallback: here assume processName is full-qualified name of mainclass, which is not guaranteed.
-            const mainClass = this.liveProcess.processName;
-            app = appsProvider.manager.getAppByMainClass(mainClass);
-        }
-
-        return app;
-    }
-
     public get appName(): string {
         return this.app?.name ?? this.liveProcess.processName;
+    }
+
+    public get remoteAppName(): string {
+        return this.remoteApp?.name ?? this.liveProcess.processName;
     }
 }
