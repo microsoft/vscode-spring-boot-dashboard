@@ -9,7 +9,7 @@
   const graphTypeSelection = document.getElementById("graphType");
   graphTypeSelection.addEventListener("change", changeGraphDisplay);
 
-  const processSelection = document.getElementById("process");
+  const processSelection = document.getElementById("dropdown-processList");
   processSelection.addEventListener("change", changeGraphDisplay);
 
   if (processSelection.options.length === 0) {
@@ -41,7 +41,7 @@
   }
 
   function loadMetrics() {
-    const processKey = document.getElementById("process").value;
+    const processKey = document.getElementById("dropdown-processList").value;
     if (processKey !== '' || processKey !== undefined) {
       vscode.postMessage({
         command: "LoadMetrics",
@@ -54,7 +54,7 @@
   function fetchGraphData() {
     const selection = document.getElementById("graphType");
     const graphType = selection.options[selection.selectedIndex].text;
-    const processKey = document.getElementById("process").value;
+    const processKey = document.getElementById("dropdown-processList").value;
     if (selection !== "" && processKey !== "") {
       vscode.postMessage({
         command: "FetchData",
@@ -92,8 +92,8 @@
           displayGraphData(graphData);
           break;
         case "displayProcess":
-          const process = event.data.process;
-          displayProcess(process);
+          const processes = event.data.processes;
+          displayProcess(processes);
           break;
         case "removeProcess":
           const p = JSON.parse(event.data.process);
@@ -108,12 +108,12 @@
     });
   }
 
-  function displayProcess(process) {
-    if (process !== '' && process !== undefined && Array.isArray(process)) {
-      const processList = document.getElementById("process");
-      for (let proc of process) {
+  function displayProcess(processes) {
+    if (processes !== '' && processes !== undefined && Array.isArray(processes)) {
+      const processList = document.getElementById("dropdown-processList");
+      for (let proc of processes) {
         var processKey = window.btoa(proc.processKey);
-        processList.insertAdjacentHTML("beforeend", `<vscode-option id="${processKey}" value="${processKey}">${proc.appName} (pid: ${proc.pid})</vscode-option>`);
+        processList.insertAdjacentHTML("beforeend", `<vscode-option id="${processKey}" value="${processKey}">${proc.type === "local" ? (proc.appName + " (pid: " + proc.pid + ")") : (proc.remoteAppName + " (remote)")}</vscode-option>`);
       }
     }
   }
@@ -123,7 +123,7 @@
       var key = window.btoa(processKey);
       const option = document.getElementById(key);
       option.remove(option.index);
-      const currentSelection = document.getElementById("process").value;
+      const currentSelection = document.getElementById("dropdown-processList").value;
       let chartStatus = Chart.getChart("chart");
       if (chartStatus !== undefined && currentSelection === key) {
         chartStatus.destroy();
