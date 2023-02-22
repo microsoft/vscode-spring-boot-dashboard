@@ -167,7 +167,7 @@ class MemoryProvider implements WebviewViewProvider {
                         <canvas id="chart" height="350"></canvas>
                     </div>
                     <section class="search-container">
-                        <vscode-dropdown id="process"></vscode-dropdown>
+                        <vscode-dropdown id="dropdown-processList"></vscode-dropdown>
                     </section>
                     <section class="search-container">
                         <vscode-dropdown id="graphType">
@@ -250,27 +250,23 @@ class MemoryProvider implements WebviewViewProvider {
         }
     }
 
-    public addLiveProcess(liveProcess: any) {
-        const processList = [];
-        if (liveProcess !== '' && liveProcess !== undefined && Array.isArray(liveProcess)) {
-            for (const proc of liveProcess) {
-                processList.push({
-                    processKey: proc.liveProcess.processKey,
-                    pid: proc.liveProcess.pid,
-                    appName: proc.appName
-                });
-            }
-        } else if (liveProcess !== '' && liveProcess !== undefined) {
-            processList.push({
-                processKey: liveProcess.processKey,
-                pid: liveProcess.pid,
-                appName: liveProcess.appName
+    public addLiveProcess(liveProcessList: LiveProcess[]) {
+        const ret = [];
+        
+        for (const proc of liveProcessList) {
+            ret.push({
+                processKey: proc.processKey,
+                pid: proc.pid,
+                appName: proc.appName,
+                type: proc.type,
+                remoteAppName: proc.remoteAppName
             });
         }
+        
         if (this._view) {
             this._view.webview.postMessage({
                 command: "displayProcess",
-                process: processList,
+                processes: ret,
             });
         }
     }
@@ -278,7 +274,7 @@ class MemoryProvider implements WebviewViewProvider {
     public addLiveProcessInfo(process: LiveProcess) {
         if (!this.liveProcessList.get(process.processKey)) {
             this.liveProcessList.set(process.processKey, process);
-            this.addLiveProcess(process);
+            this.addLiveProcess([process]);
         }
     }
 
