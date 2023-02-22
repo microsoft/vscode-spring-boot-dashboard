@@ -9,7 +9,8 @@ class ApiManager {
     public initialize(): void {
         this.api = {
             registerRemoteBootAppDataProvider(providerName, provider, options) {
-                appsProvider.remoteAppManager.registerRemoteBootAppDataProvider(providerName, provider, options)
+                appsProvider.remoteAppManager.registerRemoteBootAppDataProvider(providerName, provider, options);
+                appsProvider.refresh(undefined); // trigger a refresh when new provider is registered.
             },
             connectRemoteApp,
             disconnectRemoteApp
