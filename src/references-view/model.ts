@@ -34,7 +34,7 @@ export class BeansTreeInput implements SymbolTreeInput<BeanItem> {
 
 }
 
-export const enum BeansDirection {
+export enum BeansDirection {
     Dependencies,
     InjectedInto
 }
