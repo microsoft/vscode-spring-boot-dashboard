@@ -16,16 +16,14 @@ import getPort = require("get-port");
 import { sendInfo } from "vscode-extension-telemetry-wrapper";
 
 export class LocalAppController {
-    private _manager: LocalAppManager;
-    private _context: vscode.ExtensionContext;
 
-    constructor(manager: LocalAppManager, context: vscode.ExtensionContext) {
-        this._manager = manager;
-        this._context = context;
-    }
+    constructor(
+        private manager: LocalAppManager,
+        private context: vscode.ExtensionContext
+    ) { }
 
     public getAppList(): BootApp[] {
-        return this._manager.getAppList();
+        return this.manager.getAppList();
     }
 
     public async runBootApps(debug?: boolean) {
@@ -86,26 +84,26 @@ export class LocalAppController {
 
     public onDidStartBootApp(session: vscode.DebugSession): void {
         // exact match
-        let app: BootApp | undefined = this._manager.getAppList().find((elem: BootApp) => elem.activeSessionName === session.name);
+        let app: BootApp | undefined = this.manager.getAppList().find((elem: BootApp) => elem.activeSessionName === session.name);
 
         // workaround if not launched from dashboard, where `activeSessionName` is not set
         // See https://github.com/microsoft/vscode-spring-boot-dashboard/issues/177
         if (app === undefined) {
-            app = this._manager.getAppList().find((elem: BootApp) => elem.name === session.configuration.projectName);
+            app = this.manager.getAppList().find((elem: BootApp) => elem.name === session.configuration.projectName);
         }
 
         if (app) {
-            this._manager.bindDebugSession(app, session);
+            this.manager.bindDebugSession(app, session);
             if (isActuatorOnClasspath(session.configuration)) {
                 // actuator enabled: wait live connection to update running state.
                 this._setState(app, AppState.LAUNCHING);
-                sendInfo("", { name: "onDidStartBootApp", withActuator: "true"});
+                sendInfo("", { name: "onDidStartBootApp", withActuator: "true" });
             } else {
                 // actuator absent: no live connection, set project as 'running' immediately.
                 this._setState(app, AppState.RUNNING);
                 // Guide to enable actuator
                 this.showActuatorGuideIfNecessary(app);
-                sendInfo("", { name: "onDidStartBootApp", withActuator: "false"});
+                sendInfo("", { name: "onDidStartBootApp", withActuator: "false" });
             }
         }
     }
@@ -128,7 +126,7 @@ export class LocalAppController {
 
     public async stopBootApp(app: BootApp, restart?: boolean): Promise<void> {
         // TODO: How to send a shutdown signal to the app instead of killing the process directly?
-        const session: vscode.DebugSession | undefined = this._manager.getSessionByApp(app);
+        const session: vscode.DebugSession | undefined = this.manager.getSessionByApp(app);
         if (session) {
             if (isRunInTerminal(session) && app.pid) {
                 // kill corresponding process launched in terminal
@@ -145,7 +143,7 @@ export class LocalAppController {
     }
 
     public onDidStopBootApp(session: vscode.DebugSession): void {
-        const app = this._manager.getAppBySession(session);
+        const app = this.manager.getAppBySession(session);
         if (app) {
             this._setState(app, AppState.INACTIVE);
         }
@@ -163,7 +161,7 @@ export class LocalAppController {
 
         const jmxurl = `service:jmx:rmi:///jndi/rmi://localhost:${app.jmxPort}/jmxrmi`;
         const javaProcess = jvm.jarLaunch(
-            path.resolve(this._context.extensionPath, "lib", "java-extension.jar"),
+            path.resolve(this.context.extensionPath, "lib", "java-extension.jar"),
             [
                 "-Djmxurl=" + jmxurl
             ]
@@ -232,7 +230,7 @@ export class LocalAppController {
 
     private _setState(app: BootApp, state: AppState): void {
         app.state = state;
-        this._manager.fireDidChangeApps(app);
+        this.manager.fireDidChangeApps(app);
         beansProvider.refresh(app);
         mappingsProvider.refresh(app);
     }
@@ -277,9 +275,9 @@ export class LocalAppController {
         const lastMonth = new Date();
         lastMonth.setMonth(lastMonth.getMonth() - 1);
 
-        const lastTimeSeen: number = this._context.globalState.get(key) ?? 0;
+        const lastTimeSeen: number = this.context.globalState.get(key) ?? 0;
         if (new Date(lastTimeSeen) < lastMonth) {
-            this._context.globalState.update(key, Date.now());
+            this.context.globalState.update(key, Date.now());
             vscode.commands.executeCommand(command, app, true /* asNotification */);
         }
     }

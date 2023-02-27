@@ -4,8 +4,8 @@ import * as assert from "assert";
 import * as vscode from "vscode";
 import { AppState } from "../../src/BootApp";
 import { initSymbols } from "../../src/controllers/SymbolsController";
+import { dashboard } from "../../src/global";
 import { StaticEndpoint } from "../../src/models/StaticSymbolTypes";
-import { appsProvider } from "../../src/views/apps";
 import { Bean, beansProvider } from "../../src/views/beans";
 import { Endpoint, mappingsProvider } from "../../src/views/mappings";
 import { setupTestEnv, sleep } from "../utils";
@@ -64,7 +64,7 @@ suite("Extension Test Suite", () => {
     }).timeout(300 * 1000 /** ms */);
 
     test("Can view dynamic beans and mappings", async () => {
-        const apps = appsProvider.manager.getAppList();
+        const apps = dashboard.appsProvider.manager.getAppList();
         assert.strictEqual(apps.length, 1, "There are 1 app in the app list.");
         const app = apps[0];
         await vscode.commands.executeCommand("spring-boot-dashboard.localapp.run", app);

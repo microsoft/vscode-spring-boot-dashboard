@@ -1,6 +1,6 @@
 import { ExtensionAPI } from "./extension.api";
+import { dashboard } from "./global";
 import { connectRemoteApp, disconnectRemoteApp } from "./RemoteAppManager";
-import { appsProvider } from "./views/apps";
 
 class ApiManager {
 
@@ -9,8 +9,8 @@ class ApiManager {
     public initialize(): void {
         this.api = {
             registerRemoteBootAppDataProvider(providerName, provider, options) {
-                appsProvider.remoteAppManager.registerRemoteBootAppDataProvider(providerName, provider, options);
-                appsProvider.refresh(undefined); // trigger a refresh when new provider is registered.
+                dashboard.appsProvider.remoteAppManager.registerRemoteBootAppDataProvider(providerName, provider, options);
+                dashboard.appsProvider.refresh(undefined); // trigger a refresh when new provider is registered.
             },
             connectRemoteApp,
             disconnectRemoteApp

@@ -14,13 +14,15 @@ import { dispose as disposeGutter, init as initGutter } from './gutter';
 import { requestWorkspaceSymbols } from './models/stsApi';
 import { navigateToLocation } from './models/symbols';
 import { showBeanHierarchy, showDependencies, showInjectedInto } from './references-view';
-import { connectRemoteApp, disconnectRemoteApp } from './RemoteAppManager';
+import { connectRemoteApp, disconnectRemoteApp, RemoteAppManager } from './RemoteAppManager';
 import { showFilterInView } from './utils';
-import { appsProvider } from './views/apps';
+import { AppDataProvider } from './views/apps';
 import { beansProvider, openBeanHandler } from './views/beans';
 import { init as initActuatorGuide } from './views/guide';
 import { mappingsProvider, openEndpointHandler } from './views/mappings';
 import { memoryProvider } from './views/memory';
+import { LocalAppManager } from './LocalAppManager';
+import { dashboard } from './global';
 
 export async function activate(context: vscode.ExtensionContext) {
     await loadPackageInfo(context);
@@ -32,6 +34,12 @@ export async function activate(context: vscode.ExtensionContext) {
 }
 
 export async function initializeExtension(_oprationId: string, context: vscode.ExtensionContext) {
+    dashboard.context = context;
+    const localAppManager = new LocalAppManager();
+    const remoteAppManager = new RemoteAppManager();
+    const appsProvider = new AppDataProvider(localAppManager, remoteAppManager, context);
+    dashboard.appsProvider = appsProvider;
+
     const controller: LocalAppController = new LocalAppController(appsProvider.manager, context);
 
     const appsView = vscode.window.createTreeView('spring.apps', { treeDataProvider: appsProvider, showCollapseAll: false });

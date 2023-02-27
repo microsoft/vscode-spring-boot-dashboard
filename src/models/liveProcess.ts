@@ -1,8 +1,7 @@
 import { BootApp } from "../BootApp";
 import { RemoteBootAppData } from "../extension.api";
+import { dashboard } from "../global";
 import * as sts from "../types/sts-api";
-import { appsProvider } from "../views/apps";
-
 
 export class LiveProcess {
     app: BootApp | undefined;
@@ -12,16 +11,16 @@ export class LiveProcess {
         private liveProcess: sts.LiveProcess
     ) {
         if (liveProcess.type === "local") {
-            let app = appsProvider.manager.getAppByPid(liveProcess.pid);
+            let app = dashboard.appsProvider.manager.getAppByPid(liveProcess.pid);
             if (!app) {
                 // fallback: here assume processName is full-qualified name of mainclass, which is not guaranteed.
                 const mainClass = liveProcess.processName;
-                app = appsProvider.manager.getAppByMainClass(mainClass);
+                app = dashboard.appsProvider.manager.getAppByMainClass(mainClass);
             }
             this.app = app;
         } else if (liveProcess.type === "remote") {
             const host = liveProcess.processName.split(" - ")?.[1]; // TODO: should request upstream API for identifier of a unique remote app.
-            const remoteApp = appsProvider.remoteAppManager.getRemoteAppByHost(host);
+            const remoteApp = dashboard.appsProvider.remoteAppManager.getRemoteAppByHost(host);
             this.remoteApp = remoteApp;
         } else {
             // Not coverred.

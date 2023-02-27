@@ -1,10 +1,10 @@
 import * as vscode from "vscode";
 import { sendInfo } from "vscode-extension-telemetry-wrapper";
 import { AppState } from "../BootApp";
+import { dashboard } from "../global";
 import { getBeans, getContextPath, getMainClass, getMappings, getPid, getPort, getGcPausesMetrics, getMemoryMetrics, initialize } from "../models/stsApi";
 import { LiveProcess } from "../types/sts-api";
 import { isAlive } from "../utils";
-import { appsProvider } from "../views/apps";
 import { beansProvider } from "../views/beans";
 import { mappingsProvider } from "../views/mappings";
 import { memoryProvider } from "../views/memory";
@@ -57,7 +57,7 @@ async function updateProcessInfo(payload: string | LiveProcess) {
     store.data.set(processKey, { processName, beans, mappings, port });
 
     if (type === "local") {
-        const runningApp = appsProvider.manager.getAppByPid(liveProcess.pid);
+        const runningApp = dashboard.appsProvider.manager.getAppByPid(liveProcess.pid);
         if (runningApp) {
             runningApp.port = parseInt(port);
             runningApp.contextPath = contextPath;
@@ -65,7 +65,7 @@ async function updateProcessInfo(payload: string | LiveProcess) {
         }
     }
 
-    appsProvider.refresh(undefined);
+    dashboard.appsProvider.refresh(undefined);
 
     // memory view
     memoryProvider.refreshLiveMetrics(liveProcess, "heap", []);
@@ -111,14 +111,14 @@ async function resetProcessInfo(payload: string | LiveProcess) {
     memoryProvider.refreshLiveMetrics(liveProcess, "gc-pauses", undefined);
     await vscode.commands.executeCommand("setContext", "spring.memoryGraphs:hasLiveProcess", store.data.size > 0);
     if (liveProcess.type === "local") {
-        const disconnectedApp = appsProvider.manager.getAppByPid(liveProcess.pid);
+        const disconnectedApp = dashboard.appsProvider.manager.getAppByPid(liveProcess.pid);
         // Workaound for: app is still running if manually disconnect from live process connection.
         if (disconnectedApp && !await isAlive(disconnectedApp.pid)) {
             disconnectedApp.reset();
         }
     }
 
-    appsProvider.refresh(undefined);
+    dashboard.appsProvider.refresh(undefined);
 }
 
 /**

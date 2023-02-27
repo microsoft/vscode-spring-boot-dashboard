@@ -2,10 +2,10 @@
 // Licensed under the MIT license.
 
 import * as vscode from "vscode";
+import { dashboard } from "./global";
 import { requestWorkspaceSymbols } from "./models/stsApi";
 import { ClassPathData, MainClassData } from "./types/jdtls";
 import { isActuatorJarFile, isAlive } from "./utils";
-import { appsProvider } from "./views/apps";
 import { BootAppItem } from "./views/items/BootAppItem";
 
 export enum AppState {
@@ -78,7 +78,7 @@ export class BootApp {
 
     public set state(state: AppState) {
         this._state = state;
-        appsProvider.refresh(this);
+        dashboard.appsProvider.refresh(this); // TODO: should do it in LocalAppController.
         if (this._state === AppState.INACTIVE) {
             this.clearWatchdog();
         }
@@ -90,7 +90,7 @@ export class BootApp {
 
     public set port(port: number | undefined) {
         this._port = port;
-        appsProvider.refresh(this);
+        dashboard.appsProvider.refresh(this); // TODO: should do it in LocalAppController.
     }
 
     public get pid(): number | undefined {
@@ -110,7 +110,7 @@ export class BootApp {
 
     public set contextPath(contextPath: string | undefined) {
         this._contextPath = contextPath ?? "";
-        appsProvider.refresh(this);
+        dashboard.appsProvider.refresh(this);  // TODO: should do it in LocalAppController.
     }
 
     public get isActuatorOnClasspath(): boolean {
@@ -132,7 +132,7 @@ export class BootApp {
         this._contextPath = undefined;
         this.pid = undefined;
         this._state = AppState.INACTIVE;
-        appsProvider.refresh(this);
+        dashboard.appsProvider.refresh(this);  // TODO: should do it in LocalAppController.
     }
 
     public setWatchdog() {

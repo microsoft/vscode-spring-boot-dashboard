@@ -13,16 +13,16 @@ import { WorkspaceFolderItem } from "./items/folders";
 
 type TreeData = BootApp | RemoteBootAppData | WorkspaceFolderItem | string /** for providers */;
 
-class LocalAppTreeProvider implements vscode.TreeDataProvider<TreeData> {
+export class AppDataProvider implements vscode.TreeDataProvider<TreeData> {
 
-    public manager: LocalAppManager;
-    public remoteAppManager: RemoteAppManager;
     private emitter: vscode.EventEmitter<TreeData | undefined>;
     public readonly onDidChangeTreeData: vscode.Event<TreeData | undefined>;
 
-    constructor() {
-        this.remoteAppManager = new RemoteAppManager();
-        this.manager = new LocalAppManager();
+    constructor(
+        public manager: LocalAppManager,
+        public remoteAppManager: RemoteAppManager,
+        public context: vscode.ExtensionContext
+    ) {
         this.emitter = new vscode.EventEmitter<TreeData | undefined>();
 
         this.onDidChangeTreeData = this.emitter.event;
@@ -82,5 +82,3 @@ class LocalAppTreeProvider implements vscode.TreeDataProvider<TreeData> {
         this.manager.fireDidChangeApps(element);
     }
 }
-
-export const appsProvider = new LocalAppTreeProvider();
