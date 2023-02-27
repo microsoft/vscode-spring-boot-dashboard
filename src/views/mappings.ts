@@ -60,7 +60,7 @@ export class Endpoint {
 
 
 type TreeData = Endpoint | StaticEndpoint | LiveProcess | BootApp;
-class MappingsDataProvider implements vscode.TreeDataProvider<TreeData> {
+export class MappingsDataProvider implements vscode.TreeDataProvider<TreeData> {
 
     private store: Map<LiveProcess, Endpoint[]> = new Map();
     private staticData: Map<BootApp, StaticEndpoint[]> = new Map();
@@ -248,8 +248,6 @@ class MappingsDataProvider implements vscode.TreeDataProvider<TreeData> {
         return undefined;
     }
 }
-
-export const mappingsProvider = new MappingsDataProvider();
 
 export async function openEndpointHandler(endpoint: Endpoint) {
     const port = await getPort(endpoint.processKey);

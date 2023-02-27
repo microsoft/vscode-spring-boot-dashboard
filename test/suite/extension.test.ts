@@ -7,7 +7,7 @@ import { initSymbols } from "../../src/controllers/SymbolsController";
 import { dashboard } from "../../src/global";
 import { StaticEndpoint } from "../../src/models/StaticSymbolTypes";
 import { Bean } from "../../src/views/beans";
-import { Endpoint, mappingsProvider } from "../../src/views/mappings";
+import { Endpoint } from "../../src/views/mappings";
 import { setupTestEnv, sleep } from "../utils";
 
 suite("Extension Test Suite", () => {
@@ -41,15 +41,15 @@ suite("Extension Test Suite", () => {
         assert.strictEqual(openedEditor?.selection.anchor.line, 30, "The definition of cacheConfiguration should be at line 30.");
         assert.strictEqual(openedEditor?.selection.anchor.character, 0, "The definition of cacheConfiguration should be at character 0.");
 
-        let rootMap = await mappingsProvider.getChildren();
+        let rootMap = await dashboard.mappingsProvider.getChildren();
         while (!rootMap || rootMap.length === 0) {
             console.log("trying to get root project item in mappings view");
             await sleep(5 * 1000 /** ms */);
-            rootMap = await mappingsProvider.getChildren();
+            rootMap = await dashboard.mappingsProvider.getChildren();
         }
         assert.strictEqual(rootMap.length, 1, "There should be 1 project node in mapping explorer.");
         // verify maps list
-        const maps = await mappingsProvider.getChildren(rootMap[0]);
+        const maps = await dashboard.mappingsProvider.getChildren(rootMap[0]);
         assert.strictEqual(maps?.length, 17, "There should be 17 static mappings in total.");
         // verify map name
         const map1 = maps[1] as StaticEndpoint;
@@ -95,17 +95,17 @@ suite("Extension Test Suite", () => {
         assert.ok(openedEditor?.document.fileName.endsWith("ApplicationAvailabilityBean.class"), "ApplicationAvailabilityBean.class are opened.");
 
         // verify all maps
-        mappingsProvider.showAll = true;
+        dashboard.mappingsProvider.showAll = true;
         await sleep(20 * 1000 /** ms */);
-        let rootMap = await mappingsProvider.getChildren();
+        let rootMap = await dashboard.mappingsProvider.getChildren();
         while (!rootMap || rootMap.length === 0) {
             console.log("trying to get root project item in mappings view");
             await sleep(5 * 1000 /** ms */);
-            rootMap = await mappingsProvider.getChildren();
+            rootMap = await dashboard.mappingsProvider.getChildren();
         }
         assert.strictEqual(rootMap.length, 1, "There should be 1 project node in mapping explorer.");
         // verify maps list
-        const allMaps = await mappingsProvider.getChildren(rootMap[0]);
+        const allMaps = await dashboard.mappingsProvider.getChildren(rootMap[0]);
         assert.strictEqual(allMaps?.length, 45, "There should be 45 mappings in total.");
         // verify map name
         const allMap2 = allMaps[2] as Endpoint;

@@ -8,11 +8,10 @@ import * as uuid from 'uuid';
 import * as vscode from 'vscode';
 import { DebugSession } from "vscode";
 import { initSymbols } from "./controllers/SymbolsController";
+import { dashboard } from "./global";
 import { ExtensionAPI } from "./types/javaExtensionApi";
 import { ClassPathData, MainClassData } from "./types/jdtls";
 import { sleep } from "./utils";
-import { mappingsProvider } from "./views/mappings";
-import { dashboard } from "./global";
 
 function isBootAppClasspath(cp: ClassPathData): boolean {
     if (cp.entries) {
@@ -109,7 +108,7 @@ export class LocalAppManager {
             // update workspace symbols for beans/mappings
             initSymbols(5000).then(() => {
                 dashboard.beansProvider.refresh(undefined);
-                mappingsProvider.refresh(undefined);
+                dashboard.mappingsProvider.refresh(undefined);
             });
         });
 

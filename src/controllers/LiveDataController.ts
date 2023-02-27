@@ -5,7 +5,6 @@ import { dashboard } from "../global";
 import { getBeans, getContextPath, getMainClass, getMappings, getPid, getPort, getGcPausesMetrics, getMemoryMetrics, initialize } from "../models/stsApi";
 import { LiveProcess } from "../types/sts-api";
 import { isAlive } from "../utils";
-import { mappingsProvider } from "../views/mappings";
 import { memoryProvider } from "../views/memory";
 
 class LiveInformationStore {
@@ -49,7 +48,7 @@ async function updateProcessInfo(payload: string | LiveProcess) {
     dashboard.beansProvider.refreshLive(liveProcess, beans);
 
     const mappings = await getMappings(processKey);
-    mappingsProvider.refreshLive(liveProcess, mappings);
+    dashboard.mappingsProvider.refreshLive(liveProcess, mappings);
 
     const port = await getPort(processKey);
     const contextPath = await getContextPath(processKey);
@@ -104,7 +103,7 @@ async function resetProcessInfo(payload: string | LiveProcess) {
     const liveProcess = await parsePayload(payload);
     store.data.delete(liveProcess.processKey);
     dashboard.beansProvider.refreshLive(liveProcess, undefined);
-    mappingsProvider.refreshLive(liveProcess, undefined);
+    dashboard.mappingsProvider.refreshLive(liveProcess, undefined);
     memoryProvider.refreshLiveMetrics(liveProcess, "heap", undefined);
     memoryProvider.refreshLiveMetrics(liveProcess, "non-heap", undefined);
     memoryProvider.refreshLiveMetrics(liveProcess, "gc-pauses", undefined);
