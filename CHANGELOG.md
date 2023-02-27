@@ -4,6 +4,17 @@ All notable changes to the "vscode-spring-boot-dashboard" extension will be docu
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
+## 0.11.0
+### Added
+- New extension APIs allowing to establish live connection to remote apps running on cloud. [#262](https://github.com/microsoft/vscode-spring-boot-dashboard/issues/262)
+
+### Changed
+- New icons for apps. [#277](https://github.com/microsoft/vscode-spring-boot-dashboard/pull/277)
+
+### Fixed
+- UX improvements on the memory view. [#282](https://github.com/microsoft/vscode-spring-boot-dashboard/pull/282)
+- Fixed: memory view doesn't hide after live process is disconnected. [#274](https://github.com/microsoft/vscode-spring-boot-dashboard/pull/274)
+
 ## 0.10.1
 ### Fixed
 - Publisher id of upstream extension Spring Boot Tools changed from `Pivotal` to `vmware`. [#269](https://github.com/microsoft/vscode-spring-boot-dashboard/issues/269) [#270](https://github.com/microsoft/vscode-spring-boot-dashboard/issues/270)
