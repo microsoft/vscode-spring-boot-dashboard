@@ -7,10 +7,12 @@ import { dispose as disposeTelemetryWrapper, initialize, instrumentOperation, in
 import { ApiManager } from './apiManager';
 import { BootApp } from './BootApp';
 import { getAiKey, getExtensionId, getExtensionVersion, loadPackageInfo } from './contextUtils';
-import { LocalAppController } from './LocalAppController';
 import { init as initLiveDataController } from './controllers/LiveDataController';
 import { initSymbols } from './controllers/SymbolsController';
+import { dashboard } from './global';
 import { dispose as disposeGutter, init as initGutter } from './gutter';
+import { LocalAppController } from './LocalAppController';
+import { LocalAppManager } from './LocalAppManager';
 import { requestWorkspaceSymbols } from './models/stsApi';
 import { navigateToLocation } from './models/symbols';
 import { showBeanHierarchy, showDependencies, showInjectedInto } from './references-view';
@@ -20,9 +22,7 @@ import { AppDataProvider } from './views/apps';
 import { BeansDataProvider, openBeanHandler } from './views/beans';
 import { init as initActuatorGuide } from './views/guide';
 import { MappingsDataProvider, openEndpointHandler } from './views/mappings';
-import { memoryProvider } from './views/memory';
-import { LocalAppManager } from './LocalAppManager';
-import { dashboard } from './global';
+import { MemoryViewProvider } from './views/memory';
 
 export async function activate(context: vscode.ExtensionContext) {
     await loadPackageInfo(context);
@@ -166,11 +166,11 @@ export async function initializeExtension(_oprationId: string, context: vscode.E
     context.subscriptions.push(vscode.commands.registerCommand("_spring.symbols", requestWorkspaceSymbols));
 
     // memory view
-    const provider = memoryProvider;
-    memoryProvider.extensionUrl = context.extensionUri;
+    const memoryViewProvider = new MemoryViewProvider(context);
+    dashboard.memoryViewProvider = memoryViewProvider;
     context.subscriptions.push(vscode.window.registerWebviewViewProvider(
         "memory.memoryView",
-        provider
+        memoryViewProvider
     ));
 
     // remote apps

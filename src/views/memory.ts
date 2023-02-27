@@ -3,21 +3,13 @@
 // Licensed under the MIT license.
 
 import * as vscode from "vscode";
-import {
-    Uri,
-    CancellationToken,
-    Webview,
-    WebviewView,
-    WebviewViewProvider,
-    WebviewViewResolveContext
-} from "vscode";
 import { LiveProcess } from "../models/liveProcess";
 import { stsApi } from "../models/stsApi";
 import * as sts from "../types/sts-api";
 
 interface Measurement {
     statistic: string;
-    value: any;
+    value: unknown;
 }
 
 interface Metrics {
@@ -34,57 +26,26 @@ interface Metrics {
     availableTags: { tag: string; values: string[] }[];
 }
 
-export interface IWebviewShowOptions {
-    [key: string]: boolean | number | string;
-
-    title: string;
-}
-
-class MemoryProvider implements WebviewViewProvider {
+export class MemoryViewProvider implements vscode.WebviewViewProvider {
     public static readonly viewType = "memory.memoryView";
     private storeGcPausesMetrics: Map<LiveProcess, Metrics[][]> = new Map();
     private storeHeapMemoryMetrics: Map<LiveProcess, Metrics[][]> = new Map();
     private storeNonHeapMemoryMetrics: Map<LiveProcess, Metrics[][]> = new Map();
-    private liveProcessList: Map<string, LiveProcess> = new Map();
+    private storeLiveProcesses: Map<string, LiveProcess> = new Map();
+
     private _view?: vscode.WebviewView;
 
-    private _extensionUrl: vscode.Uri;
-    private _interval: number;
-    private _maxDataPoints: number;
+    public interval: number;
+    public maxDataPoints: number;
 
-    constructor() {
+    constructor(
+        private context: vscode.ExtensionContext
+    ) {
         vscode.commands.executeCommand("setContext", "spring.memoryGraphs:showMode", "defined");
     }
 
-    public get extensionUrl() {
-        return this._extensionUrl;
-    }
-
-    public set extensionUrl(value) {
-        this._extensionUrl = value;
-    }
-
-    public get interval() {
-        return this._interval;
-    }
-
-    public set interval(value) {
-        this._interval = value;
-    }
-
-    public get maxDataPoints() {
-        return this._maxDataPoints;
-    }
-
-    public set maxDataPoints(value) {
-        this._maxDataPoints = value;
-    }
-
-    public resolveWebviewView(
-        webviewView: WebviewView,
-        _context: WebviewViewResolveContext,
-        _token: CancellationToken
-    ) {
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    public resolveWebviewView(webviewView: vscode.WebviewView, _context: vscode.WebviewViewResolveContext, _token: vscode.CancellationToken) {
 
         this._view = webviewView;
 
@@ -93,7 +54,7 @@ class MemoryProvider implements WebviewViewProvider {
             enableScripts: true,
         };
         // Set the HTML content that will fill the webview view
-        webviewView.webview.html = this._getWebviewContent(webviewView.webview, this._extensionUrl);
+        webviewView.webview.html = this._getWebviewContent(webviewView.webview, this.context.extensionUri);
         // Sets up an event listener to listen for messages passed from the webview view context
         // and executes code based on the message that is recieved
         this._setWebviewMessageListener(webviewView);
@@ -111,10 +72,10 @@ class MemoryProvider implements WebviewViewProvider {
     }
 
     /**
-   * Constructs the required CSP entry for webviews, which allows them to load local files.
-   *
-   * @returns The CSP string.
-   */
+     * Constructs the required CSP entry for webviews, which allows them to load local files.
+     *
+     * @returns The CSP string.
+    */
     protected generateContentSecurityPolicy(): string {
         return `<meta http-equiv="Content-Security-Policy" content="default-src 'self';
           script-src vscode-resource: 'self' 'unsafe-inline' 'unsafe-eval' https:;
@@ -123,7 +84,7 @@ class MemoryProvider implements WebviewViewProvider {
       `;
     }
 
-    private _getWebviewContent(webview: Webview, extensionUri: Uri) {
+    private _getWebviewContent(webview: vscode.Webview, extensionUri: vscode.Uri) {
         const toolkitUri = getUri(webview, extensionUri, [
             "node_modules",
             "@vscode",
@@ -182,7 +143,7 @@ class MemoryProvider implements WebviewViewProvider {
             `;
     }
 
-    private _setWebviewMessageListener(webviewView: WebviewView) {
+    private _setWebviewMessageListener(webviewView: vscode.WebviewView) {
         webviewView.webview.onDidReceiveMessage(async (message) => {
             const command = message.command;
             let processKey = message.processKey;
@@ -204,13 +165,13 @@ class MemoryProvider implements WebviewViewProvider {
                     }
                     break;
                 case "LoadProcess":
-                    this.addLiveProcess(Array.from(this.liveProcessList.values()));
+                    this.addLiveProcesses(Array.from(this.storeLiveProcesses.values()));
                     this.updateSettings();
                     break;
                 case "FetchData": {
                     const type = message.type;
                     if (processKey === '') {
-                        processKey = this.liveProcessList.values().next().value.liveProcess.processKey;
+                        processKey = this.storeLiveProcesses.values().next().value.liveProcess.processKey;
                     }
                     if (type !== '' && type === "Heap Memory" && processKey !== undefined && processKey !== '') {
                         const targetLiveProcess = Array.from(this.storeHeapMemoryMetrics.keys()).find(lp => lp.processKey === processKey) ?? new LiveProcess(processKey);
@@ -229,7 +190,7 @@ class MemoryProvider implements WebviewViewProvider {
         });
     }
 
-    public updateGraph(result: any) {
+    public updateGraph(result: Metrics[][] | undefined) {
         if (this._view && result !== undefined) {
             this._view.webview.postMessage({
                 command: "displayGraph",
@@ -250,9 +211,9 @@ class MemoryProvider implements WebviewViewProvider {
         }
     }
 
-    public addLiveProcess(liveProcessList: LiveProcess[]) {
+    private addLiveProcesses(liveProcessList: LiveProcess[]) {
         const ret = [];
-        
+
         for (const proc of liveProcessList) {
             ret.push({
                 processKey: proc.processKey,
@@ -262,7 +223,7 @@ class MemoryProvider implements WebviewViewProvider {
                 remoteAppName: proc.remoteAppName
             });
         }
-        
+
         if (this._view) {
             this._view.webview.postMessage({
                 command: "displayProcess",
@@ -271,16 +232,16 @@ class MemoryProvider implements WebviewViewProvider {
         }
     }
 
-    public addLiveProcessInfo(process: LiveProcess) {
-        if (!this.liveProcessList.get(process.processKey)) {
-            this.liveProcessList.set(process.processKey, process);
-            this.addLiveProcess([process]);
+    private addLiveProcess(process: LiveProcess) {
+        if (!this.storeLiveProcesses.get(process.processKey)) {
+            this.storeLiveProcesses.set(process.processKey, process);
+            this.addLiveProcesses([process]);
         }
     }
 
-    public removeLiveProcessInfo(process: LiveProcess) {
-        if (this.liveProcessList.get(process.processKey)) {
-            this.liveProcessList.delete(process.processKey);
+    private removeLiveProcess(process: LiveProcess) {
+        if (this.storeLiveProcesses.get(process.processKey)) {
+            this.storeLiveProcesses.delete(process.processKey);
             if (this._view) {
                 this._view.webview.postMessage({
                     command: "removeProcess",
@@ -290,11 +251,14 @@ class MemoryProvider implements WebviewViewProvider {
         }
     }
 
-    private removeOldData(metrics: any, latestMetrics: Metrics[]) {
-        if (metrics !== undefined) {
-            metrics.push(latestMetrics);
-        }
-        while (metrics !== undefined && metrics.length > this.maxDataPoints) {
+    /**
+     * Keep at most `maxDataPoints` data points.
+     * @param metrics
+     * @param latestMetrics
+     */
+    private rotateMetrics(metrics: Metrics[][], latestMetrics: Metrics[]) {
+        metrics.push(latestMetrics);
+        while (metrics.length > this.maxDataPoints) {
             metrics.shift();
         }
     }
@@ -309,7 +273,7 @@ class MemoryProvider implements WebviewViewProvider {
      * - undefined: remove on disconnected.
      * @returns
      */
-    public refreshLiveMetrics(liveProcess: sts.LiveProcess, category: "heap" | "non-heap" | "gc-pauses", metricsRaw: Metrics[] | undefined) {
+    public refreshLiveMetrics(liveProcess: sts.LiveProcess, category: "heap" | "non-heap" | "gc-pauses", metricsRaw: unknown) {
         let store;
         switch (category) {
             case "heap":
@@ -327,33 +291,37 @@ class MemoryProvider implements WebviewViewProvider {
             return;
         }
 
-        if (metricsRaw === undefined) {
+        if (metricsRaw === undefined || metricsRaw === null) {
             // remove
             const targetLiveProcess = Array.from(store.keys()).find(lp => lp.processKey === liveProcess.processKey);
             if (targetLiveProcess) {
                 store.delete(targetLiveProcess);
-                this.removeLiveProcessInfo(targetLiveProcess);
+                this.removeLiveProcess(targetLiveProcess);
             }
-        } else if (metricsRaw?.length === 0) {
-            // add
-            const targetLiveProcess = Array.from(store.keys()).find(lp => lp.processKey === liveProcess.processKey) ?? new LiveProcess(liveProcess);
-            if (!store.has(targetLiveProcess)) {
-                this.addLiveProcessInfo(targetLiveProcess);
-                store.set(targetLiveProcess, []);
+        } else if (metricsRaw instanceof Array){
+            if (metricsRaw.length === 0) {
+                // add
+                const targetLiveProcess = Array.from(store.keys()).find(lp => lp.processKey === liveProcess.processKey) ?? new LiveProcess(liveProcess);
+                if (!store.has(targetLiveProcess)) {
+                    this.addLiveProcess(targetLiveProcess);
+                    store.set(targetLiveProcess, []);
+                }
+            } else {
+                // update
+                const targetLiveProcess = Array.from(store.keys()).find(lp => lp.processKey === liveProcess.processKey);
+                if (targetLiveProcess) {
+                    const metrics = store.get(targetLiveProcess);
+                    if (metrics !== undefined) {
+                        const latestMetrics = metricsRaw.map(raw => parseMetrticsData(liveProcess.processKey, raw));
+                        this.rotateMetrics(metrics, latestMetrics);
+                    }
+                }
             }
         } else {
-            // update
-            const targetLiveProcess = Array.from(store.keys()).find(lp => lp.processKey === liveProcess.processKey);
-            if (targetLiveProcess && store.has(targetLiveProcess)) {
-                const latestMetrics = metricsRaw.map(raw => parseMetrticsData(liveProcess.processKey, raw));
-                const metrics = store.get(targetLiveProcess);
-                this.removeOldData(metrics, latestMetrics);
-            }
+            console.warn("Raw metrics is of unsupported type.");
         }
     }
-
 }
-export const memoryProvider = new MemoryProvider();
 
 function parseMetrticsData(processKey: string, raw: any): Metrics {
     const label = raw.name;
@@ -377,9 +345,9 @@ function parseMetrticsData(processKey: string, raw: any): Metrics {
 function timestamp() {
     const date = new Date().toTimeString();
     const chop = date.indexOf(' ');
-    return date.substr(0, chop);
+    return date.substring(0, chop);
 }
 
-export function getUri(webview: Webview, extensionUri: Uri, pathList: string[]) {
-    return webview.asWebviewUri(Uri.joinPath(extensionUri, ...pathList));
+export function getUri(webview: vscode.Webview, extensionUri: vscode.Uri, pathList: string[]) {
+    return webview.asWebviewUri(vscode.Uri.joinPath(extensionUri, ...pathList));
 }

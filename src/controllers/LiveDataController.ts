@@ -5,10 +5,9 @@ import { dashboard } from "../global";
 import { getBeans, getContextPath, getMainClass, getMappings, getPid, getPort, getGcPausesMetrics, getMemoryMetrics, initialize } from "../models/stsApi";
 import { LiveProcess } from "../types/sts-api";
 import { isAlive } from "../utils";
-import { memoryProvider } from "../views/memory";
 
 class LiveInformationStore {
-    public data: Map<string, any> = new Map();
+    public data: Map<string, unknown> = new Map();
 }
 
 let store: LiveInformationStore;
@@ -66,9 +65,9 @@ async function updateProcessInfo(payload: string | LiveProcess) {
     dashboard.appsProvider.refresh(undefined);
 
     // memory view
-    memoryProvider.refreshLiveMetrics(liveProcess, "heap", []);
-    memoryProvider.refreshLiveMetrics(liveProcess, "non-heap", []);
-    memoryProvider.refreshLiveMetrics(liveProcess, "gc-pauses", []);
+    dashboard.memoryViewProvider.refreshLiveMetrics(liveProcess, "heap", []);
+    dashboard.memoryViewProvider.refreshLiveMetrics(liveProcess, "non-heap", []);
+    dashboard.memoryViewProvider.refreshLiveMetrics(liveProcess, "gc-pauses", []);
 }
 
 async function updateProcessGcPausesMetrics(payload: string | LiveProcess) {
@@ -77,7 +76,7 @@ async function updateProcessGcPausesMetrics(payload: string | LiveProcess) {
 
     const gcPauses = await getGcPausesMetrics(processKey);
     if (gcPauses) {
-        memoryProvider.refreshLiveMetrics(liveProcess, "gc-pauses", gcPauses);
+        dashboard.memoryViewProvider.refreshLiveMetrics(liveProcess, "gc-pauses", gcPauses);
     }
 }
 
@@ -94,8 +93,8 @@ async function updateProcessMemoryMetrics(payload: string | LiveProcess) {
 
     if (heapMemMetrics || nonHeapMemMetrics) {
         await vscode.commands.executeCommand("setContext", "spring.memoryGraphs:hasLiveProcess", liveProcess !== undefined);
-        memoryProvider.refreshLiveMetrics(liveProcess, "heap", heapMemMetrics);
-        memoryProvider.refreshLiveMetrics(liveProcess, "non-heap", nonHeapMemMetrics);
+        dashboard.memoryViewProvider.refreshLiveMetrics(liveProcess, "heap", heapMemMetrics);
+        dashboard.memoryViewProvider.refreshLiveMetrics(liveProcess, "non-heap", nonHeapMemMetrics);
     }
 }
 
@@ -104,9 +103,9 @@ async function resetProcessInfo(payload: string | LiveProcess) {
     store.data.delete(liveProcess.processKey);
     dashboard.beansProvider.refreshLive(liveProcess, undefined);
     dashboard.mappingsProvider.refreshLive(liveProcess, undefined);
-    memoryProvider.refreshLiveMetrics(liveProcess, "heap", undefined);
-    memoryProvider.refreshLiveMetrics(liveProcess, "non-heap", undefined);
-    memoryProvider.refreshLiveMetrics(liveProcess, "gc-pauses", undefined);
+    dashboard.memoryViewProvider.refreshLiveMetrics(liveProcess, "heap", undefined);
+    dashboard.memoryViewProvider.refreshLiveMetrics(liveProcess, "non-heap", undefined);
+    dashboard.memoryViewProvider.refreshLiveMetrics(liveProcess, "gc-pauses", undefined);
     await vscode.commands.executeCommand("setContext", "spring.memoryGraphs:hasLiveProcess", store.data.size > 0);
     if (liveProcess.type === "local") {
         const disconnectedApp = dashboard.appsProvider.manager.getAppByPid(liveProcess.pid);
