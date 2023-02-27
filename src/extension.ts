@@ -4,23 +4,25 @@
 'use strict';
 import * as vscode from 'vscode';
 import { dispose as disposeTelemetryWrapper, initialize, instrumentOperation, instrumentOperationAsVsCodeCommand } from "vscode-extension-telemetry-wrapper";
-import { apiManager } from './apiManager';
+import { ApiManager } from './apiManager';
 import { BootApp } from './BootApp';
 import { getAiKey, getExtensionId, getExtensionVersion, loadPackageInfo } from './contextUtils';
-import { Controller } from './Controller';
 import { init as initLiveDataController } from './controllers/LiveDataController';
 import { initSymbols } from './controllers/SymbolsController';
+import { dashboard } from './global';
 import { dispose as disposeGutter, init as initGutter } from './gutter';
+import { LocalAppController } from './LocalAppController';
+import { LocalAppManager } from './LocalAppManager';
 import { requestWorkspaceSymbols } from './models/stsApi';
 import { navigateToLocation } from './models/symbols';
 import { showBeanHierarchy, showDependencies, showInjectedInto } from './references-view';
-import { connectRemoteApp, disconnectRemoteApp } from './RemoteAppManager';
+import { connectRemoteApp, disconnectRemoteApp, RemoteAppManager } from './RemoteAppManager';
 import { showFilterInView } from './utils';
-import { appsProvider } from './views/apps';
-import { beansProvider, openBeanHandler } from './views/beans';
+import { AppDataProvider } from './views/apps';
+import { BeansDataProvider, openBeanHandler } from './views/beans';
 import { init as initActuatorGuide } from './views/guide';
-import { mappingsProvider, openEndpointHandler } from './views/mappings';
-import { memoryProvider } from './views/memory';
+import { MappingsDataProvider, openEndpointHandler } from './views/mappings';
+import { MemoryViewProvider } from './views/memory';
 
 export async function activate(context: vscode.ExtensionContext) {
     await loadPackageInfo(context);
@@ -32,7 +34,13 @@ export async function activate(context: vscode.ExtensionContext) {
 }
 
 export async function initializeExtension(_oprationId: string, context: vscode.ExtensionContext) {
-    const controller: Controller = new Controller(appsProvider.manager, context);
+    dashboard.context = context;
+    const localAppManager = new LocalAppManager();
+    const remoteAppManager = new RemoteAppManager();
+    const appsProvider = new AppDataProvider(localAppManager, remoteAppManager, context);
+    dashboard.appsProvider = appsProvider;
+
+    const controller: LocalAppController = new LocalAppController(appsProvider.manager, context);
 
     const appsView = vscode.window.createTreeView('spring.apps', { treeDataProvider: appsProvider, showCollapseAll: false });
     context.subscriptions.push(appsView);
@@ -71,6 +79,8 @@ export async function initializeExtension(_oprationId: string, context: vscode.E
     });
 
     // live data
+    const beansProvider = new BeansDataProvider();
+    dashboard.beansProvider = beansProvider;
     const beansView = vscode.window.createTreeView('spring.beans', { treeDataProvider: beansProvider, showCollapseAll: true });
     context.subscriptions.push(beansView);
     context.subscriptions.push(instrumentOperationAsVsCodeCommand("spring.beans.reveal", (element) => {
@@ -85,6 +95,9 @@ export async function initializeExtension(_oprationId: string, context: vscode.E
             vscode.commands.executeCommand("spring.beans.focus");
         }
     }));
+
+    const mappingsProvider = new MappingsDataProvider();
+    dashboard.mappingsProvider = mappingsProvider;
     const mappingsView = vscode.window.createTreeView('spring.mappings', { treeDataProvider: mappingsProvider, showCollapseAll: true });
     context.subscriptions.push(mappingsView);
     context.subscriptions.push(instrumentOperationAsVsCodeCommand("spring.mappings.reveal", (element) => {
@@ -153,11 +166,11 @@ export async function initializeExtension(_oprationId: string, context: vscode.E
     context.subscriptions.push(vscode.commands.registerCommand("_spring.symbols", requestWorkspaceSymbols));
 
     // memory view
-    const provider = memoryProvider;
-    memoryProvider.extensionUrl = context.extensionUri;
+    const memoryViewProvider = new MemoryViewProvider(context);
+    dashboard.memoryViewProvider = memoryViewProvider;
     context.subscriptions.push(vscode.window.registerWebviewViewProvider(
         "memory.memoryView",
-        provider
+        memoryViewProvider
     ));
 
     // remote apps
@@ -168,7 +181,7 @@ export async function initializeExtension(_oprationId: string, context: vscode.E
     context.subscriptions.push(instrumentOperationAsVsCodeCommand("spring.remoteApp.connect", connectRemoteApp));
     context.subscriptions.push(instrumentOperationAsVsCodeCommand("spring.remoteApp.disconnect", disconnectRemoteApp));
 
-    apiManager.initialize();
+    const apiManager = new ApiManager();
     return apiManager.getApiInstance();
 }
 

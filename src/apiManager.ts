@@ -1,16 +1,17 @@
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT license.
+
 import { ExtensionAPI } from "./extension.api";
+import { dashboard } from "./global";
 import { connectRemoteApp, disconnectRemoteApp } from "./RemoteAppManager";
-import { appsProvider } from "./views/apps";
 
-class ApiManager {
-
+export class ApiManager {
     private api: ExtensionAPI;
-
-    public initialize(): void {
+    constructor() {
         this.api = {
             registerRemoteBootAppDataProvider(providerName, provider, options) {
-                appsProvider.remoteAppManager.registerRemoteBootAppDataProvider(providerName, provider, options);
-                appsProvider.refresh(undefined); // trigger a refresh when new provider is registered.
+                dashboard.appsProvider.remoteAppManager.registerRemoteBootAppDataProvider(providerName, provider, options);
+                dashboard.appsProvider.refresh(undefined); // trigger a refresh when new provider is registered.
             },
             connectRemoteApp,
             disconnectRemoteApp
@@ -21,10 +22,6 @@ class ApiManager {
         if (!this.api) {
             throw new Error("API instance is not initialized");
         }
-
         return this.api;
     }
-
 }
-
-export const apiManager = new ApiManager();

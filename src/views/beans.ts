@@ -38,7 +38,7 @@ class BeanProperty {
 type TreeData = Bean | LiveProcess | StaticBean | BootApp | BeanProperty;
 const COLOR_LIVE = new vscode.ThemeColor("charts.green");
 
-class BeansDataProvider implements vscode.TreeDataProvider<TreeData> {
+export class BeansDataProvider implements vscode.TreeDataProvider<TreeData> {
 
     private store: Map<LiveProcess, Bean[]> = new Map();
     private staticData: Map<BootApp, StaticBean[]> = new Map();
@@ -263,8 +263,6 @@ class BeansDataProvider implements vscode.TreeDataProvider<TreeData> {
 
     }
 }
-
-export const beansProvider = new BeansDataProvider();
 
 export async function openBeanHandler(bean: Bean) {
     // TODO: extract logic in sts.java.javadocHoverLink into jdtls as a utility

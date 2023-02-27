@@ -8,11 +8,10 @@ import * as uuid from 'uuid';
 import * as vscode from 'vscode';
 import { DebugSession } from "vscode";
 import { initSymbols } from "./controllers/SymbolsController";
+import { dashboard } from "./global";
 import { ExtensionAPI } from "./types/javaExtensionApi";
 import { ClassPathData, MainClassData } from "./types/jdtls";
 import { sleep } from "./utils";
-import { beansProvider } from "./views/beans";
-import { mappingsProvider } from "./views/mappings";
 
 function isBootAppClasspath(cp: ClassPathData): boolean {
     if (cp.entries) {
@@ -29,7 +28,7 @@ function isBootAppClasspath(cp: ClassPathData): boolean {
     return false;
 }
 
-export class BootAppManager {
+export class LocalAppManager {
 
     private _boot_projects: Map<string, BootApp> = new Map();
     private _bindedSessions: Map<string, DebugSession> = new Map();
@@ -108,8 +107,8 @@ export class BootAppManager {
             this.fireDidChangeApps(undefined);
             // update workspace symbols for beans/mappings
             initSymbols(5000).then(() => {
-                beansProvider.refresh(undefined);
-                mappingsProvider.refresh(undefined);
+                dashboard.beansProvider.refresh(undefined);
+                dashboard.mappingsProvider.refresh(undefined);
             });
         });
 

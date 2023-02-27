@@ -4,10 +4,10 @@ import * as assert from "assert";
 import * as vscode from "vscode";
 import { AppState } from "../../src/BootApp";
 import { initSymbols } from "../../src/controllers/SymbolsController";
+import { dashboard } from "../../src/global";
 import { StaticEndpoint } from "../../src/models/StaticSymbolTypes";
-import { appsProvider } from "../../src/views/apps";
-import { Bean, beansProvider } from "../../src/views/beans";
-import { Endpoint, mappingsProvider } from "../../src/views/mappings";
+import { Bean } from "../../src/views/beans";
+import { Endpoint } from "../../src/views/mappings";
 import { setupTestEnv, sleep } from "../utils";
 
 suite("Extension Test Suite", () => {
@@ -20,15 +20,15 @@ suite("Extension Test Suite", () => {
         await vscode.commands.executeCommand("spring.apps.focus");
         // workaround for https://github.com/microsoft/vscode-spring-boot-dashboard/issues/195
         await initSymbols();
-        let rootBean = await beansProvider.getChildren();
+        let rootBean = await dashboard.beansProvider.getChildren();
         while (!rootBean || rootBean.length === 0) {
             console.log("trying to get root project item in beans view");
             await sleep(5 * 1000 /** ms */);
-            rootBean = await beansProvider.getChildren();
+            rootBean = await dashboard.beansProvider.getChildren();
         }
         assert.strictEqual(rootBean.length, 1, "There should be 1 project node in bean explorer.");
         // verify beans list
-        const beans = await beansProvider.getChildren(rootBean[0]);
+        const beans = await dashboard.beansProvider.getChildren(rootBean[0]);
         assert.strictEqual(beans?.length, 14, "There should be 14 static beans in total.");
         // verify bean name
         const bean0 = beans[0] as Bean;
@@ -41,15 +41,15 @@ suite("Extension Test Suite", () => {
         assert.strictEqual(openedEditor?.selection.anchor.line, 30, "The definition of cacheConfiguration should be at line 30.");
         assert.strictEqual(openedEditor?.selection.anchor.character, 0, "The definition of cacheConfiguration should be at character 0.");
 
-        let rootMap = await mappingsProvider.getChildren();
+        let rootMap = await dashboard.mappingsProvider.getChildren();
         while (!rootMap || rootMap.length === 0) {
             console.log("trying to get root project item in mappings view");
             await sleep(5 * 1000 /** ms */);
-            rootMap = await mappingsProvider.getChildren();
+            rootMap = await dashboard.mappingsProvider.getChildren();
         }
         assert.strictEqual(rootMap.length, 1, "There should be 1 project node in mapping explorer.");
         // verify maps list
-        const maps = await mappingsProvider.getChildren(rootMap[0]);
+        const maps = await dashboard.mappingsProvider.getChildren(rootMap[0]);
         assert.strictEqual(maps?.length, 17, "There should be 17 static mappings in total.");
         // verify map name
         const map1 = maps[1] as StaticEndpoint;
@@ -64,7 +64,7 @@ suite("Extension Test Suite", () => {
     }).timeout(300 * 1000 /** ms */);
 
     test("Can view dynamic beans and mappings", async () => {
-        const apps = appsProvider.manager.getAppList();
+        const apps = dashboard.appsProvider.manager.getAppList();
         assert.strictEqual(apps.length, 1, "There are 1 app in the app list.");
         const app = apps[0];
         await vscode.commands.executeCommand("spring-boot-dashboard.localapp.run", app);
@@ -74,16 +74,16 @@ suite("Extension Test Suite", () => {
         }
         assert.strictEqual(app.state, AppState.RUNNING, "The state of the app is running.");
         // verify all beans
-        beansProvider.showAll = true;
+        dashboard.beansProvider.showAll = true;
         await sleep(20 * 1000 /** ms */);
-        let rootBeanAll = await beansProvider.getChildren();
+        let rootBeanAll = await dashboard.beansProvider.getChildren();
         while (!rootBeanAll || rootBeanAll.length === 0) {
             console.log("trying to get root project item in beans view");
             await sleep(5 * 1000 /** ms */);
-            rootBeanAll = await beansProvider.getChildren();
+            rootBeanAll = await dashboard.beansProvider.getChildren();
         }
         assert.strictEqual(rootBeanAll.length, 1, "There should be 1 project node in bean explorer.");
-        const allBeans = await beansProvider.getChildren(rootBeanAll[0]);
+        const allBeans = await dashboard.beansProvider.getChildren(rootBeanAll[0]);
         assert.strictEqual(allBeans?.length, 376, "There should be 376 beans in total.");
         // verify active bean name
         const allBean0 = allBeans[0] as Bean;
@@ -95,17 +95,17 @@ suite("Extension Test Suite", () => {
         assert.ok(openedEditor?.document.fileName.endsWith("ApplicationAvailabilityBean.class"), "ApplicationAvailabilityBean.class are opened.");
 
         // verify all maps
-        mappingsProvider.showAll = true;
+        dashboard.mappingsProvider.showAll = true;
         await sleep(20 * 1000 /** ms */);
-        let rootMap = await mappingsProvider.getChildren();
+        let rootMap = await dashboard.mappingsProvider.getChildren();
         while (!rootMap || rootMap.length === 0) {
             console.log("trying to get root project item in mappings view");
             await sleep(5 * 1000 /** ms */);
-            rootMap = await mappingsProvider.getChildren();
+            rootMap = await dashboard.mappingsProvider.getChildren();
         }
         assert.strictEqual(rootMap.length, 1, "There should be 1 project node in mapping explorer.");
         // verify maps list
-        const allMaps = await mappingsProvider.getChildren(rootMap[0]);
+        const allMaps = await dashboard.mappingsProvider.getChildren(rootMap[0]);
         assert.strictEqual(allMaps?.length, 45, "There should be 45 mappings in total.");
         // verify map name
         const allMap2 = allMaps[2] as Endpoint;
