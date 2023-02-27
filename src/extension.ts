@@ -4,7 +4,7 @@
 'use strict';
 import * as vscode from 'vscode';
 import { dispose as disposeTelemetryWrapper, initialize, instrumentOperation, instrumentOperationAsVsCodeCommand } from "vscode-extension-telemetry-wrapper";
-import { apiManager } from './apiManager';
+import { ApiManager } from './apiManager';
 import { BootApp } from './BootApp';
 import { getAiKey, getExtensionId, getExtensionVersion, loadPackageInfo } from './contextUtils';
 import { LocalAppController } from './LocalAppController';
@@ -17,7 +17,7 @@ import { showBeanHierarchy, showDependencies, showInjectedInto } from './referen
 import { connectRemoteApp, disconnectRemoteApp, RemoteAppManager } from './RemoteAppManager';
 import { showFilterInView } from './utils';
 import { AppDataProvider } from './views/apps';
-import { beansProvider, openBeanHandler } from './views/beans';
+import { BeansDataProvider, openBeanHandler } from './views/beans';
 import { init as initActuatorGuide } from './views/guide';
 import { mappingsProvider, openEndpointHandler } from './views/mappings';
 import { memoryProvider } from './views/memory';
@@ -79,6 +79,8 @@ export async function initializeExtension(_oprationId: string, context: vscode.E
     });
 
     // live data
+    const beansProvider = new BeansDataProvider();
+    dashboard.beansProvider = beansProvider;
     const beansView = vscode.window.createTreeView('spring.beans', { treeDataProvider: beansProvider, showCollapseAll: true });
     context.subscriptions.push(beansView);
     context.subscriptions.push(instrumentOperationAsVsCodeCommand("spring.beans.reveal", (element) => {
@@ -176,7 +178,7 @@ export async function initializeExtension(_oprationId: string, context: vscode.E
     context.subscriptions.push(instrumentOperationAsVsCodeCommand("spring.remoteApp.connect", connectRemoteApp));
     context.subscriptions.push(instrumentOperationAsVsCodeCommand("spring.remoteApp.disconnect", disconnectRemoteApp));
 
-    apiManager.initialize();
+    const apiManager = new ApiManager();
     return apiManager.getApiInstance();
 }
 

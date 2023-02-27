@@ -9,11 +9,11 @@ import { AppState, BootApp } from "./BootApp";
 import { LocalAppManager } from "./LocalAppManager";
 import { MainClassData } from "./types/jdtls";
 import { constructOpenUrl, isActuatorJarFile, readAll } from "./utils";
-import { beansProvider } from "./views/beans";
 import { mappingsProvider } from "./views/mappings";
 
 import getPort = require("get-port");
 import { sendInfo } from "vscode-extension-telemetry-wrapper";
+import { dashboard } from "./global";
 
 export class LocalAppController {
 
@@ -231,7 +231,7 @@ export class LocalAppController {
     private _setState(app: BootApp, state: AppState): void {
         app.state = state;
         this.manager.fireDidChangeApps(app);
-        beansProvider.refresh(app);
+        dashboard.beansProvider.refresh(app);
         mappingsProvider.refresh(app);
     }
 

@@ -3,7 +3,6 @@
 
 import { dashboard } from "../global";
 import { getBeans, getMappings, init } from "../models/symbols";
-import { beansProvider } from "../views/beans";
 import { mappingsProvider } from "../views/mappings";
 
 export async function initSymbols(maxTimeout?: number, refresh?:boolean) {
@@ -11,10 +10,10 @@ export async function initSymbols(maxTimeout?: number, refresh?:boolean) {
     dashboard.appsProvider.manager.getAppList().forEach(app => {
         if (refresh) {
             mappingsProvider.refreshStatic(app, getMappings(app.path));
-            beansProvider.refreshStatic(app, getBeans(app.path));
+            dashboard.beansProvider.refreshStatic(app, getBeans(app.path));
         } else {
             mappingsProvider.updateStaticData(app, getMappings(app.path));
-            beansProvider.updateStaticData(app, getBeans(app.path));
+            dashboard.beansProvider.updateStaticData(app, getBeans(app.path));
         }
     });
 }

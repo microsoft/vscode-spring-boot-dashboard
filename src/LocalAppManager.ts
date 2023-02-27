@@ -11,8 +11,8 @@ import { initSymbols } from "./controllers/SymbolsController";
 import { ExtensionAPI } from "./types/javaExtensionApi";
 import { ClassPathData, MainClassData } from "./types/jdtls";
 import { sleep } from "./utils";
-import { beansProvider } from "./views/beans";
 import { mappingsProvider } from "./views/mappings";
+import { dashboard } from "./global";
 
 function isBootAppClasspath(cp: ClassPathData): boolean {
     if (cp.entries) {
@@ -108,7 +108,7 @@ export class LocalAppManager {
             this.fireDidChangeApps(undefined);
             // update workspace symbols for beans/mappings
             initSymbols(5000).then(() => {
-                beansProvider.refresh(undefined);
+                dashboard.beansProvider.refresh(undefined);
                 mappingsProvider.refresh(undefined);
             });
         });

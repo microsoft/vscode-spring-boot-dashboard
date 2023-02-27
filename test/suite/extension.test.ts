@@ -6,7 +6,7 @@ import { AppState } from "../../src/BootApp";
 import { initSymbols } from "../../src/controllers/SymbolsController";
 import { dashboard } from "../../src/global";
 import { StaticEndpoint } from "../../src/models/StaticSymbolTypes";
-import { Bean, beansProvider } from "../../src/views/beans";
+import { Bean } from "../../src/views/beans";
 import { Endpoint, mappingsProvider } from "../../src/views/mappings";
 import { setupTestEnv, sleep } from "../utils";
 
@@ -20,15 +20,15 @@ suite("Extension Test Suite", () => {
         await vscode.commands.executeCommand("spring.apps.focus");
         // workaround for https://github.com/microsoft/vscode-spring-boot-dashboard/issues/195
         await initSymbols();
-        let rootBean = await beansProvider.getChildren();
+        let rootBean = await dashboard.beansProvider.getChildren();
         while (!rootBean || rootBean.length === 0) {
             console.log("trying to get root project item in beans view");
             await sleep(5 * 1000 /** ms */);
-            rootBean = await beansProvider.getChildren();
+            rootBean = await dashboard.beansProvider.getChildren();
         }
         assert.strictEqual(rootBean.length, 1, "There should be 1 project node in bean explorer.");
         // verify beans list
-        const beans = await beansProvider.getChildren(rootBean[0]);
+        const beans = await dashboard.beansProvider.getChildren(rootBean[0]);
         assert.strictEqual(beans?.length, 14, "There should be 14 static beans in total.");
         // verify bean name
         const bean0 = beans[0] as Bean;
@@ -74,16 +74,16 @@ suite("Extension Test Suite", () => {
         }
         assert.strictEqual(app.state, AppState.RUNNING, "The state of the app is running.");
         // verify all beans
-        beansProvider.showAll = true;
+        dashboard.beansProvider.showAll = true;
         await sleep(20 * 1000 /** ms */);
-        let rootBeanAll = await beansProvider.getChildren();
+        let rootBeanAll = await dashboard.beansProvider.getChildren();
         while (!rootBeanAll || rootBeanAll.length === 0) {
             console.log("trying to get root project item in beans view");
             await sleep(5 * 1000 /** ms */);
-            rootBeanAll = await beansProvider.getChildren();
+            rootBeanAll = await dashboard.beansProvider.getChildren();
         }
         assert.strictEqual(rootBeanAll.length, 1, "There should be 1 project node in bean explorer.");
-        const allBeans = await beansProvider.getChildren(rootBeanAll[0]);
+        const allBeans = await dashboard.beansProvider.getChildren(rootBeanAll[0]);
         assert.strictEqual(allBeans?.length, 376, "There should be 376 beans in total.");
         // verify active bean name
         const allBean0 = allBeans[0] as Bean;
