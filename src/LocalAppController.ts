@@ -6,7 +6,7 @@ import { ChildProcess } from "child_process";
 import * as path from "path";
 import * as vscode from "vscode";
 import { AppState, BootApp } from "./BootApp";
-import { BootAppManager } from "./BootAppManager";
+import { LocalAppManager } from "./LocalAppManager";
 import { MainClassData } from "./types/jdtls";
 import { constructOpenUrl, isActuatorJarFile, readAll } from "./utils";
 import { beansProvider } from "./views/beans";
@@ -15,11 +15,11 @@ import { mappingsProvider } from "./views/mappings";
 import getPort = require("get-port");
 import { sendInfo } from "vscode-extension-telemetry-wrapper";
 
-export class Controller {
-    private _manager: BootAppManager;
+export class LocalAppController {
+    private _manager: LocalAppManager;
     private _context: vscode.ExtensionContext;
 
-    constructor(manager: BootAppManager, context: vscode.ExtensionContext) {
+    constructor(manager: LocalAppManager, context: vscode.ExtensionContext) {
         this._manager = manager;
         this._context = context;
     }

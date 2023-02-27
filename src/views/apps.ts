@@ -3,7 +3,7 @@
 
 import * as vscode from "vscode";
 import { BootApp } from "../BootApp";
-import { BootAppManager } from "../BootAppManager";
+import { LocalAppManager } from "../LocalAppManager";
 import { connectedProcessKeys } from "../controllers/LiveDataController";
 import { RemoteBootAppData } from "../extension.api";
 import { RemoteAppManager } from "../RemoteAppManager";
@@ -15,14 +15,14 @@ type TreeData = BootApp | RemoteBootAppData | WorkspaceFolderItem | string /** f
 
 class LocalAppTreeProvider implements vscode.TreeDataProvider<TreeData> {
 
-    public manager: BootAppManager;
+    public manager: LocalAppManager;
     public remoteAppManager: RemoteAppManager;
     private emitter: vscode.EventEmitter<TreeData | undefined>;
     public readonly onDidChangeTreeData: vscode.Event<TreeData | undefined>;
 
     constructor() {
         this.remoteAppManager = new RemoteAppManager();
-        this.manager = new BootAppManager();
+        this.manager = new LocalAppManager();
         this.emitter = new vscode.EventEmitter<TreeData | undefined>();
 
         this.onDidChangeTreeData = this.emitter.event;

@@ -7,7 +7,7 @@ import { dispose as disposeTelemetryWrapper, initialize, instrumentOperation, in
 import { apiManager } from './apiManager';
 import { BootApp } from './BootApp';
 import { getAiKey, getExtensionId, getExtensionVersion, loadPackageInfo } from './contextUtils';
-import { Controller } from './Controller';
+import { LocalAppController } from './LocalAppController';
 import { init as initLiveDataController } from './controllers/LiveDataController';
 import { initSymbols } from './controllers/SymbolsController';
 import { dispose as disposeGutter, init as initGutter } from './gutter';
@@ -32,7 +32,7 @@ export async function activate(context: vscode.ExtensionContext) {
 }
 
 export async function initializeExtension(_oprationId: string, context: vscode.ExtensionContext) {
-    const controller: Controller = new Controller(appsProvider.manager, context);
+    const controller: LocalAppController = new LocalAppController(appsProvider.manager, context);
 
     const appsView = vscode.window.createTreeView('spring.apps', { treeDataProvider: appsProvider, showCollapseAll: false });
     context.subscriptions.push(appsView);

@@ -29,7 +29,7 @@ function isBootAppClasspath(cp: ClassPathData): boolean {
     return false;
 }
 
-export class BootAppManager {
+export class LocalAppManager {
 
     private _boot_projects: Map<string, BootApp> = new Map();
     private _bindedSessions: Map<string, DebugSession> = new Map();
