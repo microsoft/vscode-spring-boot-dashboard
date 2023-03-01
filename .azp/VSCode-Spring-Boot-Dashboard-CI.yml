@@ -7,25 +7,23 @@ trigger:
     - main
 
 jobs:
-- job: Job_2
-  displayName: CredScan
+- job: cred_scan
+  displayName: Cred Scan
   pool:
-    vmImage: windows-latest
+    vmImage: 'windows-latest'
   steps:
-  - checkout: self
-    fetchTags: false
-  - task: CredScan@2
-    displayName: Run CredScan
+  - task: securedevelopmentteam.vss-secure-development-tools.build-task-credscan.CredScan@2
+    displayName: 'Run CredScan'
     inputs:
       toolMajorVersion: V2
       verboseOutput: true
       debugMode: false
-      folderSuppression: false
-  - task: PostAnalysis@1
-    displayName: Post Analysis
+  - task: securedevelopmentteam.vss-secure-development-tools.build-task-postanalysis.PostAnalysis@1
+    displayName: 'Post Analysis'
     inputs:
       CredScan: true
-- job: Job_1
+
+- job: ci
   displayName: Build
   pool:
     vmImage: ubuntu-latest
