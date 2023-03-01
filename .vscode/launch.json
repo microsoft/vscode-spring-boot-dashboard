@@ -16,9 +16,9 @@
                 "--extensionDevelopmentPath=${workspaceFolder}"
             ],
             "outFiles": [
-                "${workspaceFolder}/out/**/*.js"
+                "${workspaceFolder}/dist/**/*.js"
             ],
-            "preLaunchTask": "npm: watch",
+            "preLaunchTask": "npm: webpack-dev",
             "rendererDebugOptions": {
                 "webRoot": "${workspaceFolder}/resources/webview-ui",
                 "urlFilter": "*vscjava.vscode-spring-boot-dashboard*"
