@@ -85,20 +85,14 @@ export class MemoryViewProvider implements vscode.WebviewViewProvider {
     }
 
     private _getWebviewContent(webview: vscode.Webview, extensionUri: vscode.Uri) {
-        const toolkitUri = getUri(webview, extensionUri, [
-            "node_modules",
-            "@vscode",
-            "webview-ui-toolkit",
-            "dist",
-            "toolkit.js",
-        ]);
+        const toolkitUri = getUri(webview, extensionUri, ["dist","memoryViewAssets","@vscode","webview-ui-toolkit","dist","toolkit.js"]);
         const mainUri = getUri(webview, extensionUri, ["resources", "webview-ui", "main.js"]);
         const stylesUri = getUri(webview, extensionUri, ["resources", "webview-ui", "styles.css"]);
-        const chartLibPath = getUri(webview, extensionUri, ["node_modules", "chart.js", "dist", "chart.min.js"]);
-        const chartjsPath = getUri(webview, extensionUri, ["node_modules", "chartjs", "chart.js"]);
-        const chartjsAdapterPath = getUri(webview, extensionUri, ["node_modules", "chartjs-adapter-moment", "dist", "chartjs-adapter-moment.min.js"]);
-        const chartjsAdapterScipt = getUri(webview, extensionUri, ["node_modules", "chartjs-adapter-moment", "dist", "chartjs-adapter-moment.js"]);
-        const momentLibPath = getUri(webview, extensionUri, ["node_modules", "moment", "moment.js"]);
+        const chartLibPath = getUri(webview, extensionUri, ["dist", "memoryViewAssets", "chart.js", "dist", "chart.min.js"]);
+        const chartjsPath = getUri(webview, extensionUri, ["dist", "memoryViewAssets", "chartjs", "chart.js"]);
+        const chartjsAdapterPath = getUri(webview, extensionUri, ["dist", "memoryViewAssets", "chartjs-adapter-moment", "dist", "chartjs-adapter-moment.min.js"]);
+        const chartjsAdapterScipt = getUri(webview, extensionUri, ["dist", "memoryViewAssets", "chartjs-adapter-moment", "dist", "chartjs-adapter-moment.js"]);
+        const momentLibPath = getUri(webview, extensionUri, ["dist", "memoryViewAssets", "moment", "moment.js"]);
 
         this.interval = vscode.workspace.getConfiguration("spring.dashboard").get("memory-view.fetch-data.delay-in-milliseconds") ?? 5000;
         this.maxDataPoints = vscode.workspace.getConfiguration("spring.dashboard").get("memory-view.display-data.max-datapoints") ?? 10;
