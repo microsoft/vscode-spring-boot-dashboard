@@ -1,0 +1,66 @@
+variables:
+  Codeql.Enabled: true
+
+trigger:
+  branches:
+    include:
+    - main
+
+jobs:
+- job: Job_2
+  displayName: CredScan
+  pool:
+    vmImage: windows-latest
+  steps:
+  - checkout: self
+    fetchTags: false
+  - task: CredScan@2
+    displayName: Run CredScan
+    inputs:
+      toolMajorVersion: V2
+      verboseOutput: true
+      debugMode: false
+      folderSuppression: false
+  - task: PostAnalysis@1
+    displayName: Post Analysis
+    inputs:
+      CredScan: true
+- job: Job_1
+  displayName: Build
+  pool:
+    vmImage: ubuntu-latest
+  steps:
+  - checkout: self
+    fetchTags: false
+  - task: NodeTool@0
+    displayName: Use Node 16.x
+    inputs:
+      versionSpec: 16.x
+  - task: Npm@1
+    displayName: npm install
+    inputs:
+      verbose: false
+  - task: Npm@1
+    displayName: npm run tslint
+    inputs:
+      command: custom
+      verbose: false
+      customCommand: run tslint
+  - task: Npm@1
+    displayName: npm run compile
+    inputs:
+      command: custom
+      verbose: false
+      customCommand: run compile
+  - task: CmdLine@2
+    displayName: Command Line Script
+    inputs:
+      script: npx vsce@latest package
+  - task: CopyFiles@2
+    displayName: 'Copy Files to: $(Build.ArtifactStagingDirectory)'
+    inputs:
+      Contents: '*.vsix'
+      TargetFolder: $(Build.ArtifactStagingDirectory)
+  - task: PublishBuildArtifacts@1
+    displayName: 'Publish Artifact: drop'
+...
