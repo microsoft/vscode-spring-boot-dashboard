@@ -53,6 +53,7 @@ async function updateProcessInfo(payload: string | LiveProcess) {
     const contextPath = await getContextPath(processKey);
     store.data.set(processKey, { processName, beans, mappings, port });
 
+    await vscode.commands.executeCommand("setContext", "spring.memoryGraphs:hasLiveProcess", store.data.size > 0);
     if (type === "local") {
         const runningApp = dashboard.appsProvider.manager.getAppByPid(liveProcess.pid);
         if (runningApp) {
