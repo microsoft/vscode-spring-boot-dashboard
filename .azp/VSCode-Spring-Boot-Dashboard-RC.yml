@@ -1,6 +1,9 @@
 variables:
   Codeql.Enabled: true
 
+trigger: none
+pr: none
+
 jobs:
 - job: Job_1
   displayName: Agent job 1
