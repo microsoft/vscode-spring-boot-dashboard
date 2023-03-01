@@ -43,34 +43,6 @@ jobs:
   - bash: |
       npx json@latest -I -f package.json -e "this.version=this.version.substring(0, this.version.lastIndexOf('.'))+\".$(date -u +'%Y%m%d%H')\""
     displayName: Update patch version in package.json
-  - task: EsrpCodeSigning@1
-    displayName: ESRP CodeSigning
-    enabled: False
-    inputs:
-      ConnectedServiceName: d5f51b85-6feb-48f6-a077-37426b5911f4
-      FolderPath: lib
-      Pattern: '*.jar'
-      signConfigType: inlineSignParams
-      inlineOperation: >-
-        [
-                {
-                    "KeyCode" : "CP-447347-Java",
-                    "OperationCode" : "JavaSign",
-                    "Parameters" : {
-                        "SigAlg" : "SHA256withRSA",
-                        "Timestamp" : "-tsa http://sha256timestamp.ws.digicert.com/sha256/timestamp"
-                    },
-                    "ToolName" : "sign",
-                    "ToolVersion" : "1.0"
-                },
-                {
-                    "KeyCode" : "CP-447347-Java",
-                    "OperationCode" : "JavaVerify",
-                    "Parameters" : {},
-                    "ToolName" : "sign",
-                    "ToolVersion" : "1.0"
-                }
-        ]
   - task: CmdLine@2
     displayName: VSCE package --pre-release
     inputs:
