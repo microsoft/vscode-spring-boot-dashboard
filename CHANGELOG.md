@@ -4,6 +4,10 @@ All notable changes to the "vscode-spring-boot-dashboard" extension will be docu
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
+## 0.11.1
+### Fixed
+- Fixed: Memory view was not showing after live process connected for local apps. (https://github.com/microsoft/vscode-spring-boot-dashboard/issues/287)
+
 ## 0.11.0
 ### Added
 - New extension APIs allowing to establish live connection to remote apps running on cloud. [#262](https://github.com/microsoft/vscode-spring-boot-dashboard/issues/262)
