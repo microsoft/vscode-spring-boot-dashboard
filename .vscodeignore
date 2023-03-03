@@ -1,7 +1,6 @@
 .vscode/**
 .vscode-test/**
-out/test/**
-out/**/*.map
+dist/**/*.map
 java-extension/**
 src/**
 test/**
@@ -14,6 +13,10 @@ scripts/**
 .mvn
 .github
 .gitmodules
+.azp
 
 # Ignore output of code sign
 lib/*.md
+
+node_modules
+out
