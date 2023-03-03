@@ -20,6 +20,7 @@
     "Other"
   ],
   "activationEvents": [
+    "onCommand:vscode-spring-boot.ls.start"
   ],
   "capabilities": {
     "virtualWorkspaces": false
