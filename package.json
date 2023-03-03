@@ -557,6 +557,7 @@
     "compile": "tsc -p .",
     "watch": "tsc -watch -p .",
     "prepublish": "node scripts/build-java-ext.js",
+    "pretest": "json -I -f package.json -e \"this.main=\\\"./out/src/extension\\\"\"",
     "test": "npm run compile && node ./out/test/runTest.js",
     "tslint": "eslint .",
     "update-tpn": "node scripts/update-third-party-notice.js"
@@ -573,6 +574,7 @@
     "@vscode/test-electron": "^2.2.3",
     "copy-webpack-plugin": "^11.0.0",
     "eslint": "^8.32.0",
+    "json": "^11.0.0",
     "mocha": "^9.2.2",
     "ts-loader": "^9.4.2",
     "typescript": "^4.9.4",
