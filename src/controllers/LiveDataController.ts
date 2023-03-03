@@ -68,6 +68,12 @@ async function updateProcessInfo(payload: string | LiveProcess) {
     dashboard.memoryViewProvider.refreshLiveMetrics(liveProcess, "heap", []);
     dashboard.memoryViewProvider.refreshLiveMetrics(liveProcess, "non-heap", []);
     dashboard.memoryViewProvider.refreshLiveMetrics(liveProcess, "gc-pauses", []);
+
+    // See https://github.com/microsoft/vscode-spring-boot-dashboard/issues/287
+    // send a memory metrics request, ensuring following notification comes
+    if (type === "local") {
+        await updateProcessMemoryMetrics(payload);
+    }
 }
 
 async function updateProcessGcPausesMetrics(payload: string | LiveProcess) {

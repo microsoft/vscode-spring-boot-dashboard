@@ -1,6 +1,9 @@
 variables:
   Codeql.Enabled: true
 
+trigger: none
+pr: none
+
 schedules:
 - cron: 0 0 * * *
   branches:
