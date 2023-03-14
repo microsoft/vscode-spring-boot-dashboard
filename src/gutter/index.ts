@@ -4,10 +4,8 @@ import { StaticBean, StaticEndpoint } from "../models/StaticSymbolTypes";
 import { getBeans, getMappings } from "../models/symbols";
 import { sleep } from "../utils";
 
-let DECORATION_OPTIONS_PLACEHOLDER: vscode.ThemableDecorationInstanceRenderOptions;
-let DECORATION_OPTIONS_BEAN: vscode.ThemableDecorationInstanceRenderOptions;
-let DECORATION_OPTIONS_ENDPOINT: vscode.ThemableDecorationInstanceRenderOptions;
-let DECORATION_TYPE_SPRING: vscode.TextEditorDecorationType;
+let DECORATION_TYPE_BEAN: vscode.TextEditorDecorationType;
+let DECORATION_TYPE_ENDPOINT: vscode.TextEditorDecorationType;
 const disposables: vscode.Disposable[] = [];
 
 function decorateEditor(textEditor: vscode.TextEditor) {
@@ -25,33 +23,13 @@ function decorateEditor(textEditor: vscode.TextEditor) {
 }
 
 export function init(context: vscode.ExtensionContext) {
-    DECORATION_OPTIONS_PLACEHOLDER = {
-        before: {
-            backgroundColor: new vscode.ThemeColor("editor.background"),
-            color: new vscode.ThemeColor("editor.foreground"),
-            width: "2em",
-            contentText: " "
-        }
-    };
-    DECORATION_OPTIONS_BEAN = {
-        before: {
-            backgroundColor: new vscode.ThemeColor("editor.background"),
-            color: new vscode.ThemeColor("editor.foreground"),
-            width: "2em",
-            contentIconPath: vscode.Uri.joinPath(context.extensionUri, "resources", "gutter-bean.svg")
-        }
-    };
-    DECORATION_OPTIONS_ENDPOINT = {
-        before: {
-            backgroundColor: new vscode.ThemeColor("editor.background"),
-            color: new vscode.ThemeColor("editor.foreground"),
-            width: "2em",
-            contentIconPath: vscode.Uri.joinPath(context.extensionUri, "resources", "gutter-endpoint.svg")
-        }
-    };
-    DECORATION_TYPE_SPRING = vscode.window.createTextEditorDecorationType({
+    DECORATION_TYPE_BEAN = vscode.window.createTextEditorDecorationType({
         isWholeLine: true,
-        ...DECORATION_OPTIONS_PLACEHOLDER
+        gutterIconPath: vscode.Uri.joinPath(context.extensionUri, "resources", "gutter-bean.svg")
+    });
+    DECORATION_TYPE_ENDPOINT = vscode.window.createTextEditorDecorationType({
+        isWholeLine: true,
+        gutterIconPath: vscode.Uri.joinPath(context.extensionUri, "resources", "gutter-endpoint.svg")
     });
 
     disposables.push(vscode.window.onDidChangeVisibleTextEditors((textEditors) => {
@@ -65,11 +43,6 @@ export function init(context: vscode.ExtensionContext) {
             decorateEditor(vscode.window.activeTextEditor);
         }
     }));
-    disposables.push(vscode.workspace.onDidChangeTextDocument(async (e) => {
-        if (e.document === vscode.window.activeTextEditor?.document) {
-            decorateEditor(vscode.window.activeTextEditor);
-        }
-    }));
     vscode.window.visibleTextEditors.forEach(decorateEditor);
 }
 
@@ -80,38 +53,31 @@ export function dispose() {
 }
 
 function setDecorationOptions(textEditor: vscode.TextEditor, beans: StaticBean[], mappings: StaticEndpoint[]): void {
-    const placeholders: vscode.DecorationOptions[] = [];
-    const decorations: vscode.DecorationOptions[] = [];
+    const beanDecorations: vscode.DecorationOptions[] = [];
+    const mappingDecorations: vscode.DecorationOptions[] = [];
     const beanLines = beans.map(b => b.location.range.start.line);
     const mappingLines = mappings.map(m => m.location.range.start.line);
     for (let lineNumber = 0; lineNumber < textEditor.document.lineCount; lineNumber++) {
         if (beanLines.includes(lineNumber)) {
             const bean = beans.find(b => b.location.range.start.line === lineNumber);
             if (bean) {
-                decorations.push({
+                beanDecorations.push({
                     range: bean.location.range,
-                    hoverMessage: getBeanGutterHover(bean),
-                    renderOptions: DECORATION_OPTIONS_BEAN
+                    hoverMessage: getBeanGutterHover(bean)
                 });
             }
         } else if (mappingLines.includes(lineNumber)) {
             const mapping = mappings.find(m => m.location.range.start.line === lineNumber);
             if (mapping) {
-                decorations.push({
+                mappingDecorations.push({
                     range: mapping.location.range,
-                    hoverMessage: getEndpointGutterHover(mapping),
-                    renderOptions: DECORATION_OPTIONS_ENDPOINT
+                    hoverMessage: getEndpointGutterHover(mapping)
                 });
             }
-        } else {
-            placeholders.push({
-                range: new vscode.Range(lineNumber, 0, lineNumber, 0),
-                renderOptions: DECORATION_OPTIONS_PLACEHOLDER
-            });
         }
-
     }
-    textEditor.setDecorations(DECORATION_TYPE_SPRING, [...placeholders, ...decorations]);
+    textEditor.setDecorations(DECORATION_TYPE_BEAN, [...beanDecorations]);
+    textEditor.setDecorations(DECORATION_TYPE_ENDPOINT, [...mappingDecorations]);
 }
 
 function getBeanGutterHover(bean: StaticBean) {
