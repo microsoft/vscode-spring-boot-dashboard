@@ -81,6 +81,17 @@ export async function getMemoryMetrics(processKey: string, memory: string) {
     return "";
 }
 
+export async function refreshMetrics(processKey: string, metricName: string) {
+    if (typeof stsApi?.refreshLiveProcessMetricsData === "function") {
+        await stsApi?.refreshLiveProcessMetricsData({
+            processKey: processKey,
+            endpoint: "metrics",
+            metricName: metricName,
+        });
+    }
+    return "";
+}
+
 export async function getPort(processKey: string) {
     const result = await stsApi?.getLiveProcessData({
         processKey: processKey,

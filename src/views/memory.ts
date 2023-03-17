@@ -4,7 +4,7 @@
 
 import * as vscode from "vscode";
 import { LiveProcess } from "../models/liveProcess";
-import { stsApi } from "../models/stsApi";
+import { refreshMetrics } from "../models/stsApi";
 import * as sts from "../types/sts-api";
 
 interface Measurement {
@@ -144,18 +144,8 @@ export class MemoryViewProvider implements vscode.WebviewViewProvider {
             switch (command) {
                 case "LoadMetrics":
                     if (processKey !== '' && processKey !== undefined) {
-                        await stsApi?.refreshLiveProcessMetricsData({
-                            processKey: processKey,
-                            endpoint: "metrics",
-                            metricName: "memory",
-                        });
-
-                        await stsApi?.refreshLiveProcessMetricsData({
-                            processKey: processKey,
-                            endpoint: "metrics",
-                            metricName: "gcPauses",
-                            tags: ""
-                        });
+                        await refreshMetrics(processKey, "memory");
+                        await refreshMetrics(processKey, "gcPauses");
                     }
                     break;
                 case "LoadProcess":

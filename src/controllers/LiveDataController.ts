@@ -2,7 +2,7 @@ import * as vscode from "vscode";
 import { sendInfo } from "vscode-extension-telemetry-wrapper";
 import { AppState } from "../BootApp";
 import { dashboard } from "../global";
-import { getBeans, getContextPath, getMainClass, getMappings, getPid, getPort, getGcPausesMetrics, getMemoryMetrics, initialize } from "../models/stsApi";
+import { getBeans, getContextPath, getMainClass, getMappings, getPid, getPort, getGcPausesMetrics, getMemoryMetrics, initialize, refreshMetrics } from "../models/stsApi";
 import { LiveProcess } from "../types/sts-api";
 import { isAlive } from "../utils";
 
@@ -72,7 +72,8 @@ async function updateProcessInfo(payload: string | LiveProcess) {
     // See https://github.com/microsoft/vscode-spring-boot-dashboard/issues/287
     // send a memory metrics request, ensuring following notification comes
     if (type === "local") {
-        await updateProcessMemoryMetrics(payload);
+        await refreshMetrics(processKey, "memory");
+        // await updateProcessMemoryMetrics(payload);
     }
 }
 
