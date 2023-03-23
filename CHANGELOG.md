@@ -4,6 +4,15 @@ All notable changes to the "vscode-spring-boot-dashboard" extension will be docu
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
+## 0.12.0
+### Changed
+- Render Spring related gutter icons using suggested APIs. [#291](https://github.com/microsoft/vscode-spring-boot-dashboard/pull/291)
+
+### Fixed
+- Activate dashboard extension when Spring Langauge Server starts. [#289](https://github.com/microsoft/vscode-spring-boot-dashboard/pull/289)
+- NullPointerException on launching Spring apps. [#293](https://github.com/microsoft/vscode-spring-boot-dashboard/issues/293)
+- Column lines not aligned when line wrapping is enabled. [#257](https://github.com/microsoft/vscode-spring-boot-dashboard/issues/257)
+
 ## 0.11.1
 ### Fixed
 - Fixed: Memory view was not showing after live process connected for local apps. (https://github.com/microsoft/vscode-spring-boot-dashboard/issues/287)
