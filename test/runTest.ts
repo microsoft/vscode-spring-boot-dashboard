@@ -17,12 +17,13 @@ async function main(): Promise<void> {
          * Install dependency extensions
          */
         const [cli, ...args] = resolveCliArgsFromVSCodeExecutablePath(vscodeExecutablePath);
-        cp.spawnSync(cli, [...args, '--install-extension', 'vmware.vscode-spring-boot@1.44.0', ], {
+
+        cp.spawnSync(cli, [...args, '--install-extension', 'redhat.java@1.15.0'], {
             encoding: 'utf-8',
             stdio: 'inherit'
         });
 
-        cp.spawnSync(cli, [...args, '--install-extension', 'redhat.java'], {
+        cp.spawnSync(cli, [...args, '--install-extension', 'vmware.vscode-spring-boot', ], {
             encoding: 'utf-8',
             stdio: 'inherit'
         });
