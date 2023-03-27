@@ -14,10 +14,8 @@ export async function setupTestEnv() {
     console.log("redhat.java activated.");
 
     const api = javaExt.exports;
-    while (api.serverMode !== "Standard") {
-        console.log("wait for jdtls Standard server ready...");
-        await sleep(2 * 1000/*ms*/);
-    }
+    console.log("wait for jdtls Standard server ready...");
+    await api.serverReady();
     console.log("jdtls standard server ready.")
 
     const dashboardExt = vscode.extensions.getExtension("vscjava.vscode-spring-boot-dashboard");
