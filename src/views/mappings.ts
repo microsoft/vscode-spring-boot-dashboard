@@ -280,6 +280,8 @@ export async function openEndpointHandler(endpoint: Endpoint) {
     if (url) {
         const openWithExternalBrowser: boolean = vscode.workspace.getConfiguration("spring.dashboard").get("openWith") === "external";
         const browserCommand: string = openWithExternalBrowser ? "vscode.open" : "simpleBrowser.api.open";
-        vscode.commands.executeCommand(browserCommand, vscode.Uri.parse(url));
+        let uri = vscode.Uri.parse(url);
+        uri = await vscode.env.asExternalUri(uri); // Enables Remote envs like Codespaces
+        vscode.commands.executeCommand(browserCommand, uri);
     }
 }
