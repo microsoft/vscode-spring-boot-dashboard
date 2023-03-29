@@ -36,3 +36,7 @@ jobs:
 
     - name: Test extension
       run: npm test
+    - uses: actions/upload-artifact@v3
+      with:
+        name: jdtls-log
+        path: $HOME/AppData/Roaming/Code/User/workspaceStorage/*/redhat.java/jdt_ws/.metadata/.log
