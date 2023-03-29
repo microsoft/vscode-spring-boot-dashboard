@@ -3,31 +3,37 @@
 
 import * as vscode from "vscode";
 
+const JavaExtId = "redhat.java";
+const SpringExtId = "vmware.vscode-spring-boot";
+const DashboardExtId = "vscjava.vscode-spring-boot-dashboard";
+
 export async function setupTestEnv() {
-    const javaExt = vscode.extensions.getExtension("redhat.java");
+    const javaExt = await activateExtension(JavaExtId);
     if (!javaExt) {
-        console.error("redhat.java is not enabled.");
         return;
     }
-    console.log("activating redhat.java...");
-    await javaExt.activate();
-    console.log("redhat.java activated.");
 
     const api = javaExt.exports;
-    while (api.serverMode !== "Standard") {
-        console.log("wait for jdtls Standard server ready...");
-        await sleep(2 * 1000/*ms*/);
-    }
+    console.log("wait for jdtls Standard server ready...");
+    await api.serverReady();
     console.log("jdtls standard server ready.")
 
-    const dashboardExt = vscode.extensions.getExtension("vscjava.vscode-spring-boot-dashboard");
-    if (!dashboardExt) {
-        console.error("dashboard extension is not enabled.");
-        return;
-    }
-    await dashboardExt.activate();
+    await activateExtension(SpringExtId);
+    await activateExtension(DashboardExtId);
 }
 
 export function sleep(milliseconds: number): Promise<void> {
     return new Promise<void>((resolve) => setTimeout(resolve, milliseconds));
+}
+
+async function activateExtension(extId: string) {
+    const ext = vscode.extensions.getExtension(extId);
+    if (!ext) {
+        console.error(`${extId} is not enabled.`);
+        return undefined;
+    }
+    console.log(`activating ${extId}...`);
+    await ext.activate();
+    console.log(`${extId} is activated.`);
+    return ext;
 }

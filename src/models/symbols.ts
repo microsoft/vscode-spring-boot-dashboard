@@ -27,6 +27,9 @@ export async function init(timeout?: number) {
         }
         retry++;
     } while (!beans?.length && !mappings?.length && retry * INTERVAL < TIMEOUT);
+    if (retry * INTERVAL >= TIMEOUT) {
+        console.warn("Timed out: requestWorkspaceSymbols.");
+    }
 }
 
 export function getBeans(projectPath?: string | vscode.Uri) {
