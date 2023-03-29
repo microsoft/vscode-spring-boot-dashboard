@@ -36,7 +36,9 @@ jobs:
 
     - name: Test extension
       run: npm test
+
     - uses: actions/upload-artifact@v3
+      if: always()
       with:
         name: jdtls-log
         path: .vscode-test/user-data/User/workspaceStorage/*/redhat.java/jdt_ws/.metadata/.log
