@@ -18,7 +18,7 @@ async function main(): Promise<void> {
          */
         const [cli, ...args] = resolveCliArgsFromVSCodeExecutablePath(vscodeExecutablePath);
 
-        cp.spawnSync(cli, [...args, '--install-extension', 'redhat.java'], {
+        cp.spawnSync(cli, [...args, '--install-extension', 'redhat.java@1.15.0'], {
             encoding: 'utf-8',
             stdio: 'inherit'
         });
