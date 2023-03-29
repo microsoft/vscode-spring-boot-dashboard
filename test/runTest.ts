@@ -23,7 +23,7 @@ async function main(): Promise<void> {
             stdio: 'inherit'
         });
 
-        cp.spawnSync(cli, [...args, '--install-extension', 'vmware.vscode-spring-boot@v1.46.2023032804', ], {
+        cp.spawnSync(cli, [...args, '--install-extension', 'vmware.vscode-spring-boot', "--pre-release" ], {
             encoding: 'utf-8',
             stdio: 'inherit'
         });
