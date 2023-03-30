@@ -1,4 +1,4 @@
-name: CI
+name: Windows-CI
 
 on:
   push:
@@ -42,3 +42,15 @@ jobs:
       with:
         name: jdtls-log
         path: .vscode-test/user-data/User/workspaceStorage/*/redhat.java/jdt_ws/.metadata/.log
+
+    - name: ls root
+      run: ls -al
+
+    - name: ls petclinic
+      run: ls -al test/projects/spring-petclinic
+
+    - uses: actions/upload-artifact@v3
+      if: always()
+      with:
+        name: boot-ls-log
+        path: test/projects/spring-petclinic/boot-ls.log
