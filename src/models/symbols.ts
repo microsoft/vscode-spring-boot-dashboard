@@ -28,7 +28,7 @@ export async function init(timeout?: number) {
         retry++;
     } while (!beans?.length && !mappings?.length && retry * INTERVAL < TIMEOUT);
     if (retry * INTERVAL >= TIMEOUT) {
-        console.warn("Timed out: requestWorkspaceSymbols.");
+        console.warn(`Timed out: requestWorkspaceSymbols. (${TIMEOUT}ms)`);
     }
 }
 
