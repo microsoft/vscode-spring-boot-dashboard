@@ -8,6 +8,11 @@ const SpringExtId = "vmware.vscode-spring-boot";
 const DashboardExtId = "vscjava.vscode-spring-boot-dashboard";
 
 export async function setupTestEnv() {
+
+    await vscode.workspace.getConfiguration("spring-boot.ls").update("logfile", "./boot-ls.log");
+    const bootlsLog = vscode.workspace.getConfiguration("spring-boot.ls").get("logfile");
+    console.log("boot ls logfile: " + bootlsLog);
+
     const javaExt = await activateExtension(JavaExtId);
     if (!javaExt) {
         return;
