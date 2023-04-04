@@ -169,7 +169,7 @@ export async function initializeExtension(_oprationId: string, context: vscode.E
     const memoryViewProvider = new MemoryViewProvider(context);
     dashboard.memoryViewProvider = memoryViewProvider;
     context.subscriptions.push(vscode.window.registerWebviewViewProvider(
-        "memory.memoryView",
+        "spring.memoryView",
         memoryViewProvider
     ));
 

@@ -9,7 +9,6 @@ import { StaticBean } from "../models/StaticSymbolTypes";
 import { getBeanDetail, getUrlOfBeanType } from "../models/stsApi";
 import { locationEquals } from "../symbolUtils";
 import * as sts from "../types/sts-api";
-import { BootAppItem } from "./items/BootAppItem";
 
 export class Bean {
     dependencies?: string[];
@@ -65,19 +64,7 @@ export class BeansDataProvider implements vscode.TreeDataProvider<TreeData> {
 
     async getTreeItem(element: TreeData): Promise<vscode.TreeItem> {
         if (element instanceof LiveProcess) {
-            let item;
-            if (element.type === "local") {
-                item = new vscode.TreeItem(element.appName);
-                item.description = `pid: ${element.pid}`;
-            } else {
-                item = new vscode.TreeItem(element.remoteAppName);
-                item.description = element.remoteApp?.jmxurl;
-            }
-
-            item.iconPath = BootAppItem.RUNNING_ICON(); // TODO: should use customized icon based on connection type
-            item.collapsibleState = vscode.TreeItemCollapsibleState.Expanded;
-            item.contextValue = "liveProcess";
-            return item;
+            return element.toTreeItem();
         } else if (element instanceof BootApp) {
             const item = new vscode.TreeItem(element.name);
             item.iconPath = element.iconPath;
@@ -208,7 +195,7 @@ export class BeansDataProvider implements vscode.TreeDataProvider<TreeData> {
         this.onDidRefreshBeans.fire(item);
     }
 
-    public refreshLive(liveProcess: sts.LiveProcess, beanIds: string[] | undefined) {
+    public refreshLive(liveProcess: sts.LiveProcessPayload, beanIds: string[] | undefined) {
         if (beanIds === undefined) {
             // remove
             const targetLiveProcess = Array.from(this.store.keys()).find(lp => lp.processKey === liveProcess.processKey);

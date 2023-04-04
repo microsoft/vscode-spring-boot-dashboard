@@ -27,7 +27,7 @@ interface Metrics {
 }
 
 export class MemoryViewProvider implements vscode.WebviewViewProvider {
-    public static readonly viewType = "memory.memoryView";
+    public static readonly viewType = "spring.memoryView";
     private storeGcPausesMetrics: Map<LiveProcess, Metrics[][]> = new Map();
     private storeHeapMemoryMetrics: Map<LiveProcess, Metrics[][]> = new Map();
     private storeNonHeapMemoryMetrics: Map<LiveProcess, Metrics[][]> = new Map();
@@ -40,9 +40,7 @@ export class MemoryViewProvider implements vscode.WebviewViewProvider {
 
     constructor(
         private context: vscode.ExtensionContext
-    ) {
-        vscode.commands.executeCommand("setContext", "spring.memoryGraphs:showMode", "defined");
-    }
+    ) { }
 
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     public resolveWebviewView(webviewView: vscode.WebviewView, _context: vscode.WebviewViewResolveContext, _token: vscode.CancellationToken) {
@@ -85,7 +83,7 @@ export class MemoryViewProvider implements vscode.WebviewViewProvider {
     }
 
     private _getWebviewContent(webview: vscode.Webview, extensionUri: vscode.Uri) {
-        const toolkitUri = getUri(webview, extensionUri, ["dist","memoryViewAssets","@vscode","webview-ui-toolkit","dist","toolkit.js"]);
+        const toolkitUri = getUri(webview, extensionUri, ["dist", "memoryViewAssets", "@vscode", "webview-ui-toolkit", "dist", "toolkit.js"]);
         const mainUri = getUri(webview, extensionUri, ["resources", "webview-ui", "main.js"]);
         const stylesUri = getUri(webview, extensionUri, ["resources", "webview-ui", "styles.css"]);
         const chartLibPath = getUri(webview, extensionUri, ["dist", "memoryViewAssets", "chart.js", "dist", "chart.min.js"]);
@@ -257,7 +255,7 @@ export class MemoryViewProvider implements vscode.WebviewViewProvider {
      * - undefined: remove on disconnected.
      * @returns
      */
-    public refreshLiveMetrics(liveProcess: sts.LiveProcess, category: "heap" | "non-heap" | "gc-pauses", metricsRaw: unknown) {
+    public refreshLiveMetrics(liveProcess: sts.LiveProcessPayload, category: "heap" | "non-heap" | "gc-pauses", metricsRaw: unknown) {
         let store;
         switch (category) {
             case "heap":
@@ -282,7 +280,7 @@ export class MemoryViewProvider implements vscode.WebviewViewProvider {
                 store.delete(targetLiveProcess);
                 this.removeLiveProcess(targetLiveProcess);
             }
-        } else if (metricsRaw instanceof Array){
+        } else if (metricsRaw instanceof Array) {
             if (metricsRaw.length === 0) {
                 // add
                 const targetLiveProcess = Array.from(store.keys()).find(lp => lp.processKey === liveProcess.processKey) ?? new LiveProcess(liveProcess);

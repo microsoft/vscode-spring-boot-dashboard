@@ -7,27 +7,27 @@ export interface ExtensionAPI {
     /**
      * An event which fires on live process is connected. Payload is processKey.
      */
-    readonly onDidLiveProcessConnect: Event<LiveProcess | string>;
+    readonly onDidLiveProcessConnect: Event<LiveProcessPayload | string>;
 
     /**
      * An event which fires on live process is disconnected. Payload is processKey.
      */
-    readonly onDidLiveProcessDisconnect: Event<LiveProcess | string>;
+    readonly onDidLiveProcessDisconnect: Event<LiveProcessPayload | string>;
 
 	/**
      * An event which fires on live process data change. Payload is processKey.
      */
-	readonly onDidLiveProcessUpdate: Event<LiveProcess | string>;
+	readonly onDidLiveProcessUpdate: Event<LiveProcessPayload | string>;
 
     /**
      * An event which fires on live process gcpauses metrics data change. Payload is processKey.
      */
-	readonly onDidLiveProcessGcPausesMetricsUpdate: Event<LiveProcess | string>;
+	readonly onDidLiveProcessGcPausesMetricsUpdate: Event<LiveProcessPayload | string>;
 
     /**
      * An event which fires on live process memory metrics data change. Payload is processKey.
      */
-	readonly onDidLiveProcessMemoryMetricsUpdate: Event<LiveProcess | string>;
+	readonly onDidLiveProcessMemoryMetricsUpdate: Event<LiveProcessPayload | string>;
 
     /**
      * A command to get live process data.
@@ -54,7 +54,7 @@ export interface ExtensionAPI {
      *
      * Returns a list of processKeys.
      */
-    readonly listConnectedProcesses: () => Promise<(LiveProcess | string)[]>;
+    readonly listConnectedProcesses: () => Promise<(LiveProcessPayload | string)[]>;
 }
 
 interface LiveProcessDataQuery {
@@ -94,7 +94,7 @@ export interface RemoteLiveProcess {
 	processName: string;
 }
 
-export type LiveProcess = LocalLiveProcess | RemoteLiveProcess;
+export type LiveProcessPayload = LocalLiveProcess | RemoteLiveProcess;
 
 interface MetricsQuery extends LiveProcessDataQuery {
     endpoint: "metrics";

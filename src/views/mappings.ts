@@ -11,7 +11,6 @@ import { getContextPath, getPort } from "../models/stsApi";
 import { locationEquals } from "../symbolUtils";
 import * as sts from "../types/sts-api";
 import { constructOpenUrl } from "../utils";
-import { BootAppItem } from "./items/BootAppItem";
 
 export class Endpoint {
     // raw
@@ -87,19 +86,7 @@ export class MappingsDataProvider implements vscode.TreeDataProvider<TreeData> {
 
     getTreeItem(element: TreeData): vscode.TreeItem | Thenable<vscode.TreeItem> {
         if (element instanceof LiveProcess) {
-            let item;
-            if (element.type === "local") {
-                item = new vscode.TreeItem(element.appName);
-                item.description = `pid: ${element.pid}`;
-            } else {
-                item = new vscode.TreeItem(element.remoteAppName);
-                item.description = element.remoteApp?.jmxurl;
-            }
-
-            item.iconPath = BootAppItem.RUNNING_ICON();
-            item.collapsibleState = vscode.TreeItemCollapsibleState.Expanded;
-            item.contextValue = "liveProcess";
-            return item;
+            return element.toTreeItem();
         } else if (element instanceof BootApp) {
             const item = new vscode.TreeItem(element.name);
             item.iconPath = element.iconPath;
@@ -200,7 +187,7 @@ export class MappingsDataProvider implements vscode.TreeDataProvider<TreeData> {
         this.onDidRefreshMappings.fire(item);
     }
 
-    public refreshLive(liveProcess: sts.LiveProcess, mappingsRaw: any[] | undefined) {
+    public refreshLive(liveProcess: sts.LiveProcessPayload, mappingsRaw: any[] | undefined) {
         if (mappingsRaw === undefined) {
             // remove
             const targetLiveProcess = Array.from(this.store.keys()).find(lp => lp.processKey === liveProcess.processKey);
