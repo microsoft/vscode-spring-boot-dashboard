@@ -1,8 +1,8 @@
+import * as vscode from "vscode";
 import { BootApp } from "../BootApp";
 import { RemoteBootAppData } from "../extension.api";
 import { dashboard } from "../global";
 import * as sts from "../types/sts-api";
-import * as vscode from "vscode";
 import { BootAppItem } from "../views/items/BootAppItem";
 
 export class LiveProcess {
@@ -10,18 +10,18 @@ export class LiveProcess {
     remoteApp: RemoteBootAppData | undefined;
 
     constructor(
-        private liveProcess: sts.LiveProcess
+        private payload: sts.LiveProcessPayload
     ) {
-        if (liveProcess.type === "local") {
-            let app = dashboard.appsProvider.manager.getAppByPid(liveProcess.pid);
+        if (payload.type === "local") {
+            let app = dashboard.appsProvider.manager.getAppByPid(payload.pid);
             if (!app) {
                 // fallback: here assume processName is full-qualified name of mainclass, which is not guaranteed.
-                const mainClass = liveProcess.processName;
+                const mainClass = payload.processName;
                 app = dashboard.appsProvider.manager.getAppByMainClass(mainClass);
             }
             this.app = app;
-        } else if (liveProcess.type === "remote") {
-            const host = liveProcess.processName.split(" - ")?.[1]; // TODO: should request upstream API for identifier of a unique remote app.
+        } else if (payload.type === "remote") {
+            const host = payload.processName.split(" - ")?.[1]; // TODO: should request upstream API for identifier of a unique remote app.
             const remoteApp = dashboard.appsProvider.remoteAppManager.getRemoteAppByHost(host);
             this.remoteApp = remoteApp;
         } else {
@@ -30,23 +30,23 @@ export class LiveProcess {
     }
 
     public get type(): "local" | "remote" {
-        return this.liveProcess.type;
+        return this.payload.type;
     }
 
     public get processKey(): string {
-        return this.liveProcess.processKey;
+        return this.payload.processKey;
     }
 
     public get pid(): string | undefined {
-        return this.liveProcess.type === "local" ? this.liveProcess.pid : undefined;
+        return this.payload.type === "local" ? this.payload.pid : undefined;
     }
 
     public get appName(): string {
-        return this.app?.name ?? this.liveProcess.processName;
+        return this.app?.name ?? this.payload.processName;
     }
 
     public get remoteAppName(): string {
-        return this.remoteApp?.name ?? this.liveProcess.processName;
+        return this.remoteApp?.name ?? this.payload.processName;
     }
 
     public toTreeItem(): vscode.TreeItem {

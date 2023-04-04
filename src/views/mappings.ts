@@ -187,7 +187,7 @@ export class MappingsDataProvider implements vscode.TreeDataProvider<TreeData> {
         this.onDidRefreshMappings.fire(item);
     }
 
-    public refreshLive(liveProcess: sts.LiveProcess, mappingsRaw: any[] | undefined) {
+    public refreshLive(liveProcess: sts.LiveProcessPayload, mappingsRaw: any[] | undefined) {
         if (mappingsRaw === undefined) {
             // remove
             const targetLiveProcess = Array.from(this.store.keys()).find(lp => lp.processKey === liveProcess.processKey);

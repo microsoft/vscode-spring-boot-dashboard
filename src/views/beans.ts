@@ -195,7 +195,7 @@ export class BeansDataProvider implements vscode.TreeDataProvider<TreeData> {
         this.onDidRefreshBeans.fire(item);
     }
 
-    public refreshLive(liveProcess: sts.LiveProcess, beanIds: string[] | undefined) {
+    public refreshLive(liveProcess: sts.LiveProcessPayload, beanIds: string[] | undefined) {
         if (beanIds === undefined) {
             // remove
             const targetLiveProcess = Array.from(this.store.keys()).find(lp => lp.processKey === liveProcess.processKey);

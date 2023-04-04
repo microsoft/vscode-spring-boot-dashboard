@@ -2,12 +2,16 @@ import * as vscode from "vscode";
 import { sendInfo } from "vscode-extension-telemetry-wrapper";
 import { AppState } from "../BootApp";
 import { dashboard } from "../global";
+import { LiveProcess } from "../models/liveProcess";
 import { getBeans, getContextPath, getMainClass, getMappings, getPid, getPort, getGcPausesMetrics, getMemoryMetrics, initialize, refreshMetrics } from "../models/stsApi";
-import { LiveProcess } from "../types/sts-api";
+import { LiveProcessPayload } from "../types/sts-api";
 import { isAlive } from "../utils";
 
 class LiveInformationStore {
-    public data: Map<string, unknown> = new Map();
+    /**
+     * processKey -> processName
+     */
+    public data: Map<string, LiveProcess> = new Map();
 }
 
 let store: LiveInformationStore;
@@ -16,15 +20,15 @@ export async function init() {
     const stsApi = await initialize();
     store = new LiveInformationStore();
 
-    stsApi.onDidLiveProcessConnect((payload: LiveProcess | string) => {
+    stsApi.onDidLiveProcessConnect((payload: LiveProcessPayload | string) => {
         sendInfo("", { name: "onDidLiveProcessConnect" });
         updateProcessInfo(payload);
     });
-    stsApi.onDidLiveProcessDisconnect((payload: LiveProcess | string) => {
+    stsApi.onDidLiveProcessDisconnect((payload: LiveProcessPayload | string) => {
         sendInfo("", { name: "onDidLiveProcessDisconnect" });
         resetProcessInfo(payload);
     });
-    stsApi.onDidLiveProcessUpdate((payload: LiveProcess | string) => {
+    stsApi.onDidLiveProcessUpdate((payload: LiveProcessPayload | string) => {
         sendInfo("", { name: "onDidLiveProcessUpdate" });
         updateProcessInfo(payload);
     });
@@ -39,9 +43,13 @@ export function connectedProcessKeys() {
     return Array.from(store.data.keys());
 }
 
-async function updateProcessInfo(payload: string | LiveProcess) {
+export function getLiveProcess(processKey: string): LiveProcess | undefined {
+    return store.data.get(processKey);
+}
+
+async function updateProcessInfo(payload: string | LiveProcessPayload) {
     const liveProcess = await parsePayload(payload);
-    const { processKey, processName, type } = liveProcess;
+    const { processKey, type } = liveProcess;
 
     const beans = await getBeans(processKey);
     dashboard.beansProvider.refreshLive(liveProcess, beans);
@@ -51,7 +59,8 @@ async function updateProcessInfo(payload: string | LiveProcess) {
 
     const port = await getPort(processKey);
     const contextPath = await getContextPath(processKey);
-    store.data.set(processKey, { processName, beans, mappings, port });
+    const lp = new LiveProcess(liveProcess);
+    store.data.set(processKey, lp);
 
     if (type === "local") {
         const runningApp = dashboard.appsProvider.manager.getAppByPid(liveProcess.pid);
@@ -77,7 +86,7 @@ async function updateProcessInfo(payload: string | LiveProcess) {
     }
 }
 
-async function updateProcessGcPausesMetrics(payload: string | LiveProcess) {
+async function updateProcessGcPausesMetrics(payload: string | LiveProcessPayload) {
     const liveProcess = await parsePayload(payload);
     const { processKey } = liveProcess;
 
@@ -87,7 +96,7 @@ async function updateProcessGcPausesMetrics(payload: string | LiveProcess) {
     }
 }
 
-async function updateProcessMemoryMetrics(payload: string | LiveProcess) {
+async function updateProcessMemoryMetrics(payload: string | LiveProcessPayload) {
     const liveProcess = await parsePayload(payload);
     const { processKey } = liveProcess;
 
@@ -105,7 +114,7 @@ async function updateProcessMemoryMetrics(payload: string | LiveProcess) {
     }
 }
 
-async function resetProcessInfo(payload: string | LiveProcess) {
+async function resetProcessInfo(payload: string | LiveProcessPayload) {
     const liveProcess = await parsePayload(payload);
     store.data.delete(liveProcess.processKey);
     dashboard.beansProvider.refreshLive(liveProcess, undefined);
@@ -132,7 +141,7 @@ async function resetProcessInfo(payload: string | LiveProcess) {
  * @param payload string for v1.33, LocalLiveProcess for v1.34
  * @returns
  */
-async function parsePayload(payload: string | LiveProcess): Promise<LiveProcess> {
+async function parsePayload(payload: string | LiveProcessPayload): Promise<LiveProcessPayload> {
     if (typeof payload === "string") {
         const processKey = payload;
         const processName = await getMainClass(processKey);

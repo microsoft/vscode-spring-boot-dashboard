@@ -255,7 +255,7 @@ export class MemoryViewProvider implements vscode.WebviewViewProvider {
      * - undefined: remove on disconnected.
      * @returns
      */
-    public refreshLiveMetrics(liveProcess: sts.LiveProcess, category: "heap" | "non-heap" | "gc-pauses", metricsRaw: unknown) {
+    public refreshLiveMetrics(liveProcess: sts.LiveProcessPayload, category: "heap" | "non-heap" | "gc-pauses", metricsRaw: unknown) {
         let store;
         switch (category) {
             case "heap":
