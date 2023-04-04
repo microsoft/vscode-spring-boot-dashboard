@@ -113,7 +113,7 @@ export async function initializeExtension(_oprationId: string, context: vscode.E
             vscode.commands.executeCommand("spring.mappings.focus");
         }
     }));
-    for (const viewId of ["spring.beans", "spring.mappings"]) {
+    for (const viewId of ["spring.beans", "spring.mappings", "spring.properties"]) {
         context.subscriptions.push(instrumentOperationAsVsCodeCommand(`${viewId}.find`, async () => await showFilterInView(viewId)));
     }
 
