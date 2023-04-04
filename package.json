@@ -69,9 +69,9 @@
           "icon": "resources/logo.png"
         },
         {
-          "id": "memory.memoryView",
+          "id": "spring.memoryView",
           "name": "Memory",
-          "when": "java:serverMode && spring.memoryGraphs:showMode == defined && spring.memoryGraphs:hasLiveProcess == true",
+          "when": "java:serverMode && spring:hasLiveProcess == true",
           "contextualTitle": "Spring",
           "type": "webview",
           "icon": "resources/logo.png"
