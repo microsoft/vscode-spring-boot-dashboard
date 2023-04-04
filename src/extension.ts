@@ -23,6 +23,7 @@ import { BeansDataProvider, openBeanHandler } from './views/beans';
 import { init as initActuatorGuide } from './views/guide';
 import { MappingsDataProvider, openEndpointHandler } from './views/mappings';
 import { MemoryViewProvider } from './views/memory';
+import { PropertiesProvider } from './views/properties';
 
 export async function activate(context: vscode.ExtensionContext) {
     await loadPackageInfo(context);
@@ -172,6 +173,14 @@ export async function initializeExtension(_oprationId: string, context: vscode.E
         "spring.memoryView",
         memoryViewProvider
     ));
+
+    // properties view
+    const propertiesProvider = new PropertiesProvider();
+    dashboard.propertiesProvider = propertiesProvider;
+    context.subscriptions.push(vscode.window.createTreeView("spring.properties", {
+        treeDataProvider: propertiesProvider,
+        showCollapseAll: true
+    }));
 
     // remote apps
     /**
