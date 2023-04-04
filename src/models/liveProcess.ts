@@ -2,6 +2,8 @@ import { BootApp } from "../BootApp";
 import { RemoteBootAppData } from "../extension.api";
 import { dashboard } from "../global";
 import * as sts from "../types/sts-api";
+import * as vscode from "vscode";
+import { BootAppItem } from "../views/items/BootAppItem";
 
 export class LiveProcess {
     app: BootApp | undefined;
@@ -45,5 +47,21 @@ export class LiveProcess {
 
     public get remoteAppName(): string {
         return this.remoteApp?.name ?? this.liveProcess.processName;
+    }
+
+    public toTreeItem(): vscode.TreeItem {
+        let item;
+        if (this.type === "local") {
+            item = new vscode.TreeItem(this.appName);
+            item.description = `pid: ${this.pid}`;
+        } else {
+            item = new vscode.TreeItem(this.remoteAppName);
+            item.description = this.remoteApp?.jmxurl;
+        }
+
+        item.iconPath = BootAppItem.RUNNING_ICON(); // TODO: should use customized icon based on connection type
+        item.collapsibleState = vscode.TreeItemCollapsibleState.Expanded;
+        item.contextValue = "liveProcess";
+        return item;
     }
 }
