@@ -84,6 +84,8 @@ async function updateProcessInfo(payload: string | LiveProcessPayload) {
         await refreshMetrics(processKey, "memory");
         // await updateProcessMemoryMetrics(payload);
     }
+
+    dashboard.propertiesProvider.refresh();
 }
 
 async function updateProcessGcPausesMetrics(payload: string | LiveProcessPayload) {
@@ -132,6 +134,7 @@ async function resetProcessInfo(payload: string | LiveProcessPayload) {
     }
 
     dashboard.appsProvider.refresh(undefined);
+    dashboard.propertiesProvider.refresh();
 }
 
 /**

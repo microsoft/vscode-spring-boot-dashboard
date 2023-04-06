@@ -108,6 +108,13 @@ export async function getContextPath(processKey: string) {
     return result;
 }
 
+export async function getProperties(processKey: string) {
+    const result = await stsApi?.getLiveProcessData({
+        processKey: processKey,
+        endpoint: "properties"
+    });
+    return result;
+}
 
 // workaround before livedata carries location
 /**
