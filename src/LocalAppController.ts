@@ -41,7 +41,7 @@ export class LocalAppController {
         }
     }
 
-    public async runBootApp(app: BootApp, debug?: boolean): Promise<void> {
+    public async runBootApp(app: BootApp, debug?: boolean, profile?: string): Promise<void> {
         const mainClasData = await vscode.window.withProgress(
             { location: vscode.ProgressLocation.Window, title: `Resolving main classes for ${app.name}...` },
             async () => {
@@ -72,14 +72,44 @@ export class LocalAppController {
         app.jmxPort = parseJMXPort(targetConfig.vmArgs);
 
         const cwdUri: vscode.Uri = vscode.Uri.parse(app.path);
+        const launchConfig =  Object.assign({}, targetConfig, {
+            noDebug: !debug,
+            cwd: cwdUri.fsPath,
+        });
+        if (profile) {
+            launchConfig.vmArgs = launchConfig.vmArgs + ` -Dspring.profiles.active=${profile}`;
+        }
+
         await vscode.debug.startDebugging(
             vscode.workspace.getWorkspaceFolder(cwdUri),
-            Object.assign({}, targetConfig, {
-                noDebug: !debug,
-                cwd: cwdUri.fsPath,
-            })
+            launchConfig
         );
     }
+
+    public async runAppWithProfile(app: BootApp, debug?: boolean) {
+        const sourceFolders = app.classpath.entries.filter(cpe => cpe.kind === "source").map(cpe => cpe.path);
+        const profilePattern=/application-(.*).properties/;
+        const detectedProfiles = [];
+        for (const sf of sourceFolders) {
+            const uri = vscode.Uri.file(sf);
+            const files = await vscode.workspace.fs.readDirectory(uri);
+            for (const f of files) {
+                const res = profilePattern.exec(f[0]);
+                if (res !== null) {
+                    const matchedProfile = res[1];
+                    detectedProfiles.push(matchedProfile);
+                }
+            }
+        }
+        const selectedProfile = await vscode.window.showQuickPick(detectedProfiles, {
+            ignoreFocusOut: true,
+            title: "Choose a profile"
+        });
+        if (selectedProfile) {
+            await this.runBootApp(app, debug, selectedProfile);
+        }
+    }
+
 
     public onDidStartBootApp(session: vscode.DebugSession): void {
         // exact match
