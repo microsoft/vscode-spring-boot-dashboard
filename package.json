@@ -69,19 +69,19 @@
           "icon": "resources/logo.png"
         },
         {
-          "id": "spring.memoryView",
-          "name": "Memory",
-          "when": "java:serverMode && spring:hasLiveProcess == true",
-          "contextualTitle": "Spring",
-          "type": "webview",
-          "icon": "resources/logo.png"
-        },
-        {
           "id": "spring.properties",
           "name": "Properties",
           "when": "java:serverMode && spring:hasLiveProcess == true",
           "contextualTitle": "Spring",
           "type": "tree",
+          "icon": "resources/logo.png"
+        },
+        {
+          "id": "spring.memoryView",
+          "name": "Memory",
+          "when": "java:serverMode && spring:hasLiveProcess == true",
+          "contextualTitle": "Spring",
+          "type": "webview",
           "icon": "resources/logo.png"
         }
       ]
