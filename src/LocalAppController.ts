@@ -72,7 +72,7 @@ export class LocalAppController {
         app.jmxPort = parseJMXPort(targetConfig.vmArgs);
 
         const cwdUri: vscode.Uri = vscode.Uri.parse(app.path);
-        const launchConfig =  Object.assign({}, targetConfig, {
+        const launchConfig = Object.assign({}, targetConfig, {
             noDebug: !debug,
             cwd: cwdUri.fsPath,
         });
@@ -88,11 +88,12 @@ export class LocalAppController {
 
     public async runAppWithProfile(app: BootApp, debug?: boolean) {
         const sourceFolders = app.classpath.entries.filter(cpe => cpe.kind === "source").map(cpe => cpe.path);
-        const profilePattern=/application-(.*).properties/;
+        const profilePattern = /^application-(.*).properties$/;
         const detectedProfiles = [];
         for (const sf of sourceFolders) {
             const uri = vscode.Uri.file(sf);
-            const files = await vscode.workspace.fs.readDirectory(uri);
+            const entries = await vscode.workspace.fs.readDirectory(uri);
+            const files = entries.filter(f => f[1] === vscode.FileType.File);
             for (const f of files) {
                 const res = profilePattern.exec(f[0]);
                 if (res !== null) {
@@ -101,12 +102,15 @@ export class LocalAppController {
                 }
             }
         }
-        const selectedProfile = await vscode.window.showQuickPick(detectedProfiles, {
+        const selectedProfiles = await vscode.window.showQuickPick(detectedProfiles, {
             ignoreFocusOut: true,
-            title: "Choose a profile"
+            canPickMany: true,
+            title: "Select Active Profiles",
+            placeHolder: "will add -Dspring.profiles.active=profile1,profile2... to VMArgs"
         });
-        if (selectedProfile) {
-            await this.runBootApp(app, debug, selectedProfile);
+        if (selectedProfiles !== undefined) {
+            const profileArgs = selectedProfiles.join(",");
+            await this.runBootApp(app, debug, profileArgs);
         }
     }
 
