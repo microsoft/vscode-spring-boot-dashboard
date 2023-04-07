@@ -7,6 +7,7 @@ import { requestWorkspaceSymbols } from "./models/stsApi";
 import { ClassPathData, MainClassData } from "./types/jdtls";
 import { isActuatorJarFile, isAlive } from "./utils";
 import { BootAppItem } from "./views/items/BootAppItem";
+import * as lsp from "vscode-languageclient";
 
 export enum AppState {
     INACTIVE = 'inactive',
@@ -21,10 +22,10 @@ export class BootApp {
     private _contextPath?: string;
     private _pid?: number;
 
-    private _watchdog?: any; // used to watch running process.
+    private _watchdog?: NodeJS.Timeout; // used to watch running process.
 
     public mainClasses: MainClassData[];
-    public symbols: { beans: any[], mappings: any[] };
+    public symbols: { beans: lsp.SymbolInformation[], mappings: lsp.SymbolInformation[] };
 
     constructor(
         private _path: string,
@@ -136,7 +137,7 @@ export class BootApp {
     }
 
     public setWatchdog() {
-        const watchdog = setInterval(async () => {
+        const watchdog: NodeJS.Timeout = setInterval(async () => {
             const alive = await isAlive(this.pid);
             if (!alive) {
                 clearInterval(watchdog);

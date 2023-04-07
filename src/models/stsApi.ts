@@ -8,6 +8,8 @@ import { promisify } from "util";
 import * as vscode from 'vscode';
 import { sanitizeFilePath } from "../symbolUtils";
 import { ExtensionAPI } from "../types/sts-api";
+import * as lsp from "vscode-languageclient";
+
 const execFile = promisify(cp.execFile);
 
 export let stsApi: ExtensionAPI | undefined;
@@ -171,16 +173,16 @@ async function getJreHome() {
 }
 
 export async function requestWorkspaceSymbols(projectPath?: string): Promise<{
-    beans: any[],
-    mappings: any[]
+    beans: lsp.SymbolInformation[],
+    mappings: lsp.SymbolInformation[]
 }> {
     let filter = "";
     if (projectPath) {
         const locationPrefix = vscode.Uri.file(sanitizeFilePath(projectPath)).toString();
         filter = `locationPrefix:${locationPrefix}?`;
     }
-    const beans = await stsApi?.client.sendRequest<any[]>("workspace/symbol", { "query": `${filter}@+` }) ?? [];
-    const mappings = await stsApi?.client.sendRequest<any[]>("workspace/symbol", { "query": `${filter}@/` }) ?? [];
+    const beans = await stsApi?.client.sendRequest<lsp.SymbolInformation[]>("workspace/symbol", { "query": `${filter}@+` }) ?? [];
+    const mappings = await stsApi?.client.sendRequest<lsp.SymbolInformation[]>("workspace/symbol", { "query": `${filter}@/` }) ?? [];
 
     return {
         beans,
@@ -188,7 +190,7 @@ export async function requestWorkspaceSymbols(projectPath?: string): Promise<{
     };
 }
 
-export async function requestWorkspaceSymbolsByQuery(query: string): Promise<any[]> {
-    const res = await stsApi?.client.sendRequest<any[]>("workspace/symbol", { "query": query }) ?? [];
+export async function requestWorkspaceSymbolsByQuery(query: string): Promise<lsp.SymbolInformation[]> {
+    const res = await stsApi?.client.sendRequest<lsp.SymbolInformation[]>("workspace/symbol", { "query": query }) ?? [];
     return res;
 }

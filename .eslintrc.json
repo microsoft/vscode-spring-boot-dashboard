@@ -9,6 +9,7 @@
         "node_modules",
         "scripts",
         "webpack.config.js",
+        "dist",
         "resources" // skip memory view .js for now
     ]
 }
