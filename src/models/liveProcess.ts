@@ -4,10 +4,13 @@ import { RemoteBootAppData } from "../extension.api";
 import { dashboard } from "../global";
 import * as sts from "../types/sts-api";
 import { BootAppItem } from "../views/items/BootAppItem";
+import { Property, PropertyGroup } from "./properties";
+import { getProperties } from "./stsApi";
 
 export class LiveProcess {
     app: BootApp | undefined;
     remoteApp: RemoteBootAppData | undefined;
+    propertyGroups: PropertyGroup[] | undefined;
 
     constructor(
         private payload: sts.LiveProcessPayload
@@ -63,5 +66,26 @@ export class LiveProcess {
         item.collapsibleState = vscode.TreeItemCollapsibleState.Expanded;
         item.contextValue = "liveProcess";
         return item;
+    }
+
+    public async getProperties(): Promise<PropertyGroup[] | undefined> {
+        if (this.propertyGroups === undefined) {
+            const propertiesPayload = await getProperties(this.processKey);
+            const propertyGroups = [];
+
+            // PARSE
+            const { sources } = propertiesPayload;
+            for (const source of sources) {
+                const group = new PropertyGroup(source.sourceName);
+                const {properties} = source;
+                for (const prop of properties) {
+                    const {property, value} = prop;
+                    new Property(property, value, group);
+                }
+                propertyGroups.push(group);
+            }
+            this.propertyGroups = propertyGroups;
+        }
+        return this.propertyGroups;
     }
 }

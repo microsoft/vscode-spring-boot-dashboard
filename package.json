@@ -69,6 +69,14 @@
           "icon": "resources/logo.png"
         },
         {
+          "id": "spring.properties",
+          "name": "Properties",
+          "when": "java:serverMode && spring:hasLiveProcess == true",
+          "contextualTitle": "Spring",
+          "type": "tree",
+          "icon": "resources/logo.png"
+        },
+        {
           "id": "spring.memoryView",
           "name": "Memory",
           "when": "java:serverMode && spring:hasLiveProcess == true",
@@ -237,6 +245,12 @@
         "icon": "$(search)"
       },
       {
+        "command": "spring.properties.find",
+        "title": "Find...",
+        "category": "Spring Boot Dashboard",
+        "icon": "$(search)"
+      },
+      {
         "command": "spring.remoteApp.connect",
         "title": "Connect",
         "category": "Spring Boot Dashboard",
@@ -326,6 +340,10 @@
         {
           "command": "spring.mappings.find",
           "when": "false"
+        },
+        {
+          "command": "spring.properties.find",
+          "when": "false"
         }
       ],
       "view/title": [
@@ -382,6 +400,11 @@
         {
           "command": "spring.mappings.find",
           "when": "view == spring.mappings",
+          "group": "navigation@0"
+        },
+        {
+          "command": "spring.properties.find",
+          "when": "view == spring.properties",
           "group": "navigation@0"
         }
       ],
