@@ -11,6 +11,7 @@ import { getContextPath, getPort } from "../models/stsApi";
 import { locationEquals } from "../symbolUtils";
 import * as sts from "../types/sts-api";
 import { constructOpenUrl } from "../utils";
+import { SymbolInformation } from "vscode-languageclient";
 
 export class Endpoint {
     // raw
@@ -206,12 +207,12 @@ export class MappingsDataProvider implements vscode.TreeDataProvider<TreeData> {
         this.onDidRefreshMappings.fire(undefined);
     }
 
-    public refreshStatic(app: BootApp, mappingsRaw: StaticEndpoint[]) {
+    public refreshStatic(app: BootApp, mappingsRaw: SymbolInformation[]) {
         this.updateStaticData(app, mappingsRaw);
         this.onDidRefreshMappings.fire(undefined);
     }
 
-    public updateStaticData(app: BootApp, mappingsRaw: StaticEndpoint[]) {
+    public updateStaticData(app: BootApp, mappingsRaw: SymbolInformation[]) {
         const mappings = mappingsRaw.map(raw => new StaticEndpoint(raw)).sort((a, b) => a.label.localeCompare(b.label));
         this.staticData.set(app, mappings);
     }
@@ -222,7 +223,7 @@ export class MappingsDataProvider implements vscode.TreeDataProvider<TreeData> {
         // search store for live mappings
         for (const lp of this.store.keys()) {
             const mappings = this.store.get(lp);
-            const found = mappings?.filter(m => m.corresponding).find(sm => locationEquals(sm.corresponding!.location, location));
+            const found = mappings?.filter(m => m.corresponding).find(sm => locationEquals(sm.corresponding?.location, location));
             return found;
         }
         // fallback to check static beans

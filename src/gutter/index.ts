@@ -3,6 +3,7 @@ import { initSymbols } from "../controllers/SymbolsController";
 import { StaticBean, StaticEndpoint } from "../models/StaticSymbolTypes";
 import { getBeans, getMappings } from "../models/symbols";
 import { sleep } from "../utils";
+import { protocol2CodeConverter } from "../symbolUtils";
 
 let DECORATION_TYPE_BEAN: vscode.TextEditorDecorationType;
 let DECORATION_TYPE_ENDPOINT: vscode.TextEditorDecorationType;
@@ -62,7 +63,7 @@ function setDecorationOptions(textEditor: vscode.TextEditor, beans: StaticBean[]
             const bean = beans.find(b => b.location.range.start.line === lineNumber);
             if (bean) {
                 beanDecorations.push({
-                    range: bean.location.range,
+                    range: protocol2CodeConverter().asRange(bean.location.range),
                     hoverMessage: getBeanGutterHover(bean)
                 });
             }
@@ -70,7 +71,7 @@ function setDecorationOptions(textEditor: vscode.TextEditor, beans: StaticBean[]
             const mapping = mappings.find(m => m.location.range.start.line === lineNumber);
             if (mapping) {
                 mappingDecorations.push({
-                    range: mapping.location.range,
+                    range: protocol2CodeConverter().asRange(mapping.location.range),
                     hoverMessage: getEndpointGutterHover(mapping)
                 });
             }
