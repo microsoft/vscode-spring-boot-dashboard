@@ -1,20 +1,17 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT license.
 
-import * as vscode from "vscode";
+import * as lsp from "vscode-languageclient";
 
 export abstract class StaticSymbol {
-    constructor(protected raw: any) {
+    constructor(protected raw: lsp.SymbolInformation) {
     }
 
     public get name() : string {
         return this.raw.name;
     }
 
-    public get location() : {
-        uri: string;
-        range: vscode.Range;
-    } {
+    public get location() : lsp.Location {
         return this.raw.location;
     }
 
@@ -33,21 +30,21 @@ export class StaticBean extends StaticSymbol{
 }
 
 export class StaticEndpoint extends StaticSymbol {
-    public get label() : string {
+    public pattern: string | undefined;
+    public method: string | undefined;
+
+    constructor(raw: lsp.SymbolInformation) {
+        super(raw);
         const [pattern, method] = this.raw.name.replace(/^@/, "").split(" -- ");
-        let label = pattern ?? "unknown";
-        if (method) {
-            label += ` [${method}]`;
+        this.pattern = pattern;
+        this.method = method;
+    }
+
+    public get label() : string {
+        let label = this.pattern ?? "unknown";
+        if (this.method) {
+            label += ` [${this.method}]`;
         }
         return label;
-    }
-
-    // parsed
-    public get method(): string | undefined {
-        return this.raw.method;
-    }
-
-    public get pattern(): string | undefined {
-        return this.raw.pattern;
     }
 }

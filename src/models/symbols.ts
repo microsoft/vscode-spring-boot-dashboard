@@ -7,9 +7,10 @@ import { sleep } from "../utils";
 import { Endpoint } from "../views/mappings";
 import { StaticBean, StaticEndpoint } from "./StaticSymbolTypes";
 import { requestWorkspaceSymbols, requestWorkspaceSymbolsByQuery } from "./stsApi";
+import * as lsp from "vscode-languageclient";
 
-let beans: any[];
-let mappings: any[];
+let beans: lsp.SymbolInformation[];
+let mappings: lsp.SymbolInformation[];
 
 const MAX_TIMEOUT = 20 * 60 * 1000; // 20 min
 

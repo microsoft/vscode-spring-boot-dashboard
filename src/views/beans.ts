@@ -9,6 +9,7 @@ import { StaticBean } from "../models/StaticSymbolTypes";
 import { getBeanDetail, getUrlOfBeanType } from "../models/stsApi";
 import { locationEquals } from "../symbolUtils";
 import * as sts from "../types/sts-api";
+import { SymbolInformation } from "vscode-languageclient";
 
 export class Bean {
     dependencies?: string[];
@@ -211,12 +212,12 @@ export class BeansDataProvider implements vscode.TreeDataProvider<TreeData> {
         this.onDidRefreshBeans.fire(undefined);
     }
 
-    public refreshStatic(app: BootApp, beansRaw: StaticBean[]) {
+    public refreshStatic(app: BootApp, beansRaw: SymbolInformation[]) {
         this.updateStaticData(app, beansRaw);
         this.onDidRefreshBeans.fire(undefined);
     }
 
-    public updateStaticData(app: BootApp, beansRaw: StaticBean[]) {
+    public updateStaticData(app: BootApp, beansRaw: SymbolInformation[]) {
         const mappings = beansRaw.map(raw => new StaticBean(raw)).sort((a, b) => a.id.localeCompare(b.id));
         this.staticData.set(app, mappings);
     }
