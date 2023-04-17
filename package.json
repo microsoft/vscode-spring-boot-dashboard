@@ -101,6 +101,12 @@
         "icon": "$(play)"
       },
       {
+        "command": "spring-boot-dashboard.localapp.runWithProfile",
+        "title": "Run with Profile...",
+        "category": "Spring Boot Dashboard",
+        "icon": "$(play)"
+      },
+      {
         "command": "spring-boot-dashboard.localapp.stop",
         "title": "Stop",
         "category": "Spring Boot Dashboard",
@@ -115,6 +121,12 @@
       {
         "command": "spring-boot-dashboard.localapp.debug",
         "title": "Debug",
+        "category": "Spring Boot Dashboard",
+        "icon": "$(debug-alt-small)"
+      },
+      {
+        "command": "spring-boot-dashboard.localapp.debugWithProfile",
+        "title": "Debug with Profile...",
         "category": "Spring Boot Dashboard",
         "icon": "$(debug-alt-small)"
       },
@@ -255,63 +267,71 @@
       "commandPalette": [
         {
           "command": "sts/livedata/refresh",
-          "when": "never"
+          "when": "false"
         },
         {
           "command": "spring-boot-dashboard.localapp.run",
-          "when": "never"
+          "when": "false"
+        },
+        {
+          "command": "spring-boot-dashboard.localapp.runWithProfile",
+          "when": "false"
         },
         {
           "command": "spring-boot-dashboard.localapp.stop",
-          "when": "never"
+          "when": "false"
         },
         {
           "command": "spring-boot-dashboard.localapp.open",
-          "when": "never"
+          "when": "false"
         },
         {
           "command": "spring-boot-dashboard.localapp.debug",
-          "when": "never"
+          "when": "false"
+        },
+        {
+          "command": "spring-boot-dashboard.localapp.debugWithProfile",
+          "when": "false"
         },
         {
           "command": "spring-boot-dashboard.refresh",
-          "when": "never"
+          "when": "false"
         },
         {
           "command": "spring.staticData.refresh",
-          "when": "never"
+          "when": "false"
         },
         {
           "command": "spring.dashboard.bean.navigate",
-          "when": "never"
+          "when": "false"
         },
         {
           "command": "spring.dashboard.bean.open",
-          "when": "never"
+          "when": "false"
         },
         {
           "command": "spring.dashboard.endpoint.navigate",
-          "when": "never"
+          "when": "false"
         },
         {
           "command": "spring.dashboard.endpoint.open",
-          "when": "never"
+          "when": "false"
         },
         {
           "command": "spring.dashboard.bean.showHierarchy",
-          "when": "never"
+          "when": "false"
         },
         {
           "command": "spring.dashboard.bean.showDependencies",
-          "when": "never"
+          "when": "false"
         },
         {
           "command": "spring.dashboard.bean.showInjectedInto",
-          "when": "never"
+          "when": "false"
         },
         {
           "command": "spring.promptToEnableActuator",
-          "when": "never"
+          "when": "false"
         },
         {
           "command": "spring.beans.find",
@@ -398,6 +418,16 @@
           "command": "spring-boot-dashboard.localapp.debug",
           "when": "view == spring.apps && viewItem == BootApp_inactive",
           "group": "action@6"
+        },
+        {
+          "command": "spring-boot-dashboard.localapp.runWithProfile",
+          "when": "view == spring.apps && viewItem == BootApp_inactive",
+          "group": "action@7"
+        },
+        {
+          "command": "spring-boot-dashboard.localapp.debugWithProfile",
+          "when": "view == spring.apps && viewItem == BootApp_inactive",
+          "group": "action@8"
         },
         {
           "command": "spring-boot-dashboard.localapp.stop",
