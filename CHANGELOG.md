@@ -4,6 +4,14 @@ All notable changes to the "vscode-spring-boot-dashboard" extension will be docu
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
+## 0.13.0
+### Added
+- Show properties when live process is connected. [#304](https://github.com/microsoft/vscode-spring-boot-dashboard/issues/304).
+- Support to run apps with profile. [#309](https://github.com/microsoft/vscode-spring-boot-dashboard/pull/309).
+
+### Fixed
+- Endpoint URLs should be mapped correctly in Codespaces. [#300](https://github.com/microsoft/vscode-spring-boot-dashboard/issues/300).
+
 ## 0.12.0
 ### Changed
 - Render Spring related gutter icons using suggested APIs. [#291](https://github.com/microsoft/vscode-spring-boot-dashboard/pull/291)
