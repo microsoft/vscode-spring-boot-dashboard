@@ -248,7 +248,9 @@ export class LocalAppController {
             const openWithExternalBrowser: boolean = vscode.workspace.getConfiguration("spring.dashboard").get("openWith") === "external";
             const browserCommand: string = openWithExternalBrowser ? "vscode.open" : "simpleBrowser.api.open";
 
-            vscode.commands.executeCommand(browserCommand, vscode.Uri.parse(openUrl));
+            let uri = vscode.Uri.parse(openUrl);
+            uri = await vscode.env.asExternalUri(uri); // Enables Remote envs like Codespaces
+            vscode.commands.executeCommand(browserCommand, uri);
         } else {
             vscode.window.showErrorMessage("Couldn't determine port app is running on");
         }
