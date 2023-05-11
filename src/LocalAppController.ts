@@ -88,7 +88,7 @@ export class LocalAppController {
 
     public async runAppWithProfile(app: BootApp, debug?: boolean) {
         const sourceFolders = app.classpath.entries.filter(cpe => cpe.kind === "source").map(cpe => cpe.path);
-        const profilePattern = /^application-(.*).properties$/;
+        const profilePattern = /^application-(.*).(properties|yml|yaml)$/;
         const detectedProfiles = [];
         for (const sf of sourceFolders) {
             const uri = vscode.Uri.file(sf);
