@@ -91,15 +91,19 @@ export class LocalAppController {
         const profilePattern = /^application-(.*).(properties|yml|yaml)$/;
         const detectedProfiles = [];
         for (const sf of sourceFolders) {
-            const uri = vscode.Uri.file(sf);
-            const entries = await vscode.workspace.fs.readDirectory(uri);
-            const files = entries.filter(f => f[1] === vscode.FileType.File);
-            for (const f of files) {
-                const res = profilePattern.exec(f[0]);
-                if (res !== null) {
-                    const matchedProfile = res[1];
-                    detectedProfiles.push(matchedProfile);
+            try {
+                const uri = vscode.Uri.file(sf);
+                const entries = await vscode.workspace.fs.readDirectory(uri);
+                const files = entries.filter(f => f[1] === vscode.FileType.File);
+                for (const f of files) {
+                    const res = profilePattern.exec(f[0]);
+                    if (res !== null) {
+                        const matchedProfile = res[1];
+                        detectedProfiles.push(matchedProfile);
+                    }
                 }
+            } catch (error) {
+                console.log(error);
             }
         }
         const selectedProfiles = await vscode.window.showQuickPick(detectedProfiles, {
