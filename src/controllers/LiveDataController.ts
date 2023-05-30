@@ -68,6 +68,7 @@ async function updateProcessInfo(payload: string | LiveProcessPayload) {
             runningApp.port = parseInt(port);
             runningApp.contextPath = contextPath;
             runningApp.state = AppState.RUNNING; // will refresh tree item
+            runningApp.activeProfiles = await lp.getActiveProfilesFromLiveProcess();
         }
     }
 
