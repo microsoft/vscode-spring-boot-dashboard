@@ -4,6 +4,11 @@ All notable changes to the "vscode-spring-boot-dashboard" extension will be docu
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
+## 0.13.1
+### Fixed
+- Should look for available profiles from all supported files like .yml. [#315](https://github.com/microsoft/vscode-spring-boot-dashboard/issues/315).
+- Spring profiles not detected if the source paths don't exist. [#317](https://github.com/microsoft/vscode-spring-boot-dashboard/issues/317). Thanks to [karthik20](https://github.com/karthik20) for contribution.
+
 ## 0.13.0
 ### Added
 - Show properties when live process is connected. [#304](https://github.com/microsoft/vscode-spring-boot-dashboard/issues/304).
