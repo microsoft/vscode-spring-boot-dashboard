@@ -88,10 +88,4 @@ export class LiveProcess {
         }
         return this.propertyGroups;
     }
-
-    public async getActiveProfilesFromLiveProcess(): Promise<string | undefined> {
-        const liveProcessProperties = await this.getProperties();
-        const systemProperties = liveProcessProperties?.find(pg => pg.name === 'systemProperties');
-        return systemProperties?.properties.find(p => p.name === 'spring.profiles.active')?.value;
-    }
 }

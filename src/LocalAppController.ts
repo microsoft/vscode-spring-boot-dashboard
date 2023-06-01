@@ -67,6 +67,7 @@ export class LocalAppController {
             targetConfig = await this._createNewLaunchConfig(mainClasData);
         }
         app.activeSessionName = targetConfig.name;
+        app.activeProfiles = profile;
 
         targetConfig = await resolveDebugConfigurationWithSubstitutedVariables(targetConfig);
         app.jmxPort = parseJMXPort(targetConfig.vmArgs);

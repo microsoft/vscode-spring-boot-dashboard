@@ -111,7 +111,11 @@ export class BootApp {
     }
 
     public set activeProfiles(value: string | undefined) {
-        this._activeProfiles = value || 'default';
+        if(value?.length) {
+            this._activeProfiles = value.split(",").join(", ");
+        } else {
+            this._activeProfiles = value;
+        }
     }
 
     public get contextPath(): string | undefined {
