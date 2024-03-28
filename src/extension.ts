@@ -74,7 +74,7 @@ export async function initializeExtension(_oprationId: string, context: vscode.E
     });
     vscode.debug.onDidReceiveDebugSessionCustomEvent(e => {
         if (e.session.type === 'java' && e.event === 'processid') {
-            const app = appsProvider.manager.getAppList().find(app => app.mainClasses.find(mc => mc.mainClass === e.session.configuration.mainClass));
+            const app = appsProvider.manager.getAppList().find(app => app.name === e.session.configuration.projectName);
             if (app) {
                 app.pid = parseInt(e.body.processId);
             }
