@@ -194,3 +194,12 @@ export async function requestWorkspaceSymbolsByQuery(query: string): Promise<lsp
     const res = await stsApi?.client.sendRequest<lsp.SymbolInformation[]>("workspace/symbol", { "query": query }) ?? [];
     return res;
 }
+
+export async function getActiveProfiles(processKey: string) {
+    const result = await stsApi?.getLiveProcessData({
+        processKey: processKey,
+        endpoint: "profiles"
+    }) as string[];
+    
+    return result;
+}

@@ -21,7 +21,7 @@ export class BootApp {
     private _port?: number;
     private _contextPath?: string;
     private _pid?: number;
-    private _activeProfiles?: string;
+    private _activeProfiles?: string[];
 
     private _watchdog?: NodeJS.Timeout; // used to watch running process.
 
@@ -106,16 +106,12 @@ export class BootApp {
         }
     }
 
-    public get activeProfiles(): string | undefined {
+    public get activeProfiles(): string[] | undefined {
         return this._activeProfiles;
     }
 
-    public set activeProfiles(value: string | undefined) {
-        if(value?.length) {
-            this._activeProfiles = value.split(",").join(", ");
-        } else {
-            this._activeProfiles = value;
-        }
+    public set activeProfiles(profiles: string[] | undefined) {
+        this._activeProfiles = profiles;
     }
 
     public get contextPath(): string | undefined {
