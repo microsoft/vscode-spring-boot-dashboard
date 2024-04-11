@@ -21,6 +21,7 @@ export class BootApp {
     private _port?: number;
     private _contextPath?: string;
     private _pid?: number;
+    private _activeProfiles?: string[];
 
     private _watchdog?: NodeJS.Timeout; // used to watch running process.
 
@@ -105,6 +106,14 @@ export class BootApp {
         }
     }
 
+    public get activeProfiles(): string[] | undefined {
+        return this._activeProfiles;
+    }
+
+    public set activeProfiles(profiles: string[] | undefined) {
+        this._activeProfiles = profiles;
+    }
+
     public get contextPath(): string | undefined {
         return this._contextPath;
     }
@@ -133,6 +142,7 @@ export class BootApp {
         this._contextPath = undefined;
         this.pid = undefined;
         this._state = AppState.INACTIVE;
+        this._activeProfiles = undefined;
         dashboard.appsProvider.refresh(this);  // TODO: should do it in LocalAppController.
     }
 
