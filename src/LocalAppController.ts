@@ -78,7 +78,8 @@ export class LocalAppController {
             launchConfig.vmArgs = launchConfig.vmArgs + ` -Dspring.profiles.active=${profile}`;
         }
 
-        const cwdUri: vscode.Uri = vscode.Uri.parse(launchConfig.cwd);
+
+        const cwdUri: vscode.Uri = vscode.Uri.parse(app.path);
         await vscode.debug.startDebugging(
             vscode.workspace.getWorkspaceFolder(cwdUri),
             launchConfig
