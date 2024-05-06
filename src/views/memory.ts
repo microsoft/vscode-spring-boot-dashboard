@@ -153,7 +153,7 @@ export class MemoryViewProvider implements vscode.WebviewViewProvider {
                 case "FetchData": {
                     const type = message.type;
                     if (processKey === '') {
-                        processKey = this.storeLiveProcesses.values().next().value.liveProcess.processKey;
+                        processKey = this.storeLiveProcesses.values().next().value.liveProcess?.processKey;
                     }
                     if (type !== '' && type === "Heap Memory" && processKey !== undefined && processKey !== '') {
                         const targetLiveProcess = Array.from(this.storeHeapMemoryMetrics.keys()).find(lp => lp.processKey === processKey) ?? new LiveProcess(processKey);

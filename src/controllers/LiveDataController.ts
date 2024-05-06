@@ -3,7 +3,7 @@ import { sendInfo } from "vscode-extension-telemetry-wrapper";
 import { AppState } from "../BootApp";
 import { dashboard } from "../global";
 import { LiveProcess } from "../models/liveProcess";
-import { getBeans, getContextPath, getMainClass, getMappings, getPid, getPort, getGcPausesMetrics, getMemoryMetrics, initialize, refreshMetrics } from "../models/stsApi";
+import { getBeans, getContextPath, getMainClass, getMappings, getPid, getPort, getGcPausesMetrics, getMemoryMetrics, initialize, refreshMetrics, getActiveProfiles } from "../models/stsApi";
 import { LiveProcessPayload } from "../types/sts-api";
 import { isAlive } from "../utils";
 
@@ -58,6 +58,7 @@ async function updateProcessInfo(payload: string | LiveProcessPayload) {
     dashboard.mappingsProvider.refreshLive(liveProcess, mappings);
 
     const port = await getPort(processKey);
+    const activeProfiles = await getActiveProfiles(processKey);
     const contextPath = await getContextPath(processKey);
     const lp = new LiveProcess(liveProcess);
     store.data.set(processKey, lp);
@@ -66,6 +67,7 @@ async function updateProcessInfo(payload: string | LiveProcessPayload) {
         const runningApp = dashboard.appsProvider.manager.getAppByPid(liveProcess.pid);
         if (runningApp) {
             runningApp.port = parseInt(port);
+            runningApp.activeProfiles = activeProfiles;
             runningApp.contextPath = contextPath;
             runningApp.state = AppState.RUNNING; // will refresh tree item
         }
