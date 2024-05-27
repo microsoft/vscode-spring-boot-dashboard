@@ -4,6 +4,13 @@ All notable changes to the "vscode-spring-boot-dashboard" extension will be docu
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
+## 0.14.0
+### Added
+- Show active profiles on BootApp description when attached to live process. [#320](https://github.com/microsoft/vscode-spring-boot-dashboard/issues/320).
+
+### Fixed
+- Spring boot Dashboard keep spinning. [#216](https://github.com/microsoft/vscode-spring-boot-dashboard/issues/216).
+
 ## 0.13.1
 ### Fixed
 - Should look for available profiles from all supported files like .yml. [#315](https://github.com/microsoft/vscode-spring-boot-dashboard/issues/315).
