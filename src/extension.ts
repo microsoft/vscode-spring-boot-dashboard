@@ -29,7 +29,7 @@ export async function activate(context: vscode.ExtensionContext) {
     await loadPackageInfo(context);
     // Usage data statistics.
     if (getAiKey()) {
-        initialize(getExtensionId(), getExtensionVersion(), getAiKey(), { firstParty: true });
+        initialize(getExtensionId(), getExtensionVersion(), getAiKey());
     }
     return await instrumentOperation("activation", initializeExtension)(context);
 }
