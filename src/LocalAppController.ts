@@ -71,15 +71,15 @@ export class LocalAppController {
         targetConfig = await resolveDebugConfigurationWithSubstitutedVariables(targetConfig);
         app.jmxPort = parseJMXPort(targetConfig.vmArgs);
 
-        const cwdUri: vscode.Uri = vscode.Uri.parse(app.path);
         const launchConfig = Object.assign({}, targetConfig, {
-            noDebug: !debug,
-            cwd: cwdUri.fsPath,
+            noDebug: !debug
         });
         if (profile) {
             launchConfig.vmArgs = launchConfig.vmArgs + ` -Dspring.profiles.active=${profile}`;
         }
 
+
+        const cwdUri: vscode.Uri = vscode.Uri.parse(app.path);
         await vscode.debug.startDebugging(
             vscode.workspace.getWorkspaceFolder(cwdUri),
             launchConfig
