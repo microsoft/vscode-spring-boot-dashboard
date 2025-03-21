@@ -42,6 +42,23 @@ extends:
                 displayName: Use Node 20.x
                 inputs:
                   versionSpec: 20.x
+              - task: PowerShell@2
+                displayName: Download JDK 21
+                inputs:
+                  targetType: 'inline'
+                  script: |-
+                    New-Item -ItemType Directory -Path "$env:AGENT_TEMPDIRECTORY\downloadjdk"
+                    Invoke-WebRequest -Uri "https://aka.ms/download-jdk/microsoft-jdk-21-windows-x64.zip" -OutFile "$env:AGENT_TEMPDIRECTORY\downloadjdk\microsoft-jdk-21-windows-x64.zip"
+              - task: JavaToolInstaller@0
+                displayName: 'Use Java 21'
+                inputs:
+                  versionSpec: 21
+                  jdkArchitectureOption: x64
+                  jdkSourceOption: LocalDirectory
+                  jdkFile: $(Agent.TempDirectory)/downloadjdk/microsoft-jdk-21-windows-x64.zip
+                  jdkDestinationDirectory: $(Agent.ToolsDirectory)/ms-jdk21
+              - script: java --version
+                displayName: 'Check Java installation'
               - task: Npm@1
                 displayName: npm install
                 inputs:
