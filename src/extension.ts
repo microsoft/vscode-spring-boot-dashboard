@@ -24,6 +24,7 @@ import { init as initActuatorGuide } from './views/guide';
 import { MappingsDataProvider, openEndpointHandler } from './views/mappings';
 import { MemoryViewProvider } from './views/memory';
 import { PropertiesProvider } from './views/properties';
+import { LiveProcess } from './models/liveProcess';
 
 export async function activate(context: vscode.ExtensionContext) {
     await loadPackageInfo(context);
@@ -132,6 +133,7 @@ export async function initializeExtension(_oprationId: string, context: vscode.E
     context.subscriptions.push(instrumentOperationAsVsCodeCommand("spring.dashboard.bean.showDependencies", showDependencies));
     context.subscriptions.push(instrumentOperationAsVsCodeCommand("spring.dashboard.bean.showInjectedInto", showInjectedInto));
     context.subscriptions.push(instrumentOperationAsVsCodeCommand("spring.dashboard.bean.showHierarchy", showBeanHierarchy));
+    context.subscriptions.push(instrumentOperationAsVsCodeCommand("spring.dashboard.livedata.refresh", (liveProcess: LiveProcess) => liveProcess.refresh()));
 
     initActuatorGuide(context);
     context.subscriptions.push(instrumentOperationAsVsCodeCommand("_spring.project.run", async (appPath: string) => {
