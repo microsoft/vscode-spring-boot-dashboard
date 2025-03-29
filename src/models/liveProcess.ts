@@ -3,6 +3,7 @@ import { BootApp } from "../BootApp";
 import { RemoteBootAppData } from "../extension.api";
 import { dashboard } from "../global";
 import * as sts from "../types/sts-api";
+import { refreshLiveProcessData } from "./stsApi";
 import { BootAppItem } from "../views/items/BootAppItem";
 import { Property, PropertyGroup } from "./properties";
 import { getProperties } from "./stsApi";
@@ -87,5 +88,9 @@ export class LiveProcess {
             this.propertyGroups = propertyGroups;
         }
         return this.propertyGroups;
+    }
+
+    public refresh(endpoint?: string) {
+        return refreshLiveProcessData(this.payload.processKey, endpoint);
     }
 }

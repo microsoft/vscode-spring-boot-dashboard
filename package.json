@@ -149,7 +149,7 @@
         "icon": "$(debug)"
       },
       {
-        "command": "sts/livedata/refresh",
+        "command": "spring.dashboard.livedata.refresh",
         "title": "Refresh Live Connection",
         "category": "Spring Boot Dashboard",
         "icon": "$(refresh)"
@@ -266,7 +266,7 @@
     "menus": {
       "commandPalette": [
         {
-          "command": "sts/livedata/refresh",
+          "command": "spring.dashboard.livedata.refresh",
           "when": "false"
         },
         {
@@ -475,12 +475,12 @@
           "group": "action@13"
         },
         {
-          "command": "sts/livedata/refresh",
+          "command": "spring.dashboard.livedata.refresh",
           "when": "view == spring.beans && viewItem == liveProcess",
           "group": "inline@5"
         },
         {
-          "command": "sts/livedata/refresh",
+          "command": "spring.dashboard.livedata.refresh",
           "when": "view == spring.mappings && viewItem == liveProcess",
           "group": "inline@5"
         },

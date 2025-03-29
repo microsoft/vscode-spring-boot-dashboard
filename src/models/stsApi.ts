@@ -118,6 +118,13 @@ export async function getProperties(processKey: string) {
     return result;
 }
 
+export async function refreshLiveProcessData(processKey: string, endpoint?: string) {
+    return await stsApi?.refreshLiveProcessData(<any> {
+        processKey,
+        endpoint
+    });
+}
+
 // workaround before livedata carries location
 /**
  * @param beanType full qualified name of a class
