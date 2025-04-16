@@ -9,6 +9,7 @@ import { isActuatorJarFile, isAlive } from "./utils";
 import { BootAppItem } from "./views/items/BootAppItem";
 import * as lsp from "vscode-languageclient";
 import * as async from "async";
+import { cpus } from "os";
 
 const searchQueue = async.queue(async (path: string, callback: async.AsyncResultCallback<string[], Error>) => {
     try {
@@ -16,7 +17,7 @@ const searchQueue = async.queue(async (path: string, callback: async.AsyncResult
     } catch (error) {
         callback(error);
     }
-}, 5);
+}, cpus().length / 2);
 
 export enum AppState {
     INACTIVE = 'inactive',
