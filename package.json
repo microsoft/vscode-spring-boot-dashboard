@@ -618,6 +618,7 @@
     "update-tpn": "node scripts/update-third-party-notice.js"
   },
   "devDependencies": {
+    "@types/async": "^3.2.24",
     "@types/glob": "^7.2.0",
     "@types/lodash": "^4.17.7",
     "@types/mocha": "^9.1.1",
@@ -642,6 +643,7 @@
     "vscjava.vscode-java-debug"
   ],
   "dependencies": {
+    "async": "^3.2.6",
     "@pivotal-tools/jvm-launch-utils": "0.0.11",
     "@vscode/webview-ui-toolkit": "^1.4.0",
     "chart.js": "^3.9.1",
