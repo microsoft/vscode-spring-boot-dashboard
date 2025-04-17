@@ -17,7 +17,7 @@ const searchQueue = async.queue(async (path: string, callback: async.AsyncResult
     } catch (error) {
         callback(error);
     }
-}, cpus().length / 2);
+}, Math.max(1, cpus().length / 2));
 
 export enum AppState {
     INACTIVE = 'inactive',
