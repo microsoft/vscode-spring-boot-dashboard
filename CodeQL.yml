@@ -1,0 +1,3 @@
+path_classifiers:
+  library:
+    - "resources/webview-ui/main.js"
