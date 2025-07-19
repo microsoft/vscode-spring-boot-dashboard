@@ -20,7 +20,7 @@ function isBootAppClasspath(cp: ClassPathData): boolean {
             const cpe = entries[i];
             const filename = path.basename(cpe.path);
 
-            if (filename.endsWith('.jar') && filename.startsWith('spring-boot')) {
+            if (filename.endsWith('.jar') && (filename.startsWith('spring-boot') || filename.startsWith('spring-beans'))) {
                 return true;
             }
         }
