@@ -13,14 +13,17 @@ import { ExtensionAPI } from "./types/javaExtensionApi";
 import { ClassPathData, MainClassData } from "./types/jdtls";
 import { sleep } from "./utils";
 
+const SPRING_BOOT_JAR_PREFIXES = ['spring-boot', 'spring-beans'];
 function isBootAppClasspath(cp: ClassPathData): boolean {
     if (cp.entries) {
         const entries = cp.entries;
         for (let i = 0; i < entries.length; i++) {
             const cpe = entries[i];
             const filename = path.basename(cpe.path);
-
-            if (filename.endsWith('.jar') && filename.startsWith('spring-boot')) {
+            if (
+                filename.endsWith('.jar') &&
+                SPRING_BOOT_JAR_PREFIXES.some(prefix => filename.startsWith(prefix))
+            ) {
                 return true;
             }
         }
