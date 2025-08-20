@@ -89,7 +89,7 @@ export class LocalAppController {
     public async runAppWithProfile(app: BootApp, debug?: boolean) {
         const sourceFolders = app.classpath.entries.filter(cpe => cpe.kind === "source").map(cpe => cpe.path);
         const profilePattern = /^application-(.*).(properties|yml|yaml)$/;
-        const detectedProfiles = [];
+        const detectedProfiles = new Set<string>();
         for (const sf of sourceFolders) {
             try {
                 const uri = vscode.Uri.file(sf);
@@ -99,14 +99,14 @@ export class LocalAppController {
                     const res = profilePattern.exec(f[0]);
                     if (res !== null) {
                         const matchedProfile = res[1];
-                        detectedProfiles.push(matchedProfile);
+                        detectedProfiles.add(matchedProfile);
                     }
                 }
             } catch (error) {
                 console.log(error);
             }
         }
-        const selectedProfiles = await vscode.window.showQuickPick(detectedProfiles, {
+        const selectedProfiles = await vscode.window.showQuickPick(Array.from(detectedProfiles), {
             ignoreFocusOut: true,
             canPickMany: true,
             title: "Select Active Profiles",
