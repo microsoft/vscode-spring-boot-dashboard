@@ -1,32 +1,24 @@
-# Extension Pack for Java
-Extension Pack for Java is a collection of popular extensions that can help write, test and debug Java applications in Visual Studio Code. By installing Extension Pack for Java, the following extensions are installed:
+# Spring Boot Dashboard for VS Code
+Spring Boot Dashboard is a lightweight extension in Visual Studio Code (VS Code). With an explorer in the side bar, you can view and manage all available Spring Boot projects in your workspace. It also supports the features to quickly start, stop or debug a Spring Boot project.
 
-- [📦 Language Support for Java™ by Red Hat ](https://marketplace.visualstudio.com/items?itemName=redhat.java)
-    - Code Navigation
-    - Auto Completion
-    - Refactoring
-    - Code Snippets
-- [📦 Debugger for Java](https://marketplace.visualstudio.com/items?itemName=vscjava.vscode-java-debug)
-    - Debugging
-- [📦 Test Runner for Java](https://marketplace.visualstudio.com/items?itemName=vscjava.vscode-java-test)
-    - Run & Debug JUnit/TestNG Test Cases
-- [📦 Maven for Java](https://marketplace.visualstudio.com/items?itemName=vscjava.vscode-maven)
-    - Project Scaffolding
-    - Custom Goals
-- [📦 Gradle for Java](https://marketplace.visualstudio.com/items?itemName=vscjava.vscode-gradle)
-    - View Gradle tasks and project dependencies
-    - Gradle file authoring
-    - Import Gradle projects via [Gradle Build Server](https://github.com/microsoft/build-server-for-gradle)
-- [📦 Project Manager for Java](https://marketplace.visualstudio.com/items?itemName=vscjava.vscode-java-dependency)
-    - Manage Java projects, referenced libraries, resource files, packages, classes, and class members
-- [📦 Visual Studio IntelliCode](https://marketplace.visualstudio.com/items?itemName=VisualStudioExptTeam.vscodeintellicode)
-    - AI-assisted development
-    - Completion list ranked by AI
+## Feature List
+- View Spring Boot apps in workspace
+- Start / Stop a Spring Boot app
+- Debug a Spring Boot app
+- Open a Spring Boot app in browser
+- List beans/endpoint mappings
+- View bean dependencies
+
+## Prerequisites
+- JDK (version 1.8.0 or later)
+- VS Code (version 1.19.0 or later)
+
+This extension has a dependency on VS Code extensions of [Debugger for Java](https://marketplace.visualstudio.com/items?itemName=vscjava.vscode-java-debug) and [Spring Boot Tools](https://marketplace.visualstudio.com/items?itemName=vmware.vscode-spring-boot).
 
 ## Label
 When labeling an issue, follow the rules below per label category:
 ### General Rules
-- Analyze if the issue is related with the scope of using extensions for Java development. If not, STOP labelling IMMEDIATELY.
+- Analyze if the issue is related with the scope of Spring Boot Dashboard extension for managing Spring Boot applications in VS Code. If not, STOP labelling IMMEDIATELY.
 - Assign label per category.
 - If a category is not applicable or you're unsure, you may skip it.
 - Do not assign multiple labels within the same category, unless explicitly allowed as an exception.
