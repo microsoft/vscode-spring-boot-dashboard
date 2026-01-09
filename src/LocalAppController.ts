@@ -88,7 +88,7 @@ export class LocalAppController {
 
     public async runAppWithProfile(app: BootApp, debug?: boolean) {
         const sourceFolders = app.classpath.entries.filter(cpe => cpe.kind === "source").map(cpe => cpe.path);
-        const profilePattern = /^(application|bootstrap)-(.*).(properties|yml|yaml)$/;
+        const profilePattern = /^(application|bootstrap)-(.*)\.(properties|yml|yaml)$/;
         const detectedProfiles = new Set<string>();
         const foldersToCheck = [...sourceFolders];
 
