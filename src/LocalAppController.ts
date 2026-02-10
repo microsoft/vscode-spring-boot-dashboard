@@ -88,25 +88,33 @@ export class LocalAppController {
 
     public async runAppWithProfile(app: BootApp, debug?: boolean) {
         const sourceFolders = app.classpath.entries.filter(cpe => cpe.kind === "source").map(cpe => cpe.path);
-        const profilePattern = /^application-(.*).(properties|yml|yaml)$/;
-        const detectedProfiles = [];
+        const profilePattern = /^(application|bootstrap)-(.*)\.(properties|yml|yaml)$/;
+        const detectedProfiles = new Set<string>();
+        const foldersToCheck = [...sourceFolders];
+
+        // Add config folders which might contain bootstrap files
         for (const sf of sourceFolders) {
+            const configFolder = path.join(sf, 'config');
+            foldersToCheck.push(configFolder);
+        }
+
+        for (const folder of foldersToCheck) {
             try {
-                const uri = vscode.Uri.file(sf);
+                const uri = vscode.Uri.file(folder);
                 const entries = await vscode.workspace.fs.readDirectory(uri);
                 const files = entries.filter(f => f[1] === vscode.FileType.File);
                 for (const f of files) {
                     const res = profilePattern.exec(f[0]);
                     if (res !== null) {
-                        const matchedProfile = res[1];
-                        detectedProfiles.push(matchedProfile);
+                        const matchedProfile = res[2]; // Group 2 contains the actual profile name
+                        detectedProfiles.add(matchedProfile);
                     }
                 }
             } catch (error) {
                 console.log(error);
             }
         }
-        const selectedProfiles = await vscode.window.showQuickPick(detectedProfiles, {
+        const selectedProfiles = await vscode.window.showQuickPick(Array.from(detectedProfiles), {
             ignoreFocusOut: true,
             canPickMany: true,
             title: "Select Active Profiles",
