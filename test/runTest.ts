@@ -21,17 +21,20 @@ async function main(): Promise<void> {
 
         cp.spawnSync(cli, [...args, '--install-extension', 'redhat.java'], {
             encoding: 'utf-8',
-            stdio: 'inherit'
+            stdio: 'inherit',
+            shell: process.platform === 'win32'
         });
 
         cp.spawnSync(cli, [...args, '--install-extension', 'vmware.vscode-spring-boot'], {
             encoding: 'utf-8',
-            stdio: 'inherit'
+            stdio: 'inherit',
+            shell: process.platform === 'win32'
         });
 
         cp.spawnSync(cli, [...args, '--install-extension', 'vscjava.vscode-java-debug'], {
             encoding: 'utf-8',
-            stdio: 'inherit'
+            stdio: 'inherit',
+            shell: process.platform === 'win32'
         });
 
         // The folder containing the Extension Manifest package.json
