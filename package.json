@@ -25,7 +25,7 @@
   "capabilities": {
     "virtualWorkspaces": false
   },
-  "main": "./out/src/extension",
+  "main": "./dist/extension",
   "contributes": {
     "icons": {
       "spring-bean": {
