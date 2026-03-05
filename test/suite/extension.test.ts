@@ -13,7 +13,6 @@ import { setupTestEnv, sleep } from "../utils";
 suite("Extension Test Suite", () => {
 
     suiteSetup(async function() {
-        this.timeout(20 * 60 * 1000 /** ms */);
         await setupTestEnv();
     });
 
