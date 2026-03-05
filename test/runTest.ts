@@ -34,11 +34,6 @@ async function main(): Promise<void> {
             stdio: 'inherit'
         });
 
-        cp.spawnSync(cli, [...args, '--install-extension', 'vscjava.vscode-gradle'], {
-            encoding: 'utf-8',
-            stdio: 'inherit'
-        });
-
         // The folder containing the Extension Manifest package.json
         // Passed to `--extensionDevelopmentPath`
         const extensionDevelopmentPath: string = path.resolve(__dirname, "../../");
