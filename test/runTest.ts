@@ -3,6 +3,7 @@
 // Licensed under the MIT license.
 
 import * as cp from "child_process";
+import * as fs from "fs";
 import * as path from "path";
 import * as os from "os";
 
@@ -20,20 +21,22 @@ async function main(): Promise<void> {
 
         cp.spawnSync(cli, [...args, '--install-extension', 'redhat.java'], {
             encoding: 'utf-8',
-            stdio: 'inherit',
-            shell: process.platform === 'win32'
+            stdio: 'inherit'
         });
 
-        cp.spawnSync(cli, [...args, '--install-extension', 'vmware.vscode-spring-boot', "--pre-release" ], {
+        cp.spawnSync(cli, [...args, '--install-extension', 'vmware.vscode-spring-boot'], {
             encoding: 'utf-8',
-            stdio: 'inherit',
-            shell: process.platform === 'win32'
+            stdio: 'inherit'
         });
 
         cp.spawnSync(cli, [...args, '--install-extension', 'vscjava.vscode-java-debug'], {
             encoding: 'utf-8',
-            stdio: 'inherit',
-            shell: process.platform === 'win32'
+            stdio: 'inherit'
+        });
+
+        cp.spawnSync(cli, [...args, '--install-extension', 'vscjava.vscode-gradle'], {
+            encoding: 'utf-8',
+            stdio: 'inherit'
         });
 
         // The folder containing the Extension Manifest package.json
@@ -48,6 +51,18 @@ async function main(): Promise<void> {
             stdio: [0, 1, 2],
             cwd: repositoryPath,
         });
+
+        // Disable Gradle importer so JDTLS auto-selects Maven without prompting
+        // (petclinic has both pom.xml and build.gradle)
+        const vscodeDir = path.resolve(repositoryPath, ".vscode");
+        if (!fs.existsSync(vscodeDir)) {
+            fs.mkdirSync(vscodeDir, { recursive: true });
+        }
+        fs.writeFileSync(
+            path.resolve(vscodeDir, "settings.json"),
+            JSON.stringify({ "java.import.gradle.enabled": false }, null, 4),
+            "utf-8"
+        );
 
         // The path to the extension test script
         // Passed to --extensionTestsPath
