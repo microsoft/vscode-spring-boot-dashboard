@@ -9,10 +9,6 @@ const DashboardExtId = "vscjava.vscode-spring-boot-dashboard";
 
 export async function setupTestEnv() {
 
-    await vscode.workspace.getConfiguration("spring-boot.ls").update("logfile", "./boot-ls.log");
-    const bootlsLog = vscode.workspace.getConfiguration("spring-boot.ls").get("logfile");
-    console.log("boot ls logfile: " + bootlsLog);
-
     const javaExt = await activateExtension(JavaExtId);
     if (!javaExt) {
         return;
@@ -24,6 +20,15 @@ export async function setupTestEnv() {
     console.log("jdtls standard server ready.")
 
     await activateExtension(SpringExtId);
+
+    try {
+        await vscode.workspace.getConfiguration("spring-boot.ls").update("logfile", "./boot-ls.log");
+        const bootlsLog = vscode.workspace.getConfiguration("spring-boot.ls").get("logfile");
+        console.log("boot ls logfile: " + bootlsLog);
+    } catch (e) {
+        console.warn("Failed to set spring-boot.ls.logfile (extension may not be installed):", e);
+    }
+
     await activateExtension(DashboardExtId);
 }
 
