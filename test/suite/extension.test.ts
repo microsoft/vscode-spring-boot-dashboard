@@ -44,8 +44,8 @@ suite("Extension Test Suite", () => {
         await sleep(5 * 1000 /** ms */);
         let openedEditor = vscode.window.activeTextEditor;
         assert.ok(openedEditor?.document.fileName.endsWith("CacheConfiguration.java"), "CacheConfiguration.java are opened.");
-        assert.strictEqual(openedEditor?.selection.anchor.line, 30, "The definition of cacheConfiguration should be at line 30.");
-        assert.strictEqual(openedEditor?.selection.anchor.character, 0, "The definition of cacheConfiguration should be at character 0.");
+        assert.strictEqual(openedEditor?.selection.anchor.line, 32, "The definition of cacheConfiguration should be at line 32.");
+        assert.strictEqual(openedEditor?.selection.anchor.character, 6, "The definition of cacheConfiguration should be at character 6.");
 
         let rootMap = await dashboard.mappingsProvider.getChildren();
         while (!rootMap || rootMap.length === 0) {
