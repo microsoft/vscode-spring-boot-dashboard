@@ -567,6 +567,32 @@
       {
         "title": "Spring Boot Dashboard",
         "properties": {
+          "spring.dashboard.launchStrategy": {
+            "default": "java",
+            "type": "string",
+            "enum": [
+              "java",
+              "gradle"
+            ],
+            "enumDescriptions": [
+              "Launch Spring Boot apps using the Java debugger's launch configuration flow.",
+              "Delegate local Spring Boot Run/Debug/Stop actions to Gradle tasks."
+            ],
+            "scope": "window",
+            "description": "Defines how local Spring Boot apps are started from the dashboard."
+          },
+          "spring.dashboard.gradle.task": {
+            "default": "bootRun",
+            "type": "string",
+            "scope": "window",
+            "description": "Gradle task used when launchStrategy is set to gradle. Supports plain task names such as bootRun and fully qualified task paths such as :service:bootRun."
+          },
+          "spring.dashboard.gradle.debugTask": {
+            "default": "",
+            "type": "string",
+            "scope": "window",
+            "description": "Optional Gradle task used for Debug when launchStrategy is set to gradle. If empty, spring.dashboard.gradle.task is reused."
+          },
           "spring.dashboard.openWith": {
             "default": "integrated",
             "type": "string",

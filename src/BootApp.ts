@@ -3,6 +3,7 @@
 
 import * as vscode from "vscode";
 import { dashboard } from "./global";
+import { DebugSessionRole, GradleLaunchPhase, LaunchStrategy } from "./launchUtils";
 import { requestWorkspaceSymbols } from "./models/stsApi";
 import { ClassPathData, MainClassData } from "./types/jdtls";
 import { isActuatorJarFile, isAlive } from "./utils";
@@ -25,6 +26,21 @@ export enum AppState {
     RUNNING = 'running'
 }
 
+export interface GradleLaunchState {
+    launchStrategy: LaunchStrategy;
+    pendingMainClass?: string;
+    taskExecution?: vscode.TaskExecution;
+    taskPath?: string;
+    taskId?: string;
+    jmxPort?: number;
+    debugPort?: number;
+    attachSessionName?: string;
+    attachSessionId?: string;
+    initScriptUri?: vscode.Uri;
+    phase: GradleLaunchPhase;
+    sessionRole?: DebugSessionRole;
+}
+
 export class BootApp {
     private _activeSessionName?: string;
     private _jmxPort?: number;
@@ -32,6 +48,11 @@ export class BootApp {
     private _contextPath?: string;
     private _pid?: number;
     private _activeProfiles?: string[];
+    private _launchStrategy: LaunchStrategy = "java";
+    private _gradleLaunch: GradleLaunchState = {
+        launchStrategy: "java",
+        phase: "idle",
+    };
 
     private _watchdog?: NodeJS.Timeout; // used to watch running process.
 
@@ -122,6 +143,33 @@ export class BootApp {
 
     public set activeProfiles(profiles: string[] | undefined) {
         this._activeProfiles = profiles;
+    }
+
+    public get launchStrategy(): LaunchStrategy {
+        return this._launchStrategy;
+    }
+
+    public set launchStrategy(strategy: LaunchStrategy) {
+        this._launchStrategy = strategy;
+    }
+
+    public get gradleLaunch(): GradleLaunchState {
+        return this._gradleLaunch;
+    }
+
+    public set gradleLaunch(launch: GradleLaunchState) {
+        this._gradleLaunch = launch;
+    }
+
+    public clearGradleLaunch(): void {
+        this._gradleLaunch = {
+            launchStrategy: "java",
+            phase: "idle",
+        };
+    }
+
+    public get hasActiveGradleLaunch(): boolean {
+        return this._gradleLaunch.phase !== "idle" || this._gradleLaunch.taskExecution !== undefined;
     }
 
     public get contextPath(): string | undefined {
