@@ -657,5 +657,9 @@
     "uuid": "^3.4.0",
     "vscode-extension-telemetry-wrapper": "^0.14.0",
     "vscode-languageclient": "^7.0.0"
+  },
+  "overrides": {
+    "serialize-javascript": ">=7.0.5",
+    "js-yaml": ">=4.1.1"
   }
 }
