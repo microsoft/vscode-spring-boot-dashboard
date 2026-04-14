@@ -113,7 +113,11 @@
       const processList = document.getElementById("dropdown-processList");
       for (let proc of processes) {
         var processKey = window.btoa(proc.processKey);
-        processList.insertAdjacentHTML("beforeend", `<vscode-option id="${processKey}" value="${processKey}">${proc.type === "local" ? (proc.appName + " (pid: " + proc.pid + ")") : (proc.remoteAppName + " (remote)")}</vscode-option>`);
+        const option = document.createElement("vscode-option");
+        option.id = processKey;
+        option.value = processKey;
+        option.textContent = proc.type === "local" ? (proc.appName + " (pid: " + proc.pid + ")") : (proc.remoteAppName + " (remote)");
+        processList.appendChild(option);
       }
     }
   }
