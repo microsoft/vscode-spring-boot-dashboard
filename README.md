@@ -13,6 +13,7 @@ Spring Boot Dashboard is a lightweight extension in Visual Studio Code (VS Code)
 * View Spring Boot apps in workspace
 * Start / Stop a Spring Boot app
 * Debug a Spring Boot app
+* Delegate local Run / Debug / Stop actions to Gradle tasks
 * Open a Spring Boot app in browser
 * List beans/endpoint mappings
 * View bean dependencies
@@ -38,6 +39,17 @@ ext install vscode-spring-boot-dashboard
 - View all available Spring Boot apps in current workspace
 - Right click on a certain app and choose to start, stop or debug it
 - Right click on a certain app and open the website in a browser
+
+## Gradle launch strategy
+
+Spring Boot Dashboard can now launch local apps through either the default Java debugger flow or delegated Gradle tasks.
+
+Set `spring.dashboard.launchStrategy` to `gradle` to have Run / Debug / Stop actions execute Gradle tasks instead of VS Code's Java launch flow.
+
+- `spring.dashboard.gradle.task`: Gradle task used for Run, defaults to `bootRun`
+- `spring.dashboard.gradle.debugTask`: optional Gradle task used for Debug; if empty, the Run task is reused
+
+Both plain task names such as `bootRun` and fully qualified task paths such as `:service:bootRun` are supported. The dashboard will use the Gradle wrapper when available, and otherwise falls back to a `gradle` executable on your `PATH`.
 
 ## Data/Telemetry
 VS Code collects usage data and sends it to Microsoft to help improve our products and services. Read our [privacy statement](http://go.microsoft.com/fwlink/?LinkId=521839) to learn more. If you don’t wish to send usage data to Microsoft, you can set the `telemetry.enableTelemetry` setting to `false`. Learn more in our [FAQ](https://code.visualstudio.com/docs/supporting/faq#_how-to-disable-telemetry-reporting).

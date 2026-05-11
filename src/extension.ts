@@ -43,6 +43,7 @@ export async function initializeExtension(_oprationId: string, context: vscode.E
     dashboard.appsProvider = appsProvider;
 
     const controller: LocalAppController = new LocalAppController(appsProvider.manager, context);
+    context.subscriptions.push(controller);
 
     const appsView = vscode.window.createTreeView('spring.apps', { treeDataProvider: appsProvider, showCollapseAll: false });
     context.subscriptions.push(appsView);

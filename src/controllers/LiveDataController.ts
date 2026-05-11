@@ -64,8 +64,18 @@ async function updateProcessInfo(payload: string | LiveProcessPayload) {
     store.data.set(processKey, lp);
 
     if (type === "local") {
-        const runningApp = dashboard.appsProvider.manager.getAppByPid(liveProcess.pid);
+        const runningApp = dashboard.appsProvider.manager.getAppByPid(liveProcess.pid)
+            ?? dashboard.appsProvider.manager.getPendingGradleAppByMainClass(liveProcess.processName);
         if (runningApp) {
+            if (runningApp.pid === undefined) {
+                runningApp.pid = parseInt(liveProcess.pid);
+            }
+            if (runningApp.launchStrategy === "gradle") {
+                runningApp.gradleLaunch = {
+                    ...runningApp.gradleLaunch,
+                    phase: "running",
+                };
+            }
             runningApp.port = parseInt(port);
             runningApp.activeProfiles = activeProfiles;
             runningApp.contextPath = contextPath;

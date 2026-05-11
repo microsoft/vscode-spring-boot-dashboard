@@ -81,6 +81,8 @@ suite("Extension Test Suite", () => {
         assert.strictEqual(apps.length, 1, "There are 1 app in the app list.");
         const app = apps[0];
 
+        await vscode.workspace.getConfiguration("spring.dashboard").update("launchStrategy", "java");
+
         // Filter to PetClinicApplication to avoid QuickPick when multiple main classes exist
         app.mainClasses = app.mainClasses?.filter(c => c.mainClass.includes("PetClinicApplication"));
         await vscode.commands.executeCommand("spring-boot-dashboard.localapp.run", app);

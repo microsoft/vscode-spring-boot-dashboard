@@ -75,8 +75,32 @@ export class LocalAppManager {
         this._bindedSessions.set(app.path, session);
     }
 
+    public unbindDebugSession(session: DebugSession): BootApp | undefined {
+        const app = this.getAppBySession(session);
+        if (app) {
+            this._bindedSessions.delete(app.path);
+            if (app.activeSessionName === session.name) {
+                app.activeSessionName = undefined;
+            }
+        }
+        return app;
+    }
+
+    public getAppByPath(location: string): BootApp | undefined {
+        return this._boot_projects.get(location);
+    }
+
     public getAppByMainClass(mainClass: string): BootApp | undefined {
         return this.getAppList().find(app => app.mainClasses?.find((mcd: MainClassData) => mcd.mainClass === mainClass));
+    }
+
+    public getPendingGradleAppByMainClass(mainClass: string): BootApp | undefined {
+        return this.getAppList().find(app => {
+            const launch = app.gradleLaunch;
+            return launch.launchStrategy === "gradle"
+                && (launch.phase === "launching" || launch.phase === "running")
+                && launch.pendingMainClass === mainClass;
+        });
     }
 
     public getAppByPid(pid: number | string): BootApp | undefined {
