@@ -66,13 +66,28 @@ async function main(): Promise<void> {
         // Passed to --extensionTestsPath
         const extensionTestsPath: string = path.resolve(__dirname, "./suite/index");
 
+        // VS Code creates its IPC handle as a Unix-domain socket *inside* the
+        // user-data-dir (e.g. `<user-data-dir>/<version>-main.sock`). On macOS the
+        // socket path is capped at ~103 chars (`sun_path`), so if the user-data-dir
+        // is derived from a long path the socket overflows and the launch fails with
+        // `listen EINVAL: invalid argument`. The default user-data-dir lives under
+        // the workspace (`.vscode-test/user-data`), whose length depends on where the
+        // repository happens to be checked out — arbitrarily long on CI.
+        //
+        // Root-cause fix: place the user-data-dir in the shortest writable base we
+        // can find (independent of the checkout path) so the socket path can never
+        // approach the platform limit.
+        const userDataDir: string = createShortUserDataDir();
+
         // Download VS Code, unzip it and run the integration test
         await runTests({
             vscodeExecutablePath,
             extensionDevelopmentPath,
             extensionTestsPath,
             launchArgs: [
-                repositoryPath
+                repositoryPath,
+                "--user-data-dir",
+                userDataDir
             ]
         });
 
@@ -82,6 +97,60 @@ async function main(): Promise<void> {
         process.stdout.write(`${err}${os.EOL}`);
         process.exit(1);
     }
+}
+
+/**
+ * Create a fresh user-data directory whose path is short enough that VS Code's
+ * IPC socket (`<user-data-dir>/<version>-main.sock`) stays within the platform's
+ * Unix-domain socket path limit.
+ *
+ * macOS limits `sun_path` to 104 bytes (≈103 usable chars) and Linux to 108. The
+ * socket name VS Code appends is short (e.g. `1.12-main.sock`), so we only need a
+ * compact base directory that does NOT depend on the (potentially long) checkout
+ * path. We pick the shortest writable base available — `/tmp` on POSIX — and fall
+ * back to the OS temp dir, then validate the resulting socket path fits.
+ */
+function createShortUserDataDir(): string {
+    // Conservative cross-platform budget for the socket path.
+    //
+    // macOS `struct sockaddr_un` declares `sun_path[104]`, so the kernel (and
+    // Node/libuv/Electron, which create VS Code's IPC socket) accept paths up to
+    // 103 chars + 1 NUL. OpenJDK is stricter, effectively allowing only 102
+    // (`sizeof(sun_path) - 2`) — see redhat-developer/vscode-java#4433. We use the
+    // tightest real-world value (102) so the budget holds for any consumer.
+    // Linux is roomier (`sun_path[108]`), so macOS is the binding constraint.
+    const SOCKET_PATH_LIMIT = 102;
+    // Generous headroom for the `<version>-main.sock` suffix VS Code appends.
+    const SOCKET_NAME_RESERVE = 30;
+
+    const candidateBases: string[] = process.platform === "win32"
+        ? [os.tmpdir()]
+        // `/tmp` is the shortest path guaranteed to exist and be writable on POSIX.
+        : ["/tmp", os.tmpdir()];
+
+    const base = candidateBases.find((dir) => {
+        try {
+            return fs.existsSync(dir);
+        } catch {
+            return false;
+        }
+    }) ?? os.tmpdir();
+
+    const userDataDir = fs.mkdtempSync(path.join(base, "vsct-"));
+
+    // Guard: if even the shortest base would overflow the socket budget, fail fast
+    // with a clear, actionable message instead of the opaque `listen EINVAL`.
+    if (process.platform !== "win32" &&
+        userDataDir.length + SOCKET_NAME_RESERVE > SOCKET_PATH_LIMIT) {
+        throw new Error(
+            `Resolved user-data-dir is too long for a Unix-domain socket: ` +
+            `"${userDataDir}" (${userDataDir.length} chars). The IPC socket would ` +
+            `exceed the ${SOCKET_PATH_LIMIT}-char platform limit. Set TMPDIR to a ` +
+            `shorter path and re-run.`
+        );
+    }
+
+    return userDataDir;
 }
 
 main();
