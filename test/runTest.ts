@@ -68,27 +68,28 @@ async function main(): Promise<void> {
 
         // VS Code creates its IPC handle as a Unix-domain socket *inside* the
         // user-data-dir (e.g. `<user-data-dir>/<version>-main.sock`). On macOS the
-        // socket path is capped at ~103 chars (`sun_path`), so if the user-data-dir
+        // socket path is capped at ~103 bytes (`sun_path`), so if the user-data-dir
         // is derived from a long path the socket overflows and the launch fails with
         // `listen EINVAL: invalid argument`. The default user-data-dir lives under
         // the workspace (`.vscode-test/user-data`), whose length depends on where the
         // repository happens to be checked out — arbitrarily long on CI.
         //
-        // Root-cause fix: place the user-data-dir in the shortest writable base we
-        // can find (independent of the checkout path) so the socket path can never
-        // approach the platform limit.
-        const userDataDir: string = createShortUserDataDir();
+        // Root-cause fix (POSIX only): relocate the user-data-dir to a short base
+        // that is independent of the checkout path so the socket path can never
+        // approach the platform limit. On Windows there is no Unix-domain socket
+        // limit, so we keep the default location — this preserves the CI log-upload
+        // path (`.vscode-test/user-data/.../redhat.java/jdt_ws/.metadata/.log`).
+        const launchArgs: string[] = [repositoryPath];
+        if (process.platform !== "win32") {
+            launchArgs.push("--user-data-dir", createShortUserDataDir());
+        }
 
         // Download VS Code, unzip it and run the integration test
         await runTests({
             vscodeExecutablePath,
             extensionDevelopmentPath,
             extensionTestsPath,
-            launchArgs: [
-                repositoryPath,
-                "--user-data-dir",
-                userDataDir
-            ]
+            launchArgs
         });
 
         process.exit(0);
@@ -102,20 +103,20 @@ async function main(): Promise<void> {
 /**
  * Create a fresh user-data directory whose path is short enough that VS Code's
  * IPC socket (`<user-data-dir>/<version>-main.sock`) stays within the platform's
- * Unix-domain socket path limit.
+ * Unix-domain socket path limit. POSIX only — callers skip this on Windows.
  *
  * macOS limits `sun_path` to 104 bytes (≈103 usable chars) and Linux to 108. The
  * socket name VS Code appends is short (e.g. `1.12-main.sock`), so we only need a
  * compact base directory that does NOT depend on the (potentially long) checkout
- * path. We pick the shortest writable base available — `/tmp` on POSIX — and fall
- * back to the OS temp dir, then validate the resulting socket path fits.
+ * path. We try the shortest base first (`/tmp`) and fall back to the OS temp dir,
+ * then validate the resulting socket path fits.
  */
 function createShortUserDataDir(): string {
-    // Conservative cross-platform budget for the socket path.
+    // Conservative budget for the socket path.
     //
     // macOS `struct sockaddr_un` declares `sun_path[104]`, so the kernel (and
     // Node/libuv/Electron, which create VS Code's IPC socket) accept paths up to
-    // 103 chars + 1 NUL. OpenJDK is stricter, effectively allowing only 102
+    // 103 bytes + 1 NUL. OpenJDK is stricter, effectively allowing only 102
     // (`sizeof(sun_path) - 2`) — see redhat-developer/vscode-java#4433. We use the
     // tightest real-world value (102) so the budget holds for any consumer.
     // Linux is roomier (`sun_path[108]`), so macOS is the binding constraint.
@@ -123,29 +124,37 @@ function createShortUserDataDir(): string {
     // Generous headroom for the `<version>-main.sock` suffix VS Code appends.
     const SOCKET_NAME_RESERVE = 30;
 
-    const candidateBases: string[] = process.platform === "win32"
-        ? [os.tmpdir()]
-        // `/tmp` is the shortest path guaranteed to exist and be writable on POSIX.
-        : ["/tmp", os.tmpdir()];
-
-    const base = candidateBases.find((dir) => {
+    // `/tmp` is the shortest path typically writable on POSIX; fall back to the OS
+    // temp dir. Try creating the dir in each base rather than probing with
+    // `existsSync` — a base may exist but be non-writable, in which case we must
+    // move on to the next candidate.
+    const candidateBases: string[] = ["/tmp", os.tmpdir()];
+    let userDataDir: string | undefined;
+    const failures: string[] = [];
+    for (const base of candidateBases) {
         try {
-            return fs.existsSync(dir);
-        } catch {
-            return false;
+            userDataDir = fs.mkdtempSync(path.join(base, "vsct-"));
+            break;
+        } catch (e) {
+            failures.push(`${base}: ${e instanceof Error ? e.message : String(e)}`);
         }
-    }) ?? os.tmpdir();
+    }
+    if (userDataDir === undefined) {
+        throw new Error(
+            `Could not create a temporary user-data-dir in any of ` +
+            `[${candidateBases.join(", ")}]: ${failures.join("; ")}`
+        );
+    }
 
-    const userDataDir = fs.mkdtempSync(path.join(base, "vsct-"));
-
-    // Guard: if even the shortest base would overflow the socket budget, fail fast
-    // with a clear, actionable message instead of the opaque `listen EINVAL`.
-    if (process.platform !== "win32" &&
-        userDataDir.length + SOCKET_NAME_RESERVE > SOCKET_PATH_LIMIT) {
+    // Guard: `sun_path` is a BYTE limit, so measure bytes (not JS char count) to
+    // stay correct for non-ASCII temp paths. Fail fast with an actionable message
+    // instead of the opaque `listen EINVAL`.
+    const byteLength = Buffer.byteLength(userDataDir);
+    if (byteLength + SOCKET_NAME_RESERVE > SOCKET_PATH_LIMIT) {
         throw new Error(
             `Resolved user-data-dir is too long for a Unix-domain socket: ` +
-            `"${userDataDir}" (${userDataDir.length} chars). The IPC socket would ` +
-            `exceed the ${SOCKET_PATH_LIMIT}-char platform limit. Set TMPDIR to a ` +
+            `"${userDataDir}" (${byteLength} bytes). The IPC socket would ` +
+            `exceed the ${SOCKET_PATH_LIMIT}-byte platform limit. Set TMPDIR to a ` +
             `shorter path and re-run.`
         );
     }
