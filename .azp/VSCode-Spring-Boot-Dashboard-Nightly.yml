@@ -3,6 +3,7 @@ variables:
   - name: Codeql.Enabled
     value: true
   - template: /.azp/npm-cfs-variables.yml@self
+  - template: /.azp/maven-cfs-variables.yml@self
 schedules:
 - cron: 0 0 * * *
   branches:
@@ -69,6 +70,19 @@ extends:
               - template: /.azp/npm-cfs.yml@self
               - script: npm install
                 displayName: npm install
+                # Maven runs on this step only indirectly: npm install fires the
+                # deprecated prepublish hook, which is scripts/build-java-ext.js and
+                # ends in ./mvnw. If that hook is ever removed or moved to its own
+                # step, this env block has to follow it, or the wrapper drops to an
+                # unauthenticated fetch and fails on 401.
+                #
+                # System.AccessToken is a secret, and Azure Pipelines does not export secret
+                # variables to the environment -- not even through a variable that merely
+                # references one -- so it cannot live in maven-cfs-variables.yml alongside
+                # the rest of the wiring.
+                env:
+                  SYSTEM_ACCESSTOKEN: $(System.AccessToken)
+                  MVNW_PASSWORD: $(System.AccessToken)
               - script: npm run tslint
                 displayName: npm run tslint
               - script: npm run compile
