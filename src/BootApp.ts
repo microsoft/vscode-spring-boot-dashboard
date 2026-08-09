@@ -11,13 +11,62 @@ import * as lsp from "vscode-languageclient";
 import * as async from "async";
 import { cpus } from "os";
 
-const searchQueue = async.queue(async (path: string, callback: async.AsyncResultCallback<string[], Error>) => {
-    try {
-        callback(undefined, await vscode.commands.executeCommand('java.execute.workspaceCommand', 'vscode.java.resolveMainClass', path) as string[]);
-    } catch (error) {
-        callback(error);
-    }
-}, Math.max(1, cpus().length / 2));
+const searchQueue = async.queue(
+    async (
+        path: string,
+        callback: async.AsyncResultCallback<MainClassData[], Error>
+    ) => {
+        try {
+            const resolvedMainClasses =
+                (await vscode.commands.executeCommand<MainClassData[]>(
+                    "java.execute.workspaceCommand",
+                    "vscode.java.resolveMainClass",
+                    path
+                )) ?? [];
+
+            // Read existing Java launch configs from .vscode/launch.json (scoped to this path)
+            const launchConfig = vscode.workspace.getConfiguration(
+                "launch",
+                vscode.Uri.file(path)
+            );
+            const rawConfigs =
+                launchConfig.get<vscode.DebugConfiguration[]>("configurations", []) ?? [];
+
+            const fromLaunch: MainClassData[] = rawConfigs
+                .filter(
+                    (c) =>
+                        c.type === "java" &&
+                        c.request === "launch" &&
+                        typeof c.mainClass === "string" &&
+                        c.mainClass.length > 0
+                )
+                .map((c) => ({
+                    // Use provided path as fallback; launch.json does not store source filePath.
+                    filePath: path,
+                    mainClass: c.mainClass as string,
+                    projectName:
+                        typeof c.projectName === "string" ? c.projectName : "",
+                }));
+
+            // Merge without dropping anything from either source
+            const merged: MainClassData[] = [];
+            const seen = new Set<string>();
+
+            for (const mc of [...resolvedMainClasses, ...fromLaunch]) {
+                const key = `${mc.mainClass}|${mc.projectName}`;
+                if (!seen.has(key)) {
+                    seen.add(key);
+                    merged.push(mc);
+                }
+            }
+
+            callback(undefined, merged);
+        } catch (error) {
+            callback(error as Error);
+        }
+    },
+    Math.max(1, Math.floor(cpus().length / 2))
+);
 
 export enum AppState {
     INACTIVE = 'inactive',
