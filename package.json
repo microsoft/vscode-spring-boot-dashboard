@@ -646,7 +646,7 @@
     "@pivotal-tools/jvm-launch-utils": "0.0.11",
     "@vscode/webview-ui-toolkit": "^1.4.0",
     "async": "^3.2.6",
-    "chart.js": "^3.9.1",
+    "chart.js": "^4.5.1",
     "chartjs": "^0.3.24",
     "chartjs-adapter-moment": "^1.0.0",
     "get-port": "^5.1.1",
