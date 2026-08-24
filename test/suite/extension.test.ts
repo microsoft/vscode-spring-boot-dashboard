@@ -1,6 +1,7 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT license.
 import * as assert from "assert";
+import * as path from "path";
 import * as vscode from "vscode";
 import { AppState } from "../../src/BootApp";
 import { initSymbols } from "../../src/controllers/SymbolsController";
@@ -69,6 +70,30 @@ suite("Extension Test Suite", () => {
         assert.strictEqual(openedEditor?.selection.anchor.character, 1, "The definition of CrashController should be at character 1.");
     }).timeout(300 * 1000 /** ms */);
 
+    test("Should not offer main classes from test source folders", async () => {
+        let apps = dashboard.appsProvider.manager.getAppList();
+        while (apps.length === 0) {
+            console.log("waiting until the app list is populated");
+            await sleep(5 * 1000 /** ms */);
+            apps = dashboard.appsProvider.manager.getAppList();
+        }
+        const app = apps[0];
+
+        // petclinic declares a main method in PetClinicApplication plus three more in
+        // src/test/java (MysqlTestApplication, PetClinicIntegrationTests, PostgresIntegrationTests).
+        const allMainClasses = await app.getMainClasses();
+        const testMainClasses = allMainClasses.filter(c => c.filePath.includes(path.join("src", "test", "java")));
+        assert.ok(testMainClasses.length > 0, `There should be main classes in test source folders, but got ${JSON.stringify(allMainClasses)}.`);
+
+        // Only the one in src/main/java is a launch candidate. https://github.com/microsoft/vscode-spring-boot-dashboard/issues/420
+        const launchable = await app.getLaunchableMainClasses();
+        assert.deepStrictEqual(
+            launchable.map(c => c.mainClass),
+            ["org.springframework.samples.petclinic.PetClinicApplication"],
+            "Only the main class in src/main/java should be launchable."
+        );
+    }).timeout(300 * 1000 /** ms */);
+
     test("Can view dynamic beans and mappings", async function() {
         // Skip on CI — launching the app is unreliable in headless environments
         // (wmic ENOENT on Windows Server 2025, debug session failures on Linux/macOS).
@@ -81,8 +106,8 @@ suite("Extension Test Suite", () => {
         assert.strictEqual(apps.length, 1, "There are 1 app in the app list.");
         const app = apps[0];
 
-        // Filter to PetClinicApplication to avoid QuickPick when multiple main classes exist
-        app.mainClasses = app.mainClasses?.filter(c => c.mainClass.includes("PetClinicApplication"));
+        // No QuickPick is expected: petclinic's other main classes all live in test
+        // source folders, so PetClinicApplication is the only launch candidate.
         await vscode.commands.executeCommand("spring-boot-dashboard.localapp.run", app);
         while (app.state !== AppState.RUNNING) {
             await sleep(5 * 1000 /** ms */);

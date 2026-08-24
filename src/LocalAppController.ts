@@ -45,7 +45,7 @@ export class LocalAppController {
         const mainClasData = await vscode.window.withProgress(
             { location: vscode.ProgressLocation.Window, title: `Resolving main classes for ${app.name}...` },
             async () => {
-                const mainClassList = await app.getMainClasses();
+                const mainClassList = await app.getLaunchableMainClasses();
 
                 if (mainClassList && mainClassList instanceof Array && mainClassList.length > 0) {
                     return mainClassList.length === 1 ? mainClassList[0] :

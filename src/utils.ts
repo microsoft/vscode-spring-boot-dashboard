@@ -4,6 +4,7 @@
 import * as path from "path";
 import { Readable } from "stream";
 import * as vscode from "vscode";
+import { ClassPathData, MainClassData } from "./types/jdtls";
 import pidtree = require("pidtree");
 
 export function readAll(input: Readable): Promise<string> {
@@ -46,6 +47,39 @@ export function isActuatorJarFile(f: string): boolean {
         return true;
     }
     return false;
+}
+
+/**
+ * Whether `filePath` is located inside `folder`. Both are expected to be
+ * absolute file system paths.
+ */
+function isInFolder(filePath: string, folder: string): boolean {
+    const relative = path.relative(folder, filePath);
+    // An empty result means both point at the same location, ".." means filePath
+    // is outside, and an absolute result means they are on different drives.
+    return !!relative && !relative.startsWith("..") && !path.isAbsolute(relative);
+}
+
+/**
+ * Drops the main classes that live in a test source folder of the project.
+ *
+ * `vscode.java.resolveMainClass` searches all source folders, so a
+ * `@SpringBootApplication` class copied into `src/test/java` (a common pattern for
+ * integration tests) shows up as an additional candidate to launch. Those classes
+ * are not what users want to run from the dashboard, and offering them turns a
+ * one-click "run" into a quick pick with irrelevant choices.
+ *
+ * See https://github.com/microsoft/vscode-spring-boot-dashboard/issues/420
+ */
+export function excludeTestMainClasses(mainClasses: MainClassData[], classpath: ClassPathData): MainClassData[] {
+    const testSourceFolders = (classpath?.entries ?? [])
+        .filter(cpe => cpe.kind === "source" && cpe.isTest)
+        .map(cpe => cpe.path);
+    if (testSourceFolders.length === 0) {
+        return mainClasses;
+    }
+    // Keep entries without a file path: they cannot be located, so they cannot be ruled out.
+    return mainClasses.filter(mc => !mc.filePath || !testSourceFolders.some(folder => isInFolder(mc.filePath, folder)));
 }
 
 /**
