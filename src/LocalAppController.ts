@@ -288,7 +288,7 @@ export class LocalAppController {
         return rawConfigs.find(conf => conf.type === "java" && conf.request === "launch" && conf.mainClass === mainClasData.mainClass && conf.projectName === mainClasData.projectName);
     }
 
-    private _constructLaunchConfigName(mainClass: string, projectName: string) {
+    private _constructLaunchConfigName(mainClass: string, projectName?: string) {
         const prefix = "Spring Boot-";
         let name = prefix + mainClass.substr(mainClass.lastIndexOf(".") + 1);
         if (projectName !== undefined) {

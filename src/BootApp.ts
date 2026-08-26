@@ -11,9 +11,14 @@ import * as lsp from "vscode-languageclient";
 import * as async from "async";
 import { cpus } from "os";
 
+interface MainClassSearchRequest {
+    path: string;
+    projectName: string;
+}
+
 const searchQueue = async.queue(
     async (
-        path: string,
+        request: MainClassSearchRequest,
         callback: async.AsyncResultCallback<MainClassData[], Error>
     ) => {
         try {
@@ -21,13 +26,14 @@ const searchQueue = async.queue(
                 (await vscode.commands.executeCommand<MainClassData[]>(
                     "java.execute.workspaceCommand",
                     "vscode.java.resolveMainClass",
-                    path
+                    request.path
                 )) ?? [];
 
             // Read existing Java launch configs from .vscode/launch.json (scoped to this path)
+            const projectUri = vscode.Uri.parse(request.path);
             const launchConfig = vscode.workspace.getConfiguration(
                 "launch",
-                vscode.Uri.file(path)
+                projectUri
             );
             const rawConfigs =
                 launchConfig.get<vscode.DebugConfiguration[]>("configurations", []) ?? [];
@@ -37,15 +43,15 @@ const searchQueue = async.queue(
                     (c) =>
                         c.type === "java" &&
                         c.request === "launch" &&
+                        (c.projectName === undefined || c.projectName === request.projectName) &&
                         typeof c.mainClass === "string" &&
                         c.mainClass.length > 0
                 )
                 .map((c) => ({
                     // Use provided path as fallback; launch.json does not store source filePath.
-                    filePath: path,
+                    filePath: projectUri.fsPath,
                     mainClass: c.mainClass as string,
-                    projectName:
-                        typeof c.projectName === "string" ? c.projectName : "",
+                    projectName: typeof c.projectName === "string" ? c.projectName : undefined,
                 }));
 
             // Merge without dropping anything from either source
@@ -226,7 +232,10 @@ export class BootApp {
     public async getMainClasses(): Promise<MainClassData[]> {
         if (this.mainClasses === undefined) {
             // Note: Command `vscode.java.resolveMainClass` is implemented in extension java-debugger
-            const mainClassList = await searchQueue.push(this.path);
+            const mainClassList = await searchQueue.push({
+                path: this.path,
+                projectName: this.name,
+            });
             if (mainClassList && mainClassList instanceof Array) {
                 this.mainClasses = mainClassList;
             } else {

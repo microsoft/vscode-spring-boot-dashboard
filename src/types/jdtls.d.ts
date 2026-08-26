@@ -1,7 +1,7 @@
 export interface MainClassData {
     filePath: string;
     mainClass: string;
-    projectName: string;
+    projectName?: string;
 }
 
 export interface ClassPathData {
