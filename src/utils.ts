@@ -40,6 +40,16 @@ export async function sleep(ms: number) {
     });
 }
 
+export function isConcreteJavaLaunchConfiguration(
+    config: vscode.DebugConfiguration
+): config is vscode.DebugConfiguration & { mainClass: string } {
+    return config.type === "java" &&
+        config.request === "launch" &&
+        typeof config.mainClass === "string" &&
+        config.mainClass.trim().length > 0 &&
+        !/\$\{[^}]+\}/.test(config.mainClass);
+}
+
 export function isActuatorJarFile(f: string): boolean {
     const fileName = path.basename(f || "");
     if (/^spring-boot-actuator-\d+\.\d+\.\d+(.*)?.jar$/.test(fileName)) {

@@ -11,13 +11,31 @@ import * as lsp from "vscode-languageclient";
 import * as async from "async";
 import { cpus } from "os";
 
-const searchQueue = async.queue(async (path: string, callback: async.AsyncResultCallback<string[], Error>) => {
-    try {
-        callback(undefined, await vscode.commands.executeCommand('java.execute.workspaceCommand', 'vscode.java.resolveMainClass', path) as string[]);
-    } catch (error) {
-        callback(error);
-    }
-}, Math.max(1, cpus().length / 2));
+interface MainClassSearchRequest {
+    path: string;
+    projectName: string;
+}
+
+const searchQueue = async.queue(
+    async (
+        request: MainClassSearchRequest,
+        callback: async.AsyncResultCallback<MainClassData[], Error>
+    ) => {
+        try {
+            const resolvedMainClasses =
+                (await vscode.commands.executeCommand<MainClassData[]>(
+                    "java.execute.workspaceCommand",
+                    "vscode.java.resolveMainClass",
+                    request.path
+                )) ?? [];
+
+            callback(undefined, resolvedMainClasses);
+        } catch (error) {
+            callback(error as Error);
+        }
+    },
+    Math.max(1, Math.floor(cpus().length / 2))
+);
 
 export enum AppState {
     INACTIVE = 'inactive',
@@ -177,7 +195,10 @@ export class BootApp {
     public async getMainClasses(): Promise<MainClassData[]> {
         if (this.mainClasses === undefined) {
             // Note: Command `vscode.java.resolveMainClass` is implemented in extension java-debugger
-            const mainClassList = await searchQueue.push(this.path);
+            const mainClassList = await searchQueue.push({
+                path: this.path,
+                projectName: this.name,
+            });
             if (mainClassList && mainClassList instanceof Array) {
                 this.mainClasses = mainClassList;
             } else {

@@ -8,7 +8,7 @@ import * as vscode from "vscode";
 import { AppState, BootApp } from "./BootApp";
 import { LocalAppManager } from "./LocalAppManager";
 import { MainClassData } from "./types/jdtls";
-import { constructOpenUrl, isActuatorJarFile, readAll } from "./utils";
+import { constructOpenUrl, isActuatorJarFile, isConcreteJavaLaunchConfiguration, readAll } from "./utils";
 
 import getPort = require("get-port");
 import { sendInfo } from "vscode-extension-telemetry-wrapper";
@@ -45,7 +45,7 @@ export class LocalAppController {
         const mainClasData = await vscode.window.withProgress(
             { location: vscode.ProgressLocation.Window, title: `Resolving main classes for ${app.name}...` },
             async () => {
-                const mainClassList = await app.getMainClasses();
+                const mainClassList = await this._getMainClassCandidates(app);
 
                 if (mainClassList && mainClassList instanceof Array && mainClassList.length > 0) {
                     return mainClassList.length === 1 ? mainClassList[0] :
@@ -288,7 +288,52 @@ export class LocalAppController {
         return rawConfigs.find(conf => conf.type === "java" && conf.request === "launch" && conf.mainClass === mainClasData.mainClass && conf.projectName === mainClasData.projectName);
     }
 
-    private _constructLaunchConfigName(mainClass: string, projectName: string) {
+    private async _getMainClassCandidates(app: BootApp): Promise<MainClassData[]> {
+        const candidates = [
+            ...await app.getMainClasses(),
+            ...this._getLaunchMainClasses(app),
+        ];
+        const seen = new Set<string>();
+
+        return candidates.filter(candidate => {
+            const key = `${candidate.mainClass}|${candidate.projectName}`;
+            if (seen.has(key)) {
+                return false;
+            }
+            seen.add(key);
+            return true;
+        });
+    }
+
+    private _getLaunchMainClasses(app: BootApp): MainClassData[] {
+        const projectUri = vscode.Uri.parse(app.path);
+        const workspaceFolder = vscode.workspace.getWorkspaceFolder(projectUri);
+        const appsInFolder = workspaceFolder === undefined ? [] :
+            this.manager.getAppList().filter(candidate =>
+                vscode.workspace.getWorkspaceFolder(
+                    vscode.Uri.parse(candidate.path)
+                )?.uri.toString() === workspaceFolder.uri.toString()
+            );
+        const includeUnscoped = appsInFolder.length === 1 && appsInFolder[0] === app;
+
+        const configurations = vscode.workspace
+            .getConfiguration("launch", projectUri)
+            .get<vscode.DebugConfiguration[]>("configurations", []);
+
+        return configurations
+            .filter(config =>
+                isConcreteJavaLaunchConfiguration(config) &&
+                (config.projectName === app.name ||
+                    (config.projectName === undefined && includeUnscoped))
+            )
+            .map(config => ({
+                filePath: projectUri.fsPath,
+                mainClass: config.mainClass,
+                projectName: config.projectName,
+            }));
+    }
+
+    private _constructLaunchConfigName(mainClass: string, projectName?: string) {
         const prefix = "Spring Boot-";
         let name = prefix + mainClass.substr(mainClass.lastIndexOf(".") + 1);
         if (projectName !== undefined) {
