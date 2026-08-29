@@ -6,6 +6,16 @@ import { Readable } from "stream";
 import * as vscode from "vscode";
 import pidtree = require("pidtree");
 
+export function isConcreteJavaLaunchConfiguration(
+    config: vscode.DebugConfiguration
+): config is vscode.DebugConfiguration & { mainClass: string } {
+    return config.type === "java" &&
+        config.request === "launch" &&
+        typeof config.mainClass === "string" &&
+        config.mainClass.trim().length > 0 &&
+        !/\$\{[^}]+\}/.test(config.mainClass);
+}
+
 export function readAll(input: Readable): Promise<string> {
     let buffer = "";
     return new Promise<string>((resolve, reject) => {

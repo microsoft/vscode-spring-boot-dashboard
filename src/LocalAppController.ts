@@ -8,7 +8,7 @@ import * as vscode from "vscode";
 import { AppState, BootApp } from "./BootApp";
 import { LocalAppManager } from "./LocalAppManager";
 import { MainClassData } from "./types/jdtls";
-import { constructOpenUrl, isActuatorJarFile, readAll } from "./utils";
+import { constructOpenUrl, isActuatorJarFile, isConcreteJavaLaunchConfiguration, readAll } from "./utils";
 
 import getPort = require("get-port");
 import { sendInfo } from "vscode-extension-telemetry-wrapper";
@@ -307,21 +307,29 @@ export class LocalAppController {
 
     private _getLaunchMainClasses(app: BootApp): MainClassData[] {
         const projectUri = vscode.Uri.parse(app.path);
-        const launchConfigurations = vscode.workspace.getConfiguration("launch", projectUri);
-        const rawConfigs: vscode.DebugConfiguration[] = launchConfigurations.configurations;
+        const workspaceFolder = vscode.workspace.getWorkspaceFolder(projectUri);
+        const appsInFolder = workspaceFolder === undefined ? [] :
+            this.manager.getAppList().filter(candidate =>
+                vscode.workspace.getWorkspaceFolder(
+                    vscode.Uri.parse(candidate.path)
+                )?.uri.toString() === workspaceFolder.uri.toString()
+            );
+        const includeUnscoped = appsInFolder.length === 1 && appsInFolder[0] === app;
 
-        return rawConfigs
-            .filter(conf =>
-                conf.type === "java" &&
-                conf.request === "launch" &&
-                (conf.projectName === undefined || conf.projectName === app.name) &&
-                typeof conf.mainClass === "string" &&
-                conf.mainClass.length > 0
+        const configurations = vscode.workspace
+            .getConfiguration("launch", projectUri)
+            .get<vscode.DebugConfiguration[]>("configurations", []);
+
+        return configurations
+            .filter(config =>
+                isConcreteJavaLaunchConfiguration(config) &&
+                (config.projectName === app.name ||
+                    (config.projectName === undefined && includeUnscoped))
             )
-            .map(conf => ({
+            .map(config => ({
                 filePath: projectUri.fsPath,
-                mainClass: conf.mainClass as string,
-                projectName: typeof conf.projectName === "string" ? conf.projectName : undefined,
+                mainClass: config.mainClass,
+                projectName: config.projectName,
             }));
     }
 
