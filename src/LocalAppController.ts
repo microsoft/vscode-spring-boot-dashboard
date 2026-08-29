@@ -45,7 +45,7 @@ export class LocalAppController {
         const mainClasData = await vscode.window.withProgress(
             { location: vscode.ProgressLocation.Window, title: `Resolving main classes for ${app.name}...` },
             async () => {
-                const mainClassList = await app.getMainClasses();
+                const mainClassList = await this._getMainClassCandidates(app);
 
                 if (mainClassList && mainClassList instanceof Array && mainClassList.length > 0) {
                     return mainClassList.length === 1 ? mainClassList[0] :
@@ -286,6 +286,43 @@ export class LocalAppController {
         const launchConfigurations: vscode.WorkspaceConfiguration = vscode.workspace.getConfiguration("launch", vscode.Uri.file(mainClasData.filePath));
         const rawConfigs: vscode.DebugConfiguration[] = launchConfigurations.configurations;
         return rawConfigs.find(conf => conf.type === "java" && conf.request === "launch" && conf.mainClass === mainClasData.mainClass && conf.projectName === mainClasData.projectName);
+    }
+
+    private async _getMainClassCandidates(app: BootApp): Promise<MainClassData[]> {
+        const candidates = [
+            ...await app.getMainClasses(),
+            ...this._getLaunchMainClasses(app),
+        ];
+        const seen = new Set<string>();
+
+        return candidates.filter(candidate => {
+            const key = `${candidate.mainClass}|${candidate.projectName}`;
+            if (seen.has(key)) {
+                return false;
+            }
+            seen.add(key);
+            return true;
+        });
+    }
+
+    private _getLaunchMainClasses(app: BootApp): MainClassData[] {
+        const projectUri = vscode.Uri.parse(app.path);
+        const launchConfigurations = vscode.workspace.getConfiguration("launch", projectUri);
+        const rawConfigs: vscode.DebugConfiguration[] = launchConfigurations.configurations;
+
+        return rawConfigs
+            .filter(conf =>
+                conf.type === "java" &&
+                conf.request === "launch" &&
+                (conf.projectName === undefined || conf.projectName === app.name) &&
+                typeof conf.mainClass === "string" &&
+                conf.mainClass.length > 0
+            )
+            .map(conf => ({
+                filePath: projectUri.fsPath,
+                mainClass: conf.mainClass as string,
+                projectName: typeof conf.projectName === "string" ? conf.projectName : undefined,
+            }));
     }
 
     private _constructLaunchConfigName(mainClass: string, projectName?: string) {

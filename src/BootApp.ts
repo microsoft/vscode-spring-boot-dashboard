@@ -29,44 +29,7 @@ const searchQueue = async.queue(
                     request.path
                 )) ?? [];
 
-            // Read existing Java launch configs from .vscode/launch.json (scoped to this path)
-            const projectUri = vscode.Uri.parse(request.path);
-            const launchConfig = vscode.workspace.getConfiguration(
-                "launch",
-                projectUri
-            );
-            const rawConfigs =
-                launchConfig.get<vscode.DebugConfiguration[]>("configurations", []) ?? [];
-
-            const fromLaunch: MainClassData[] = rawConfigs
-                .filter(
-                    (c) =>
-                        c.type === "java" &&
-                        c.request === "launch" &&
-                        (c.projectName === undefined || c.projectName === request.projectName) &&
-                        typeof c.mainClass === "string" &&
-                        c.mainClass.length > 0
-                )
-                .map((c) => ({
-                    // Use provided path as fallback; launch.json does not store source filePath.
-                    filePath: projectUri.fsPath,
-                    mainClass: c.mainClass as string,
-                    projectName: typeof c.projectName === "string" ? c.projectName : undefined,
-                }));
-
-            // Merge without dropping anything from either source
-            const merged: MainClassData[] = [];
-            const seen = new Set<string>();
-
-            for (const mc of [...resolvedMainClasses, ...fromLaunch]) {
-                const key = `${mc.mainClass}|${mc.projectName}`;
-                if (!seen.has(key)) {
-                    seen.add(key);
-                    merged.push(mc);
-                }
-            }
-
-            callback(undefined, merged);
+            callback(undefined, resolvedMainClasses);
         } catch (error) {
             callback(error as Error);
         }
