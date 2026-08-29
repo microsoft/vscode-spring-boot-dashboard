@@ -55,3 +55,76 @@ provided by the bot. You will only need to do this once across all repos using o
 This project has adopted the [Microsoft Open Source Code of Conduct](https://opensource.microsoft.com/codeofconduct/).
 For more information see the [Code of Conduct FAQ](https://opensource.microsoft.com/codeofconduct/faq/) or
 contact [opencode@microsoft.com](mailto:opencode@microsoft.com) with any additional questions or comments.
+
+## Instructions to develop locally
+
+## Setup
+
+1. Clone this repository and open it in VS Code.
+2. Install dependencies:
+
+```bash
+npm install
+```
+
+3. Ensure the following extensions are installed in VS Code (required by this extension):
+   - [Language Support for Java](https://marketplace.visualstudio.com/items?itemName=redhat.java)
+   - [Debugger for Java](https://marketplace.visualstudio.com/items?itemName=vscjava.vscode-java-debug)
+   - [Spring Boot Tools](https://marketplace.visualstudio.com/items?itemName=vmware.vscode-spring-boot)
+
+4. Initialize the Git submodules (sample Spring Boot projects used for local debugging and tests):
+
+```bash
+git submodule update --init --recursive
+```
+
+This clones and checks out:
+
+- `test/projects/spring-petclinic` → https://github.com/spring-projects/spring-petclinic
+- `test/projects/gs-rest-service` → https://github.com/spring-guides/gs-rest-service
+
+When cloning this repository for the first time, you can fetch the submodules in one step:
+
+```bash
+git clone --recurse-submodules https://github.com/Microsoft/vscode-spring-boot-dashboard.git
+```
+
+If you already cloned without submodules, run `git submodule update --init --recursive` from the repository root. A leading `-` in `git submodule status` means a submodule is not initialized yet.
+
+## Choose a sample project to load
+
+By default, the **Extension\<Spring-PetClinic\>** launch configuration opens the bundled sample at `test/projects/spring-petclinic`.
+
+To debug against your own Spring Boot project instead:
+
+1. Open `.vscode/launch.json`.
+2. Find the launch configuration you want to use (for example, **Extension\<Spring-PetClinic\>**).
+3. In its `args` array, replace the first path (the workspace folder opened in the Extension Development Host) with the absolute path to your project:
+
+```json
+"args": [
+    "/absolute/path/to/your-spring-boot-project",
+    "--extensionDevelopmentPath=${workspaceFolder}"
+]
+```
+
+## Debug the extension
+
+1. Open this repository in VS Code.
+2. Open the **Run and Debug** view (or press `Ctrl+Shift+D` / `Cmd+Shift+D` on macOS).
+3. Select a launch configuration from the dropdown (for example, **Extension\<Spring-PetClinic\>**).
+4. Start debugging using one of these methods:
+   - Press `F5`
+   - Choose **Run → Start Debugging**
+   - Open the Command Palette (`Ctrl+Shift+P` / `Cmd+Shift+P`) and run **Debug: Start Debugging**
+5. A new **Extension Development Host** window opens with this extension loaded and your chosen project as the workspace.
+6. Wait for the Java language server to finish starting, then open the **Spring Boot Dashboard** icon in the activity bar to exercise the extension.
+
+## Build and run tests from the command line
+
+```bash
+npm run compile   # TypeScript compile to out/
+npm run webpack   # Webpack build to dist/
+npm test          # Compile and run the extension test suite
+```
+
