@@ -4,7 +4,7 @@
 import * as path from "path";
 import { Readable } from "stream";
 import * as vscode from "vscode";
-import pidtree = require("pidtree");
+import { pidtree } from "pidtree";
 
 export function readAll(input: Readable): Promise<string> {
     let buffer = "";

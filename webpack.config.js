@@ -48,7 +48,7 @@ const config = {
         new CopyPlugin({
             patterns: [
                 {from: "node_modules/@vscode/webview-ui-toolkit/dist/toolkit.js", to:"./memoryViewAssets/@vscode/webview-ui-toolkit/dist/toolkit.js"},
-                {from: "node_modules/chart.js/dist/chart.min.js", to: "./memoryViewAssets/chart.js/dist/chart.min.js"},
+                {from: "node_modules/chart.js/dist/chart.umd.min.js", to: "./memoryViewAssets/chart.js/dist/chart.min.js"},
                 {from: "node_modules/chartjs/chart.js", to: "./memoryViewAssets/chartjs/chart.js"},
                 {from: "node_modules/chartjs-adapter-moment/dist/chartjs-adapter-moment.min.js", to: "./memoryViewAssets/chartjs-adapter-moment/dist/chartjs-adapter-moment.min.js"},
                 {from: "node_modules/chartjs-adapter-moment/dist/chartjs-adapter-moment.js", to: "./memoryViewAssets/chartjs-adapter-moment/dist/chartjs-adapter-moment.js"},
