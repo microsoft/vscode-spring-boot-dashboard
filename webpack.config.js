@@ -9,6 +9,7 @@
 
 const path = require('path');
 const CopyPlugin = require("copy-webpack-plugin");
+const webpack = require("webpack");
 
 /**@type {import('webpack').Configuration}*/
 const config = {
@@ -45,6 +46,9 @@ const config = {
         }]
     },
     plugins: [
+        new webpack.DefinePlugin({
+            WEBPACK_BUNDLED: JSON.stringify(true),
+        }),
         new CopyPlugin({
             patterns: [
                 {from: "node_modules/@vscode/webview-ui-toolkit/dist/toolkit.js", to:"./memoryViewAssets/@vscode/webview-ui-toolkit/dist/toolkit.js"},

@@ -4,7 +4,23 @@
 import * as path from "path";
 import { Readable } from "stream";
 import * as vscode from "vscode";
-import { pidtree } from "pidtree";
+
+type PidtreeModule = typeof import("pidtree");
+
+declare const WEBPACK_BUNDLED: boolean;
+
+const importPidtree = new Function("specifier", "return import(specifier);") as
+    (specifier: string) => Promise<PidtreeModule>;
+
+async function loadPidtree(): Promise<PidtreeModule> {
+    if (typeof WEBPACK_BUNDLED !== "undefined" && WEBPACK_BUNDLED) {
+        return import("pidtree");
+    }
+
+    // TypeScript rewrites import() to require() for CommonJS output, so keep
+    // the native import intact for ESM-only pidtree in unbundled test builds.
+    return importPidtree("pidtree");
+}
 
 export function readAll(input: Readable): Promise<string> {
     let buffer = "";
@@ -27,6 +43,7 @@ export async function isAlive(pid?: number) {
         return false;
     }
 
+    const { pidtree } = await loadPidtree();
     const pidList = await pidtree(-1);
     return pidList.includes(pid);
 }
