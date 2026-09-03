@@ -6,6 +6,7 @@ import { AppState } from "../../src/BootApp";
 import { initSymbols } from "../../src/controllers/SymbolsController";
 import { dashboard } from "../../src/global";
 import { StaticEndpoint } from "../../src/models/StaticSymbolTypes";
+import { isAlive } from "../../src/utils";
 import { Bean } from "../../src/views/beans";
 import { Endpoint } from "../../src/views/mappings";
 import { setupTestEnv, sleep } from "../utils";
@@ -14,6 +15,15 @@ suite("Extension Test Suite", () => {
 
     suiteSetup(async function() {
         await setupTestEnv();
+    });
+
+    test("Can detect the current process", async () => {
+        assert.strictEqual(await isAlive(process.pid), true);
+    });
+
+    test("Keeps process state when detection fails", async () => {
+        const error = new Error("Process detection unavailable");
+        assert.strictEqual(await isAlive(process.pid, async () => { throw error; }), undefined);
     });
 
     test("Can view static beans and mappings", async () => {

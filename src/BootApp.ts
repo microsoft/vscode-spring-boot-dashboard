@@ -159,9 +159,12 @@ export class BootApp {
     public setWatchdog() {
         const watchdog: NodeJS.Timeout = setInterval(async () => {
             const alive = await isAlive(this.pid);
-            if (!alive) {
+            if (alive === false) {
                 clearInterval(watchdog);
                 this.reset();
+            } else if (alive === undefined) {
+                clearInterval(watchdog);
+                this._watchdog = undefined;
             }
         }, 2000);
         this._watchdog = watchdog;

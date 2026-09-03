@@ -46,9 +46,9 @@ extends:
               - checkout: self
                 fetchTags: true
               - task: NodeTool@0
-                displayName: Use Node 16.x
+                displayName: Use Node 20.x
                 inputs:
-                  versionSpec: 16.x
+                  versionSpec: 20.x
               - template: /.azp/npm-cfs.yml@self
               - script: npm install
                 displayName: npm install
