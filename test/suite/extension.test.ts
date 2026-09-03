@@ -21,6 +21,11 @@ suite("Extension Test Suite", () => {
         assert.strictEqual(await isAlive(process.pid), true);
     });
 
+    test("Keeps process state when detection fails", async () => {
+        const error = new Error("Process detection unavailable");
+        assert.strictEqual(await isAlive(process.pid, async () => { throw error; }), undefined);
+    });
+
     test("Can view static beans and mappings", async () => {
         console.log("focusing on dashboard.apps...");
         await vscode.commands.executeCommand("spring.apps.focus");

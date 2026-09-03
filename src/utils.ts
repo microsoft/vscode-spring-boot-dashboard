@@ -6,6 +6,7 @@ import { Readable } from "stream";
 import * as vscode from "vscode";
 
 type PidtreeModule = typeof import("pidtree");
+type PidtreeLoader = () => Promise<PidtreeModule>;
 
 declare const WEBPACK_BUNDLED: boolean;
 
@@ -38,14 +39,19 @@ export function readAll(input: Readable): Promise<string> {
     });
 }
 
-export async function isAlive(pid?: number) {
+export async function isAlive(pid?: number, pidtreeLoader: PidtreeLoader = loadPidtree): Promise<boolean | undefined> {
     if (!pid) {
         return false;
     }
 
-    const { pidtree } = await loadPidtree();
-    const pidList = await pidtree(-1);
-    return pidList.includes(pid);
+    try {
+        const { pidtree } = await pidtreeLoader();
+        const pidList = await pidtree(-1);
+        return pidList.includes(pid);
+    } catch (error) {
+        console.error(`Failed to determine whether process ${pid} is alive.`, error);
+        return undefined;
+    }
 }
 
 
