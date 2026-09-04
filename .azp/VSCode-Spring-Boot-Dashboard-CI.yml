@@ -72,7 +72,7 @@ extends:
               - task: CmdLine@2
                 displayName: Command Line Script
                 inputs:
-                  script: npx vsce@latest package
+                  script: npx @vscode/vsce@latest package
               - task: CopyFiles@2
                 displayName: 'Copy Files to: $(Build.ArtifactStagingDirectory)'
                 inputs:
