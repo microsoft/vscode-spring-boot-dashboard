@@ -77,9 +77,13 @@ export function isActuatorJarFile(f: string): boolean {
  */
 function isInFolder(filePath: string, folder: string): boolean {
     const relative = path.relative(folder, filePath);
-    // An empty result means both point at the same location, ".." means filePath
-    // is outside, and an absolute result means they are on different drives.
-    return !!relative && !relative.startsWith("..") && !path.isAbsolute(relative);
+    // An empty result means both point at the same location, a leading ".."
+    // segment means filePath is outside, and an absolute result means they are
+    // on different drives.
+    return !!relative
+        && relative !== ".."
+        && !relative.startsWith(`..${path.sep}`)
+        && !path.isAbsolute(relative);
 }
 
 /**

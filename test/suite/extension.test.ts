@@ -7,7 +7,7 @@ import { AppState } from "../../src/BootApp";
 import { initSymbols } from "../../src/controllers/SymbolsController";
 import { dashboard } from "../../src/global";
 import { StaticEndpoint } from "../../src/models/StaticSymbolTypes";
-import { isAlive } from "../../src/utils";
+import { excludeTestMainClasses, isAlive } from "../../src/utils";
 import { Bean } from "../../src/views/beans";
 import { Endpoint } from "../../src/views/mappings";
 import { setupTestEnv, sleep } from "../utils";
@@ -25,6 +25,38 @@ suite("Extension Test Suite", () => {
     test("Keeps process state when detection fails", async () => {
         const error = new Error("Process detection unavailable");
         assert.strictEqual(await isAlive(process.pid, async () => { throw error; }), undefined);
+    });
+
+    test("Treats two-dot-prefixed directories as source-folder children", () => {
+        const testSourceFolder = path.resolve("workspace", "src", "test");
+        const mainClasses = [
+            {
+                mainClass: "example.TestApplication",
+                projectName: "example",
+                filePath: path.join(testSourceFolder, "..generated", "TestApplication.java")
+            },
+            {
+                mainClass: "example.OutsideApplication",
+                projectName: "example",
+                filePath: path.resolve(testSourceFolder, "..", "outside", "OutsideApplication.java")
+            }
+        ];
+        const classpath = {
+            entries: [{
+                kind: "source",
+                path: testSourceFolder,
+                outputFolder: "",
+                sourceContainerUrl: "",
+                javadocContainerUrl: "",
+                isSystem: false,
+                isTest: true
+            }]
+        };
+
+        assert.deepStrictEqual(
+            excludeTestMainClasses(mainClasses, classpath).map(c => c.mainClass),
+            ["example.OutsideApplication"]
+        );
     });
 
     test("Can view static beans and mappings", async () => {
@@ -92,8 +124,9 @@ suite("Extension Test Suite", () => {
         // petclinic declares a main method in PetClinicApplication plus three more in
         // src/test/java (MysqlTestApplication, PetClinicIntegrationTests, PostgresIntegrationTests).
         const allMainClasses = await app.getMainClasses();
-        const testMainClasses = allMainClasses.filter(c => c.filePath?.includes(path.join("src", "test", "java")));
-        assert.ok(testMainClasses.length > 0, `There should be main classes in test source folders, but got ${JSON.stringify(allMainClasses)}.`);
+        const testClassNames = ["MysqlTestApplication", "PetClinicIntegrationTests", "PostgresIntegrationTests"];
+        const missingTestClasses = testClassNames.filter(name => !allMainClasses.some(c => c.mainClass.endsWith(`.${name}`)));
+        assert.deepStrictEqual(missingTestClasses, [], `Expected all test main classes, but got ${JSON.stringify(allMainClasses)}.`);
 
         // Only the one in src/main/java is a launch candidate. https://github.com/microsoft/vscode-spring-boot-dashboard/issues/420
         const launchable = await app.getLaunchableMainClasses();
