@@ -137,6 +137,25 @@ suite("Extension Test Suite", () => {
         );
     }).timeout(300 * 1000 /** ms */);
 
+    test("Should keep projects with only test main classes launchable", async () => {
+        const app = dashboard.appsProvider.manager.getAppList()[0];
+        const allMainClasses = await app.getMainClasses();
+        const testClassNames = ["MysqlTestApplication", "PetClinicIntegrationTests", "PostgresIntegrationTests"];
+        const testMainClasses = allMainClasses.filter(c => testClassNames.some(name => c.mainClass.endsWith(`.${name}`)));
+        assert.strictEqual(testMainClasses.length, testClassNames.length, "All test main classes should be resolved.");
+
+        try {
+            app.mainClasses = testMainClasses;
+            assert.strictEqual(
+                await app.getLaunchableMainClasses(),
+                testMainClasses,
+                "The original list should be returned when every main class is test-scoped."
+            );
+        } finally {
+            app.mainClasses = allMainClasses;
+        }
+    }).timeout(300 * 1000 /** ms */);
+
     test("Can view dynamic beans and mappings", async function() {
         // Skip on CI — launching the app is unreliable in headless environments
         // (wmic ENOENT on Windows Server 2025, debug session failures on Linux/macOS).
