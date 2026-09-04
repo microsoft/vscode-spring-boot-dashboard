@@ -8,11 +8,12 @@ import { ClassPathData, MainClassData } from "./types/jdtls";
 
 type PidtreeModule = typeof import("pidtree");
 type PidtreeLoader = () => Promise<PidtreeModule>;
+type GetPortModule = typeof import("get-port");
 
 declare const WEBPACK_BUNDLED: boolean;
 
-const importPidtree = new Function("specifier", "return import(specifier);") as
-    (specifier: string) => Promise<PidtreeModule>;
+const importEsmModule = new Function("specifier", "return import(specifier);") as
+    <T>(specifier: string) => Promise<T>;
 
 async function loadPidtree(): Promise<PidtreeModule> {
     if (typeof WEBPACK_BUNDLED !== "undefined" && WEBPACK_BUNDLED) {
@@ -21,7 +22,20 @@ async function loadPidtree(): Promise<PidtreeModule> {
 
     // TypeScript rewrites import() to require() for CommonJS output, so keep
     // the native import intact for ESM-only pidtree in unbundled test builds.
-    return importPidtree("pidtree");
+    return importEsmModule<PidtreeModule>("pidtree");
+}
+
+async function loadGetPort(): Promise<GetPortModule> {
+    if (typeof WEBPACK_BUNDLED !== "undefined" && WEBPACK_BUNDLED) {
+        return import("get-port");
+    }
+
+    return importEsmModule<GetPortModule>("get-port");
+}
+
+export async function getAvailablePort(): Promise<number> {
+    const { default: getPort } = await loadGetPort();
+    return getPort();
 }
 export function readAll(input: Readable): Promise<string> {
     let buffer = "";
