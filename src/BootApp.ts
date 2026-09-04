@@ -5,7 +5,7 @@ import * as vscode from "vscode";
 import { dashboard } from "./global";
 import { requestWorkspaceSymbols } from "./models/stsApi";
 import { ClassPathData, MainClassData } from "./types/jdtls";
-import { isActuatorJarFile, isAlive } from "./utils";
+import { excludeTestMainClasses, isActuatorJarFile, isAlive } from "./utils";
 import { BootAppItem } from "./views/items/BootAppItem";
 import * as lsp from "vscode-languageclient";
 import * as async from "async";
@@ -188,6 +188,19 @@ export class BootApp {
             }
         }
         return this.mainClasses;
+    }
+
+    /**
+     * The main classes offered to the user when running/debugging this app, i.e. all
+     * resolved main classes except the ones located in test source folders.
+     *
+     * Falls back to the full list when every main class is in a test source folder, so
+     * that a project whose only main class lives there stays launchable.
+     */
+    public async getLaunchableMainClasses(): Promise<MainClassData[]> {
+        const mainClasses = await this.getMainClasses();
+        const launchable = await excludeTestMainClasses(mainClasses, this.classpath);
+        return launchable.length > 0 ? launchable : mainClasses;
     }
 
     /**

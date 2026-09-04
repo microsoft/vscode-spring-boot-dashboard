@@ -1,5 +1,5 @@
 export interface MainClassData {
-    filePath: string;
+    filePath?: string;
     mainClass: string;
     projectName: string;
 }
@@ -15,4 +15,5 @@ interface CPE {
     sourceContainerUrl: string;
     javadocContainerUrl: string;
     isSystem: boolean;
+    isTest: boolean;
 }
