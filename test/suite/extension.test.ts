@@ -1,12 +1,13 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT license.
 import * as assert from "assert";
+import * as path from "path";
 import * as vscode from "vscode";
 import { AppState } from "../../src/BootApp";
 import { initSymbols } from "../../src/controllers/SymbolsController";
 import { dashboard } from "../../src/global";
 import { StaticEndpoint } from "../../src/models/StaticSymbolTypes";
-import { isAlive } from "../../src/utils";
+import { excludeTestMainClasses, isAlive } from "../../src/utils";
 import { Bean } from "../../src/views/beans";
 import { Endpoint } from "../../src/views/mappings";
 import { setupTestEnv, sleep } from "../utils";
@@ -24,6 +25,110 @@ suite("Extension Test Suite", () => {
     test("Keeps process state when detection fails", async () => {
         const error = new Error("Process detection unavailable");
         assert.strictEqual(await isAlive(process.pid, async () => { throw error; }), undefined);
+    });
+
+    test("Treats two-dot-prefixed directories as source-folder children", async () => {
+        const testSourceFolder = path.resolve("workspace", "src", "test");
+        const mainClasses = [
+            {
+                mainClass: "example.TestApplication",
+                projectName: "example",
+                filePath: path.join(testSourceFolder, "..generated", "TestApplication.java")
+            },
+            {
+                mainClass: "example.OutsideApplication",
+                projectName: "example",
+                filePath: path.resolve(testSourceFolder, "..", "outside", "OutsideApplication.java")
+            }
+        ];
+        const classpath = {
+            entries: [{
+                kind: "source",
+                path: testSourceFolder,
+                outputFolder: "",
+                sourceContainerUrl: "",
+                javadocContainerUrl: "",
+                isSystem: false,
+                isTest: true
+            }]
+        };
+
+        assert.deepStrictEqual(
+            (await excludeTestMainClasses(mainClasses, classpath, async () => false)).map(c => c.mainClass),
+            ["example.OutsideApplication"]
+        );
+    });
+
+    test("Classifies main classes when linked source paths use different filesystem identities", async () => {
+        const linkedTestMain = {
+            mainClass: "example.LinkedTestApplication",
+            projectName: "example",
+            filePath: path.resolve("external", "linked-test", "example", "LinkedTestApplication.java")
+        };
+        const productionMain = {
+            mainClass: "example.Application",
+            projectName: "example",
+            filePath: path.resolve("workspace", "project", "src", "main", "java", "example", "Application.java")
+        };
+        const classpath = {
+            entries: [
+                {
+                    kind: "source",
+                    path: path.resolve("workspace", "project", "linked-test"),
+                    outputFolder: "",
+                    sourceContainerUrl: "",
+                    javadocContainerUrl: "",
+                    isSystem: false,
+                    isTest: true
+                },
+                {
+                    kind: "source",
+                    path: path.resolve("workspace", "project", "src", "main", "java"),
+                    outputFolder: "",
+                    sourceContainerUrl: "",
+                    javadocContainerUrl: "",
+                    isSystem: false,
+                    isTest: false
+                }
+            ]
+        };
+        const classifiedPaths: string[] = [];
+
+        const launchable = await excludeTestMainClasses(
+            [linkedTestMain, productionMain],
+            classpath,
+            async filePath => {
+                classifiedPaths.push(filePath);
+                return filePath === linkedTestMain.filePath;
+            }
+        );
+
+        assert.deepStrictEqual(launchable.map(c => c.mainClass), ["example.Application"]);
+        assert.deepStrictEqual(classifiedPaths, [linkedTestMain.filePath]);
+    });
+
+    test("Keeps unmatched main classes when test-file classification fails", async () => {
+        const mainClasses = [{
+            mainClass: "example.Application",
+            projectName: "example",
+            filePath: path.resolve("external", "src", "example", "Application.java")
+        }];
+        const classpath = {
+            entries: [{
+                kind: "source",
+                path: path.resolve("workspace", "project", "src", "test"),
+                outputFolder: "",
+                sourceContainerUrl: "",
+                javadocContainerUrl: "",
+                isSystem: false,
+                isTest: true
+            }]
+        };
+
+        assert.deepStrictEqual(
+            await excludeTestMainClasses(mainClasses, classpath, async () => { throw new Error("Command unavailable"); }),
+            mainClasses
+        );
     });
 
     test("Can view static beans and mappings", async () => {
@@ -79,6 +184,65 @@ suite("Extension Test Suite", () => {
         assert.strictEqual(openedEditor?.selection.anchor.character, 1, "The definition of CrashController should be at character 1.");
     }).timeout(300 * 1000 /** ms */);
 
+    test("Should not offer main classes from test source folders", async () => {
+        let apps = dashboard.appsProvider.manager.getAppList();
+        while (apps.length === 0) {
+            console.log("waiting until the app list is populated");
+            await sleep(5 * 1000 /** ms */);
+            apps = dashboard.appsProvider.manager.getAppList();
+        }
+        const app = apps[0];
+
+        // petclinic declares a main method in PetClinicApplication plus three more in
+        // src/test/java (MysqlTestApplication, PetClinicIntegrationTests, PostgresIntegrationTests).
+        const allMainClasses = await app.getMainClasses();
+        const testClassNames = ["MysqlTestApplication", "PetClinicIntegrationTests", "PostgresIntegrationTests"];
+        const missingTestClasses = testClassNames.filter(name => !allMainClasses.some(c => c.mainClass.endsWith(`.${name}`)));
+        assert.deepStrictEqual(missingTestClasses, [], `Expected all test main classes, but got ${JSON.stringify(allMainClasses)}.`);
+
+        // Only the one in src/main/java is a launch candidate. https://github.com/microsoft/vscode-spring-boot-dashboard/issues/420
+        const launchable = await app.getLaunchableMainClasses();
+        assert.deepStrictEqual(
+            launchable.map(c => c.mainClass),
+            ["org.springframework.samples.petclinic.PetClinicApplication"],
+            "Only the main class in src/main/java should be launchable."
+        );
+
+        // A linked source root can be reported using its logical workspace path,
+        // while resolveMainClass reports files using the linked target's physical path.
+        const mismatchedClasspath = {
+            ...app.classpath,
+            entries: app.classpath.entries.map(cpe => cpe.kind === "source" && cpe.isTest
+                ? { ...cpe, path: path.resolve("logical-workspace", "linked-test-source") }
+                : cpe)
+        };
+        const launchableWithMismatchedPaths = await excludeTestMainClasses(allMainClasses, mismatchedClasspath);
+        assert.deepStrictEqual(
+            launchableWithMismatchedPaths.map(c => c.mainClass),
+            ["org.springframework.samples.petclinic.PetClinicApplication"],
+            "JDT should classify test main classes when source-root and file paths use different identities."
+        );
+    }).timeout(300 * 1000 /** ms */);
+
+    test("Should keep projects with only test main classes launchable", async () => {
+        const app = dashboard.appsProvider.manager.getAppList()[0];
+        const allMainClasses = await app.getMainClasses();
+        const testClassNames = ["MysqlTestApplication", "PetClinicIntegrationTests", "PostgresIntegrationTests"];
+        const testMainClasses = allMainClasses.filter(c => testClassNames.some(name => c.mainClass.endsWith(`.${name}`)));
+        assert.strictEqual(testMainClasses.length, testClassNames.length, "All test main classes should be resolved.");
+
+        try {
+            app.mainClasses = testMainClasses;
+            assert.strictEqual(
+                await app.getLaunchableMainClasses(),
+                testMainClasses,
+                "The original list should be returned when every main class is test-scoped."
+            );
+        } finally {
+            app.mainClasses = allMainClasses;
+        }
+    }).timeout(300 * 1000 /** ms */);
+
     test("Can view dynamic beans and mappings", async function() {
         // Skip on CI — launching the app is unreliable in headless environments
         // (wmic ENOENT on Windows Server 2025, debug session failures on Linux/macOS).
@@ -91,8 +255,8 @@ suite("Extension Test Suite", () => {
         assert.strictEqual(apps.length, 1, "There are 1 app in the app list.");
         const app = apps[0];
 
-        // Filter to PetClinicApplication to avoid QuickPick when multiple main classes exist
-        app.mainClasses = app.mainClasses?.filter(c => c.mainClass.includes("PetClinicApplication"));
+        // No QuickPick is expected: petclinic's other main classes all live in test
+        // source folders, so PetClinicApplication is the only launch candidate.
         await vscode.commands.executeCommand("spring-boot-dashboard.localapp.run", app);
         while (app.state !== AppState.RUNNING) {
             await sleep(5 * 1000 /** ms */);
