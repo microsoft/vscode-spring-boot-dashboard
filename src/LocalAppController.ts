@@ -62,9 +62,10 @@ export class LocalAppController {
             return;
         }
 
-        let targetConfig = this._getLaunchConfig(mainClasData);
+        const configResource = mainClasData.filePath ? vscode.Uri.file(mainClasData.filePath) : vscode.Uri.parse(app.path);
+        let targetConfig = this._getLaunchConfig(mainClasData, configResource);
         if (!targetConfig) {
-            targetConfig = await this._createNewLaunchConfig(mainClasData);
+            targetConfig = await this._createNewLaunchConfig(mainClasData, configResource);
         }
         app.activeSessionName = targetConfig.name;
 
@@ -282,8 +283,8 @@ export class LocalAppController {
         dashboard.mappingsProvider.refresh(app);
     }
 
-    private _getLaunchConfig(mainClasData: MainClassData) {
-        const launchConfigurations: vscode.WorkspaceConfiguration = vscode.workspace.getConfiguration("launch", vscode.Uri.file(mainClasData.filePath));
+    private _getLaunchConfig(mainClasData: MainClassData, configResource: vscode.Uri) {
+        const launchConfigurations: vscode.WorkspaceConfiguration = vscode.workspace.getConfiguration("launch", configResource);
         const rawConfigs: vscode.DebugConfiguration[] = launchConfigurations.configurations;
         return rawConfigs.find(conf => conf.type === "java" && conf.request === "launch" && conf.mainClass === mainClasData.mainClass && conf.projectName === mainClasData.projectName);
     }
@@ -297,7 +298,7 @@ export class LocalAppController {
         return name;
     }
 
-    private async _createNewLaunchConfig(mainClasData: MainClassData): Promise<vscode.DebugConfiguration> {
+    private async _createNewLaunchConfig(mainClasData: MainClassData, configResource: vscode.Uri): Promise<vscode.DebugConfiguration> {
         const newConfig = {
             type: "java",
             name: this._constructLaunchConfigName(mainClasData.mainClass, mainClasData.projectName),
@@ -308,7 +309,7 @@ export class LocalAppController {
             args: "",
             envFile: "${workspaceFolder}/.env"
         };
-        const launchConfigurations: vscode.WorkspaceConfiguration = vscode.workspace.getConfiguration("launch", vscode.Uri.file(mainClasData.filePath));
+        const launchConfigurations: vscode.WorkspaceConfiguration = vscode.workspace.getConfiguration("launch", configResource);
         const configs: vscode.DebugConfiguration[] = launchConfigurations.configurations;
         configs.push(newConfig);
         await launchConfigurations.update("configurations", configs, vscode.ConfigurationTarget.WorkspaceFolder);

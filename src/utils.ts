@@ -72,8 +72,8 @@ export function isActuatorJarFile(f: string): boolean {
 }
 
 /**
- * Whether `filePath` is located inside `folder`. Both are expected to be
- * absolute file system paths.
+ * Whether `filePath` is located strictly inside `folder` (excluding the folder
+ * itself). Both are expected to be absolute file system paths.
  */
 function isInFolder(filePath: string, folder: string): boolean {
     const relative = path.relative(folder, filePath);
@@ -101,7 +101,10 @@ export function excludeTestMainClasses(mainClasses: MainClassData[], classpath: 
         return mainClasses;
     }
     // Keep entries without a file path: they cannot be located, so they cannot be ruled out.
-    return mainClasses.filter(mc => !mc.filePath || !testSourceFolders.some(folder => isInFolder(mc.filePath, folder)));
+    return mainClasses.filter(mc => {
+        const filePath = mc.filePath;
+        return !filePath || !testSourceFolders.some(folder => isInFolder(filePath, folder));
+    });
 }
 
 /**

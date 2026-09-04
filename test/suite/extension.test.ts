@@ -92,7 +92,7 @@ suite("Extension Test Suite", () => {
         // petclinic declares a main method in PetClinicApplication plus three more in
         // src/test/java (MysqlTestApplication, PetClinicIntegrationTests, PostgresIntegrationTests).
         const allMainClasses = await app.getMainClasses();
-        const testMainClasses = allMainClasses.filter(c => c.filePath.includes(path.join("src", "test", "java")));
+        const testMainClasses = allMainClasses.filter(c => c.filePath?.includes(path.join("src", "test", "java")));
         assert.ok(testMainClasses.length > 0, `There should be main classes in test source folders, but got ${JSON.stringify(allMainClasses)}.`);
 
         // Only the one in src/main/java is a launch candidate. https://github.com/microsoft/vscode-spring-boot-dashboard/issues/420
