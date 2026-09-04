@@ -27,7 +27,7 @@ suite("Extension Test Suite", () => {
         assert.strictEqual(await isAlive(process.pid, async () => { throw error; }), undefined);
     });
 
-    test("Treats two-dot-prefixed directories as source-folder children", () => {
+    test("Treats two-dot-prefixed directories as source-folder children", async () => {
         const testSourceFolder = path.resolve("workspace", "src", "test");
         const mainClasses = [
             {
@@ -54,8 +54,80 @@ suite("Extension Test Suite", () => {
         };
 
         assert.deepStrictEqual(
-            excludeTestMainClasses(mainClasses, classpath).map(c => c.mainClass),
+            (await excludeTestMainClasses(mainClasses, classpath, async () => false)).map(c => c.mainClass),
             ["example.OutsideApplication"]
+        );
+    });
+
+    test("Classifies main classes when linked source paths use different filesystem identities", async () => {
+        const linkedTestMain = {
+            mainClass: "example.LinkedTestApplication",
+            projectName: "example",
+            filePath: path.resolve("external", "linked-test", "example", "LinkedTestApplication.java")
+        };
+        const productionMain = {
+            mainClass: "example.Application",
+            projectName: "example",
+            filePath: path.resolve("workspace", "project", "src", "main", "java", "example", "Application.java")
+        };
+        const classpath = {
+            entries: [
+                {
+                    kind: "source",
+                    path: path.resolve("workspace", "project", "linked-test"),
+                    outputFolder: "",
+                    sourceContainerUrl: "",
+                    javadocContainerUrl: "",
+                    isSystem: false,
+                    isTest: true
+                },
+                {
+                    kind: "source",
+                    path: path.resolve("workspace", "project", "src", "main", "java"),
+                    outputFolder: "",
+                    sourceContainerUrl: "",
+                    javadocContainerUrl: "",
+                    isSystem: false,
+                    isTest: false
+                }
+            ]
+        };
+        const classifiedPaths: string[] = [];
+
+        const launchable = await excludeTestMainClasses(
+            [linkedTestMain, productionMain],
+            classpath,
+            async filePath => {
+                classifiedPaths.push(filePath);
+                return filePath === linkedTestMain.filePath;
+            }
+        );
+
+        assert.deepStrictEqual(launchable.map(c => c.mainClass), ["example.Application"]);
+        assert.deepStrictEqual(classifiedPaths, [linkedTestMain.filePath]);
+    });
+
+    test("Keeps unmatched main classes when test-file classification fails", async () => {
+        const mainClasses = [{
+            mainClass: "example.Application",
+            projectName: "example",
+            filePath: path.resolve("external", "src", "example", "Application.java")
+        }];
+        const classpath = {
+            entries: [{
+                kind: "source",
+                path: path.resolve("workspace", "project", "src", "test"),
+                outputFolder: "",
+                sourceContainerUrl: "",
+                javadocContainerUrl: "",
+                isSystem: false,
+                isTest: true
+            }]
+        };
+
+        assert.deepStrictEqual(
+            await excludeTestMainClasses(mainClasses, classpath, async () => { throw new Error("Command unavailable"); }),
+            mainClasses
         );
     });
 
@@ -134,6 +206,21 @@ suite("Extension Test Suite", () => {
             launchable.map(c => c.mainClass),
             ["org.springframework.samples.petclinic.PetClinicApplication"],
             "Only the main class in src/main/java should be launchable."
+        );
+
+        // A linked source root can be reported using its logical workspace path,
+        // while resolveMainClass reports files using the linked target's physical path.
+        const mismatchedClasspath = {
+            ...app.classpath,
+            entries: app.classpath.entries.map(cpe => cpe.kind === "source" && cpe.isTest
+                ? { ...cpe, path: path.resolve("logical-workspace", "linked-test-source") }
+                : cpe)
+        };
+        const launchableWithMismatchedPaths = await excludeTestMainClasses(allMainClasses, mismatchedClasspath);
+        assert.deepStrictEqual(
+            launchableWithMismatchedPaths.map(c => c.mainClass),
+            ["org.springframework.samples.petclinic.PetClinicApplication"],
+            "JDT should classify test main classes when source-root and file paths use different identities."
         );
     }).timeout(300 * 1000 /** ms */);
 

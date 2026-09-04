@@ -199,7 +199,7 @@ export class BootApp {
      */
     public async getLaunchableMainClasses(): Promise<MainClassData[]> {
         const mainClasses = await this.getMainClasses();
-        const launchable = excludeTestMainClasses(mainClasses, this.classpath);
+        const launchable = await excludeTestMainClasses(mainClasses, this.classpath);
         return launchable.length > 0 ? launchable : mainClasses;
     }
 

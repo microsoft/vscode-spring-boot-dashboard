@@ -86,6 +86,16 @@ function isInFolder(filePath: string, folder: string): boolean {
         && !path.isAbsolute(relative);
 }
 
+type TestFileClassifier = (filePath: string) => Promise<boolean>;
+
+async function isJavaTestFile(filePath: string): Promise<boolean> {
+    return await vscode.commands.executeCommand<boolean>(
+        "java.execute.workspaceCommand",
+        "java.project.isTestFile",
+        vscode.Uri.file(filePath).toString()
+    ) === true;
+}
+
 /**
  * Drops the main classes that live in a test source folder of the project.
  *
@@ -97,18 +107,39 @@ function isInFolder(filePath: string, folder: string): boolean {
  *
  * See https://github.com/microsoft/vscode-spring-boot-dashboard/issues/420
  */
-export function excludeTestMainClasses(mainClasses: MainClassData[], classpath: ClassPathData): MainClassData[] {
-    const testSourceFolders = (classpath?.entries ?? [])
-        .filter(cpe => cpe.kind === "source" && cpe.isTest)
-        .map(cpe => cpe.path);
+export async function excludeTestMainClasses(
+    mainClasses: MainClassData[],
+    classpath: ClassPathData,
+    classifyTestFile: TestFileClassifier = isJavaTestFile
+): Promise<MainClassData[]> {
+    const sourceFolders = (classpath?.entries ?? [])
+        .filter(cpe => cpe.kind === "source");
+    const testSourceFolders = sourceFolders.filter(cpe => cpe.isTest);
     if (testSourceFolders.length === 0) {
         return mainClasses;
     }
-    // Keep entries without a file path: they cannot be located, so they cannot be ruled out.
-    return mainClasses.filter(mc => {
+
+    const testMainClasses = await Promise.all(mainClasses.map(async mc => {
         const filePath = mc.filePath;
-        return !filePath || !testSourceFolders.some(folder => isInFolder(filePath, folder));
-    });
+        if (!filePath) {
+            return false;
+        }
+        if (testSourceFolders.some(cpe => isInFolder(filePath, cpe.path))) {
+            return true;
+        }
+        if (sourceFolders.some(cpe => isInFolder(filePath, cpe.path))) {
+            return false;
+        }
+
+        // Linked source folders can have different logical and physical paths.
+        try {
+            return await classifyTestFile(filePath);
+        } catch {
+            return false;
+        }
+    }));
+
+    return mainClasses.filter((_, index) => !testMainClasses[index]);
 }
 
 /**
