@@ -8,9 +8,8 @@ import * as vscode from "vscode";
 import { AppState, BootApp } from "./BootApp";
 import { LocalAppManager } from "./LocalAppManager";
 import { MainClassData } from "./types/jdtls";
-import { constructOpenUrl, isActuatorJarFile, readAll } from "./utils";
+import { constructOpenUrl, getAvailablePort, isActuatorJarFile, readAll } from "./utils";
 
-import getPort = require("get-port");
 import { sendInfo } from "vscode-extension-telemetry-wrapper";
 import { dashboard } from "./global";
 
@@ -354,7 +353,7 @@ async function resolveDebugConfigurationWithSubstitutedVariables(debugConfigurat
         debugConfiguration.vmArgs += " -Dcom.sun.management.jmxremote";
     }
     if (debugConfiguration.vmArgs.indexOf("-Dcom.sun.management.jmxremote.port") < 0) {
-        const jmxport = await getPort();
+        const jmxport = await getAvailablePort();
         debugConfiguration.vmArgs += ` -Dcom.sun.management.jmxremote.port=${jmxport}`;
     }
     if (debugConfiguration.vmArgs.indexOf("-Dcom.sun.management.jmxremote.authenticate=") < 0) {
