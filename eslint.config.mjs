@@ -3,6 +3,7 @@ import tseslint from "typescript-eslint";
 export default tseslint.config(
     {
         ignores: [
+            ".vscode-test/**",
             "test/**",
             "out/**",
             "node_modules/**",
@@ -16,9 +17,8 @@ export default tseslint.config(
     {
         rules: {
             "@typescript-eslint/no-explicit-any": "warn",
-            "@typescript-eslint/no-require-imports": "off",
+            "@typescript-eslint/no-require-imports": ["error", { allowAsImport: true }],
             "@typescript-eslint/no-unused-vars": "warn",
-            "@typescript-eslint/no-var-requires": "error",
         },
     },
 );
