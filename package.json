@@ -628,7 +628,7 @@
     "@typescript-eslint/parser": "^5.62.0",
     "@vscode/test-electron": "^3.1.0",
     "copy-webpack-plugin": "^14.0.0",
-    "eslint": "^8.57.0",
+    "eslint": "^10.9.1",
     "glob": "^13.0.6",
     "json": "^11.0.0",
     "mocha": "^10.0.0",
