@@ -649,7 +649,7 @@
     "chart.js": "^4.5.1",
     "chartjs": "^0.3.24",
     "chartjs-adapter-moment": "^1.0.0",
-    "get-port": "^5.1.1",
+    "get-port": "^7.2.0",
     "lodash": "^4.18.1",
     "moment": "^2.29.4",
     "pidtree": "^1.0.0",
