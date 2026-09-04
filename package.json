@@ -619,7 +619,6 @@
   },
   "devDependencies": {
     "@types/async": "^3.2.24",
-    "@types/glob": "^7.2.0",
     "@types/lodash": "^4.17.7",
     "@types/mocha": "^10.0.0",
     "@types/node": "^14.18.63",
@@ -628,14 +627,15 @@
     "@typescript-eslint/eslint-plugin": "^5.62.0",
     "@typescript-eslint/parser": "^5.62.0",
     "@vscode/test-electron": "^3.1.0",
-    "copy-webpack-plugin": "^11.0.0",
+    "copy-webpack-plugin": "^14.0.0",
     "eslint": "^8.57.0",
+    "glob": "^13.0.6",
     "json": "^11.0.0",
     "mocha": "^10.0.0",
     "ts-loader": "^9.6.2",
     "typescript": "^4.9.4",
     "webpack": "^5.109.2",
-    "webpack-cli": "^5.1.4"
+    "webpack-cli": "^7.2.2"
   },
   "extensionDependencies": [
     "vmware.vscode-spring-boot",
@@ -646,13 +646,13 @@
     "@pivotal-tools/jvm-launch-utils": "0.0.11",
     "@vscode/webview-ui-toolkit": "^1.4.0",
     "async": "^3.2.6",
-    "chart.js": "^3.9.1",
+    "chart.js": "^4.5.1",
     "chartjs": "^0.3.24",
     "chartjs-adapter-moment": "^1.0.0",
     "get-port": "^5.1.1",
     "lodash": "^4.18.1",
     "moment": "^2.29.4",
-    "pidtree": "^0.6.0",
+    "pidtree": "^1.0.0",
     "react": "^16.9.0",
     "uuid": "^14.0.1",
     "vscode-extension-telemetry-wrapper": "^0.15.2",
@@ -660,6 +660,6 @@
   },
   "overrides": {
     "serialize-javascript": ">=7.0.5",
-    "js-yaml": ">=5.2.0"
+    "js-yaml": ">=5.4.1"
   }
 }
