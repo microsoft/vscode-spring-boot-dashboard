@@ -618,6 +618,7 @@
     "update-tpn": "node scripts/update-third-party-notice.js"
   },
   "devDependencies": {
+    "@eslint/js": "^10.0.1",
     "@types/async": "^3.2.24",
     "@types/lodash": "^4.17.7",
     "@types/mocha": "^10.0.0",
