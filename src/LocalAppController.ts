@@ -294,14 +294,16 @@ export class LocalAppController {
     }
 
     private async _getMainClassCandidates(app: BootApp): Promise<MainClassData[]> {
+        const mainClasses = await app.getLaunchableMainClasses();
+        // Prefer launch.json entries so deduplication preserves their configuration identity.
         const candidates = [
-            ...await app.getLaunchableMainClasses(),
             ...this._getLaunchMainClasses(app),
+            ...mainClasses,
         ];
         const seen = new Set<string>();
 
         return candidates.filter(candidate => {
-            const key = `${candidate.mainClass}|${candidate.projectName}`;
+            const key = `${candidate.mainClass}|${candidate.projectName ?? app.name}`;
             if (seen.has(key)) {
                 return false;
             }

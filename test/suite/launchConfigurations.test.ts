@@ -71,7 +71,12 @@ suite("Launch configuration main classes", () => {
             mainClass: "example.TestApplication",
             projectName: app.name
         };
-        app.mainClasses = [productionMain, testMain];
+        const unconfiguredMain = {
+            filePath: path.join(projectPath, "src", "main", "OtherApplication.java"),
+            mainClass: "example.OtherApplication",
+            projectName: app.name
+        };
+        app.mainClasses = [productionMain, unconfiguredMain, testMain];
         app.classpath = {
             entries: ["main", "test"].map(source => ({
                 kind: "source",
@@ -92,10 +97,16 @@ suite("Launch configuration main classes", () => {
         const candidates = await controller["_getMainClassCandidates"](app);
         assert.deepStrictEqual(candidates.map(candidate => candidate.mainClass), [
             "example.Application",
-            "library.Application"
+            "library.Application",
+            "example.OtherApplication"
         ]);
-        assert.strictEqual(candidates[0], productionMain);
-        assert.deepStrictEqual(app.mainClasses, [productionMain, testMain]);
+        assert.deepStrictEqual(candidates[0], {
+            filePath: projectPath,
+            mainClass: productionMain.mainClass,
+            projectName: app.name
+        });
+        assert.strictEqual(candidates[2], unconfiguredMain);
+        assert.deepStrictEqual(app.mainClasses, [productionMain, unconfiguredMain, testMain]);
     });
 
     test("Preserves URI paths and unscoped configuration options", async () => {
@@ -162,8 +173,13 @@ suite("Launch configuration main classes", () => {
         assert.strictEqual(app.mainClasses, cachedMainClasses);
     });
 
-    for (const scoped of [false, true]) {
-        test(`Keeps project identity and options when launching a ${scoped ? "scoped" : "unscoped"} configuration`, async () => {
+    for (const { scoped, discovered } of [
+        { scoped: false, discovered: false },
+        { scoped: false, discovered: true },
+        { scoped: true, discovered: false },
+        { scoped: true, discovered: true }
+    ]) {
+        test(`Preserves ${scoped ? "scoped" : "unscoped"} launch options ${discovered ? "with" : "without"} a discovered main class`, async () => {
             const config = {
                 ...configuration("library.Application", scoped ? app.name : undefined),
                 classPaths: ["lib/application.jar"],
@@ -171,7 +187,16 @@ suite("Launch configuration main classes", () => {
                 args: "--custom",
                 env: { CUSTOM: "true" }
             };
+            app.mainClasses = discovered ? [{
+                filePath: path.join(vscode.Uri.parse(app.path).fsPath, "Application.java"),
+                mainClass: "library.Application",
+                projectName: app.name
+            }] : [];
+            const cachedMainClasses = app.mainClasses;
             await launch.update("configurations", [config], vscode.ConfigurationTarget.WorkspaceFolder);
+            const candidates = await controller["_getMainClassCandidates"](app);
+            assert.strictEqual(candidates.length, 1);
+            assert.strictEqual(candidates[0].projectName, scoped ? app.name : undefined);
             const startedConfigurations: vscode.DebugConfiguration[] = [];
             const originalStartDebugging = vscode.debug.startDebugging;
             try {
@@ -197,6 +222,7 @@ suite("Launch configuration main classes", () => {
             assert.deepStrictEqual(started.env, config.env);
             assert.strictEqual(started.cwd, vscode.Uri.parse(app.path).fsPath);
             assert.strictEqual(started.noDebug, false);
+            assert.strictEqual(app.mainClasses, cachedMainClasses);
             assert.deepStrictEqual(
                 vscode.workspace.getConfiguration("launch", vscode.Uri.parse(app.path)).get("configurations"),
                 [config]
