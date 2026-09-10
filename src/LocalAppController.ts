@@ -69,7 +69,11 @@ export class LocalAppController {
         }
         app.activeSessionName = targetConfig.name;
 
-        targetConfig = await resolveDebugConfigurationWithSubstitutedVariables(targetConfig);
+        // Scope the runtime configuration without changing the launch.json entry.
+        targetConfig = await resolveDebugConfigurationWithSubstitutedVariables({
+            ...targetConfig,
+            projectName: targetConfig.projectName ?? app.name,
+        });
         app.jmxPort = parseJMXPort(targetConfig.vmArgs);
 
         const cwdUri: vscode.Uri = vscode.Uri.parse(app.path);
@@ -336,7 +340,7 @@ export class LocalAppController {
 
     private _constructLaunchConfigName(mainClass: string, projectName?: string) {
         const prefix = "Spring Boot-";
-        let name = prefix + mainClass.substr(mainClass.lastIndexOf(".") + 1);
+        let name = prefix + mainClass.substring(mainClass.lastIndexOf(".") + 1);
         if (projectName !== undefined) {
             name += `<${projectName}>`;
         }

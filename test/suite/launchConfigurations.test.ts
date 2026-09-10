@@ -162,6 +162,57 @@ suite("Launch configuration main classes", () => {
         assert.strictEqual(app.mainClasses, cachedMainClasses);
     });
 
+    for (const scoped of [false, true]) {
+        test(`Keeps project identity and options when launching a ${scoped ? "scoped" : "unscoped"} configuration`, async () => {
+            const config = {
+                ...configuration("library.Application", scoped ? app.name : undefined),
+                classPaths: ["lib/application.jar"],
+                vmArgs: "-Dcustom=true",
+                args: "--custom",
+                env: { CUSTOM: "true" }
+            };
+            await launch.update("configurations", [config], vscode.ConfigurationTarget.WorkspaceFolder);
+            const startedConfigurations: vscode.DebugConfiguration[] = [];
+            const originalStartDebugging = vscode.debug.startDebugging;
+            try {
+                vscode.debug.startDebugging = async (_folder, debugConfiguration) => {
+                    assert.ok(typeof debugConfiguration !== "string");
+                    startedConfigurations.push(debugConfiguration);
+                    return true;
+                };
+
+                await controller.runBootApp(app, true);
+            } finally {
+                vscode.debug.startDebugging = originalStartDebugging;
+            }
+
+            assert.strictEqual(startedConfigurations.length, 1);
+            const started = startedConfigurations[0];
+            assert.strictEqual(started.projectName, app.name);
+            assert.ok(started.vmArgs.includes(`-Dspring.boot.project.name=${app.name}`));
+            assert.ok(started.vmArgs.includes("-Dcustom=true"));
+            assert.strictEqual(started.name, config.name);
+            assert.deepStrictEqual(started.classPaths, config.classPaths);
+            assert.strictEqual(started.args, config.args);
+            assert.deepStrictEqual(started.env, config.env);
+            assert.strictEqual(started.cwd, vscode.Uri.parse(app.path).fsPath);
+            assert.strictEqual(started.noDebug, false);
+            assert.deepStrictEqual(
+                vscode.workspace.getConfiguration("launch", vscode.Uri.parse(app.path)).get("configurations"),
+                [config]
+            );
+        });
+    }
+
+    test("Builds launch names for qualified and unqualified main classes", () => {
+        assert.strictEqual(controller["_constructLaunchConfigName"]("example.Application"), "Spring Boot-Application");
+        assert.strictEqual(controller["_constructLaunchConfigName"]("Application"), "Spring Boot-Application");
+        assert.strictEqual(
+            controller["_constructLaunchConfigName"]("example.Application", app.name),
+            "Spring Boot-Application<example>"
+        );
+    });
+
     test("Ignores variable-based, empty, and non-Java launchers", async () => {
         const invalidConfigurations = [
             configuration("${file}"),

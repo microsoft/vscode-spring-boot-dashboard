@@ -199,7 +199,6 @@ export class BootApp {
             // Note: Command `vscode.java.resolveMainClass` is implemented in extension java-debugger
             const mainClassList = await searchQueue.push({
                 path: this.path,
-                projectName: this.name,
             });
             if (mainClassList && mainClassList instanceof Array) {
                 this.mainClasses = mainClassList;
