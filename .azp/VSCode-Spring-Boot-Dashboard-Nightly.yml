@@ -101,7 +101,7 @@ extends:
               - task: CmdLine@2
                 displayName: VSCE package --pre-release
                 inputs:
-                  script: npx vsce@latest package --pre-release -o extension.vsix
+                  script: npx @vscode/vsce@latest package --pre-release -o extension.vsix
               - script: npm run test
                 displayName: npm run test
                 enabled: False

@@ -1,0 +1,53 @@
+# Manually publish the signed RC build to the stable Marketplace channel.
+name: $(Date:yyyyMMdd).$(Rev:r)
+variables:
+  - name: Codeql.Enabled
+    value: true
+  - template: /.azp/npm-cfs-variables.yml@self
+resources:
+  repositories:
+    - repository: self
+      type: git
+      ref: refs/heads/main
+    - repository: 1esPipelines
+      type: git
+      name: 1ESPipelineTemplates/1ESPipelineTemplates
+      ref: refs/tags/release
+trigger: none
+pr: none
+extends:
+  template: v1/1ES.Official.PipelineTemplate.yml@1esPipelines
+  parameters:
+    pool:
+      os: linux
+      name: 1ES_JavaTooling_Pool
+      image: 1ES_JavaTooling_Ubuntu-2004
+    stages:
+      - stage: Release
+        jobs:
+          - job: Job
+            displayName: Release Spring Boot Dashboard (stable)
+            templateContext:
+              type: releaseJob
+              isProduction: true
+              inputs:
+                - input: pipelineArtifact
+                  buildType: specific
+                  project: $(AzDo.ProjectId)
+                  definition: $(AzDo.BuildPipelineId) # RC build pipeline definition ID
+                  artifactName: drop
+                  downloadType: specific
+                  targetPath: '$(Build.SourcesDirectory)'
+            steps:
+              - task: UseNode@1
+                displayName: 'Use Node.js 20.x'
+                inputs:
+                  version: '20.x'
+              - template: /.azp/npm-cfs.yml@self
+              - task: AzureCLI@2
+                displayName: 'Publish stable VSIX to Marketplace'
+                inputs:
+                  azureSubscription: 'VSCode-Ext-Publishing'
+                  scriptType: pscore
+                  scriptLocation: inlineScript
+                  inlineScript: 'npx @vscode/vsce@latest publish -i ''$(Build.SourcesDirectory)/extension.vsix'' --manifestPath ''$(Build.SourcesDirectory)/extension.manifest'' --signaturePath ''$(Build.SourcesDirectory)/extension.signature.p7s'' --azure-credential'

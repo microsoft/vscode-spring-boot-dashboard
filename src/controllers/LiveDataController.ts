@@ -130,7 +130,7 @@ async function resetProcessInfo(payload: string | LiveProcessPayload) {
     if (liveProcess.type === "local") {
         const disconnectedApp = dashboard.appsProvider.manager.getAppByPid(liveProcess.pid);
         // Workaound for: app is still running if manually disconnect from live process connection.
-        if (disconnectedApp && !await isAlive(disconnectedApp.pid)) {
+        if (disconnectedApp && (await isAlive(disconnectedApp.pid)) === false) {
             disconnectedApp.reset();
         }
     }
