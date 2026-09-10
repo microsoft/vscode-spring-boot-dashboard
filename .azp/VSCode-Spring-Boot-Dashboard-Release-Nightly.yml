@@ -1,5 +1,4 @@
 # Manually publish the signed nightly build to the Marketplace pre-release channel.
-# See README.md in this directory for required Azure DevOps configuration.
 name: $(Date:yyyyMMdd).$(Rev:r)
 variables:
   - name: Codeql.Enabled
