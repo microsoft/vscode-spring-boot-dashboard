@@ -13,7 +13,6 @@ import { cpus } from "os";
 
 interface MainClassSearchRequest {
     path: string;
-    projectName: string;
 }
 
 const searchQueue = async.queue(
