@@ -197,7 +197,7 @@ export class BootApp {
     public async getMainClasses(): Promise<MainClassData[]> {
         if (this.mainClasses === undefined) {
             // Note: Command `vscode.java.resolveMainClass` is implemented in extension java-debugger
-            const mainClassList = await searchQueue.push({
+            const mainClassList = await searchQueue.pushAsync({
                 path: this.path,
             });
             if (mainClassList && mainClassList instanceof Array) {
