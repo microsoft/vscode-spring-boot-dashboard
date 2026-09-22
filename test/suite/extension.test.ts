@@ -7,15 +7,51 @@ import { AppState } from "../../src/BootApp";
 import { initSymbols } from "../../src/controllers/SymbolsController";
 import { dashboard } from "../../src/global";
 import { StaticEndpoint } from "../../src/models/StaticSymbolTypes";
+import { symbolsOfProject } from "../../src/models/symbols";
 import { excludeTestMainClasses, isAlive } from "../../src/utils";
 import { Bean } from "../../src/views/beans";
 import { Endpoint } from "../../src/views/mappings";
+import * as lsp from "vscode-languageclient";
 import { setupTestEnv, sleep } from "../utils";
 
 suite("Extension Test Suite", () => {
 
     suiteSetup(async function() {
         await setupTestEnv();
+    });
+
+    test("Attributes static symbols by source folder when the project lives elsewhere", () => {
+        const sourceFolder = path.resolve("repository", "service", "src", "main", "java");
+        const projectLocation = path.resolve("workspaceStorage", "jdt_ws", "service");
+        const inside = symbolAt(path.join(sourceFolder, "example", "Service.java"), "@+ 'service'");
+        const outside = symbolAt(path.resolve("repository", "other", "src", "main", "java", "Other.java"), "@+ 'other'");
+        const classpath = {
+            entries: [{
+                kind: "source",
+                path: sourceFolder,
+                outputFolder: "",
+                sourceContainerUrl: "",
+                javadocContainerUrl: "",
+                isSystem: false,
+                isTest: false
+            }]
+        };
+
+        assert.deepStrictEqual(
+            symbolsOfProject([inside, outside], projectLocation, classpath).map(s => s.name),
+            ["@+ 'service'"]
+        );
+    });
+
+    test("Falls back to the project location when the classpath names no source folder", () => {
+        const projectLocation = path.resolve("repository", "service");
+        const inside = symbolAt(path.join(projectLocation, "src", "main", "java", "Service.java"), "@+ 'service'");
+        const outside = symbolAt(path.resolve("repository", "other", "Other.java"), "@+ 'other'");
+
+        assert.deepStrictEqual(
+            symbolsOfProject([inside, outside], projectLocation, { entries: [] }).map(s => s.name),
+            ["@+ 'service'"]
+        );
     });
 
     test("Can detect the current process", async () => {
@@ -310,3 +346,14 @@ suite("Extension Test Suite", () => {
         assert.ok(!openedEditor, "Should open a simple browser.");
     }).timeout(300 * 1000 /** ms */);
 });
+
+function symbolAt(filePath: string, name: string): lsp.SymbolInformation {
+    return {
+        name,
+        kind: lsp.SymbolKind.Class,
+        location: {
+            uri: vscode.Uri.file(filePath).toString(),
+            range: { start: { line: 0, character: 0 }, end: { line: 0, character: 0 } }
+        }
+    };
+}

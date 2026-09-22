@@ -75,7 +75,7 @@ export function isActuatorJarFile(f: string): boolean {
  * Whether `filePath` is located strictly inside `folder` (excluding the folder
  * itself). Both are expected to be absolute file system paths.
  */
-function isInFolder(filePath: string, folder: string): boolean {
+export function isInFolder(filePath: string, folder: string): boolean {
     const relative = path.relative(folder, filePath);
     // An empty result means both point at the same location, a leading ".."
     // segment means filePath is outside, and an absolute result means they are
