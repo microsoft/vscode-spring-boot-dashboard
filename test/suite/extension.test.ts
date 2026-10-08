@@ -22,7 +22,7 @@ suite("Extension Test Suite", () => {
 
     test("Attributes static symbols by source folder when the project lives elsewhere", () => {
         const sourceFolder = path.resolve("repository", "service", "src", "main", "java");
-        const projectLocation = path.resolve("workspaceStorage", "jdt_ws", "service");
+        const projectLocation = vscode.Uri.file(path.resolve("workspaceStorage", "jdt_ws", "service")).toString();
         const inside = symbolAt(path.join(sourceFolder, "example", "Service.java"), "@+ 'service'");
         const outside = symbolAt(path.resolve("repository", "other", "src", "main", "java", "Other.java"), "@+ 'other'");
         const classpath = {
@@ -44,12 +44,37 @@ suite("Extension Test Suite", () => {
     });
 
     test("Falls back to the project location when the classpath names no source folder", () => {
-        const projectLocation = path.resolve("repository", "service");
-        const inside = symbolAt(path.join(projectLocation, "src", "main", "java", "Service.java"), "@+ 'service'");
+        const projectFolder = path.resolve("repository", "service");
+        // Like app.path, the location is a URI, not a file system path.
+        const projectLocation = vscode.Uri.file(projectFolder).toString();
+        const inside = symbolAt(path.join(projectFolder, "src", "main", "java", "Service.java"), "@+ 'service'");
         const outside = symbolAt(path.resolve("repository", "other", "Other.java"), "@+ 'other'");
 
         assert.deepStrictEqual(
             symbolsOfProject([inside, outside], projectLocation, { entries: [] }).map(s => s.name),
+            ["@+ 'service'"]
+        );
+    });
+
+    test("Attributes static symbols by source folders with '#' in their path", () => {
+        const sourceFolder = path.resolve("repository", "service#1", "src", "main", "java");
+        const projectLocation = vscode.Uri.file(path.resolve("workspaceStorage", "jdt_ws", "service#1")).toString();
+        const inside = symbolAt(path.join(sourceFolder, "example", "Service.java"), "@+ 'service'");
+        const sibling = symbolAt(path.resolve("repository", "service", "src", "main", "java", "Other.java"), "@+ 'other'");
+        const classpath = {
+            entries: [{
+                kind: "source",
+                path: sourceFolder,
+                outputFolder: "",
+                sourceContainerUrl: "",
+                javadocContainerUrl: "",
+                isSystem: false,
+                isTest: false
+            }]
+        };
+
+        assert.deepStrictEqual(
+            symbolsOfProject([inside, sibling], projectLocation, classpath).map(s => s.name),
             ["@+ 'service'"]
         );
     });

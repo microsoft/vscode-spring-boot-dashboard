@@ -69,9 +69,11 @@ export function getMappings(projectPath?: string | vscode.Uri) {
  * `excludeTestMainClasses` already uses to tell a project's own files apart.
  */
 export function symbolsOfProject(symbols: lsp.SymbolInformation[], projectPath: string, classpath?: ClassPathData) {
+    // Classpath entries carry file system paths, while the project location and the
+    // symbol locations are URIs. Parsing a path as a URI would cut it at a "#" or "?".
     const sourceFolders = (classpath?.entries ?? [])
         .filter(cpe => cpe.kind === "source")
-        .map(cpe => sanitizeFilePath(cpe.path));
+        .map(cpe => cpe.path);
 
     if (sourceFolders.length === 0) {
         // Nothing to attribute by, so the project location is the best guess left.
