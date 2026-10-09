@@ -116,7 +116,7 @@ export class MemoryViewProvider implements vscode.WebviewViewProvider {
                     <title>Weather Checker</title>
                 </head>
                 <body style="padding: 10px">
-                    <div class="chart-container" style="position: relative;" height="350">
+                    <div class="chart-container" style="position: relative;">
                         <canvas id="chart" height="350"></canvas>
                     </div>
                     <section class="search-container">
