@@ -62,7 +62,8 @@ export class LocalAppController {
             return;
         }
 
-        const configResource = mainClasData.filePath ? vscode.Uri.file(mainClasData.filePath) : vscode.Uri.parse(app.path);
+        const appResource = await this._getAppResource(app);
+        const configResource = mainClasData.filePath ? vscode.Uri.file(mainClasData.filePath) : appResource;
         let targetConfig = this._getLaunchConfig(mainClasData, configResource);
         if (!targetConfig) {
             targetConfig = await this._createNewLaunchConfig(mainClasData, configResource);
@@ -76,17 +77,16 @@ export class LocalAppController {
         });
         app.jmxPort = parseJMXPort(targetConfig.vmArgs);
 
-        const cwdUri: vscode.Uri = vscode.Uri.parse(app.path);
         const launchConfig = Object.assign({}, targetConfig, {
             noDebug: !debug,
-            cwd: cwdUri.fsPath,
+            cwd: appResource.fsPath,
         });
         if (profile) {
             launchConfig.vmArgs = launchConfig.vmArgs + ` -Dspring.profiles.active=${profile}`;
         }
 
         await vscode.debug.startDebugging(
-            vscode.workspace.getWorkspaceFolder(cwdUri),
+            vscode.workspace.getWorkspaceFolder(appResource),
             launchConfig
         );
     }
@@ -297,7 +297,7 @@ export class LocalAppController {
         const mainClasses = await app.getLaunchableMainClasses();
         // Prefer launch.json entries so deduplication preserves their configuration identity.
         const candidates = [
-            ...this._getLaunchMainClasses(app),
+            ...await this._getLaunchMainClasses(app),
             ...mainClasses,
         ];
         const seen = new Set<string>();
@@ -312,19 +312,54 @@ export class LocalAppController {
         });
     }
 
-    private _getLaunchMainClasses(app: BootApp): MainClassData[] {
+    private async _getAppResource(app: BootApp): Promise<vscode.Uri> {
         const projectUri = vscode.Uri.parse(app.path);
-        const workspaceFolder = vscode.workspace.getWorkspaceFolder(projectUri);
+        if (vscode.workspace.getWorkspaceFolder(projectUri)) {
+            return projectUri;
+        }
+
+        // Invisible projects live in JDT LS storage and link sources from the opened folder.
+        const sourceEntries = app.classpath.entries
+            .filter(entry => entry.kind === "source" && entry.isOwn !== false);
+        let folders = sourceEntries
+            .map(entry => vscode.workspace.getWorkspaceFolder(vscode.Uri.file(entry.path)))
+            .filter((folder): folder is vscode.WorkspaceFolder => folder !== undefined);
+        if (folders.length === 0) {
+            folders = (app.mainClasses ?? [])
+                .filter(candidate => candidate.projectName === undefined || candidate.projectName === app.name)
+                .map(candidate => candidate.filePath ?
+                    vscode.workspace.getWorkspaceFolder(vscode.Uri.file(candidate.filePath)) : undefined)
+                .filter((folder): folder is vscode.WorkspaceFolder => folder !== undefined);
+        }
+        if (folders.length === 0 && sourceEntries.length > 0) {
+            // Older Spring Tools versions report logical paths for linked source folders.
+            const sourcePathsKey = "org.eclipse.jdt.ls.core.sourcePaths";
+            const settings = await vscode.commands.executeCommand<Record<string, string[]>>(
+                "java.execute.workspaceCommand", "java.project.getSettings", app.path, [sourcePathsKey]
+            );
+            folders = (settings?.[sourcePathsKey] ?? [])
+                .map(sourcePath => vscode.workspace.getWorkspaceFolder(vscode.Uri.file(sourcePath)))
+                .filter((folder): folder is vscode.WorkspaceFolder => folder !== undefined);
+        }
+        const uniqueFolders = new Set(folders.map(folder => folder.uri.toString()));
+        return uniqueFolders.size === 1 ? folders[0].uri : projectUri;
+    }
+
+    private async _getLaunchMainClasses(app: BootApp): Promise<MainClassData[]> {
+        const configResource = await this._getAppResource(app);
+        const workspaceFolder = vscode.workspace.getWorkspaceFolder(configResource);
+        const apps = this.manager.getAppList();
+        const appResources = workspaceFolder === undefined ? [] : await Promise.all(
+            apps.map(candidate => candidate === app ? configResource : this._getAppResource(candidate))
+        );
         const appsInFolder = workspaceFolder === undefined ? [] :
-            this.manager.getAppList().filter(candidate =>
-                vscode.workspace.getWorkspaceFolder(
-                    vscode.Uri.parse(candidate.path)
-                )?.uri.toString() === workspaceFolder.uri.toString()
+            apps.filter((_, index) =>
+                vscode.workspace.getWorkspaceFolder(appResources[index])?.uri.toString() === workspaceFolder.uri.toString()
             );
         const includeUnscoped = appsInFolder.length === 1 && appsInFolder[0] === app;
 
         const configurations = vscode.workspace
-            .getConfiguration("launch", projectUri)
+            .getConfiguration("launch", configResource)
             .get<vscode.DebugConfiguration[]>("configurations", []);
 
         return configurations
@@ -334,7 +369,7 @@ export class LocalAppController {
                     (config.projectName === undefined && includeUnscoped))
             )
             .map(config => ({
-                filePath: projectUri.fsPath,
+                filePath: configResource.fsPath,
                 mainClass: config.mainClass,
                 projectName: config.projectName,
             }));

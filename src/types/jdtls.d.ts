@@ -15,5 +15,6 @@ interface CPE {
     sourceContainerUrl: string;
     javadocContainerUrl: string;
     isSystem: boolean;
+    isOwn?: boolean;
     isTest: boolean;
 }

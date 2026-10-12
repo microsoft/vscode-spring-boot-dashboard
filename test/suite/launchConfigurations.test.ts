@@ -2,13 +2,14 @@
 // Licensed under the MIT license.
 
 import * as assert from "assert";
+import * as os from "os";
 import * as path from "path";
 import * as vscode from "vscode";
 import { AppState, BootApp } from "../../src/BootApp";
 import { dashboard } from "../../src/global";
 import { LocalAppController } from "../../src/LocalAppController";
 import { LocalAppManager } from "../../src/LocalAppManager";
-import { MainClassData } from "../../src/types/jdtls";
+import { ClassPathData, MainClassData } from "../../src/types/jdtls";
 import { isConcreteJavaLaunchConfiguration } from "../../src/utils";
 import { setupTestEnv } from "../utils";
 
@@ -27,6 +28,7 @@ suite("Launch configuration main classes", () => {
     let apps: BootApp[];
     let manager: LocalAppManager;
     let controller: LocalAppController;
+    let workspaceFolder: vscode.WorkspaceFolder;
     let originalGetAppList: LocalAppManager["getAppList"];
     let launch: vscode.WorkspaceConfiguration;
     let originalConfigurations: vscode.DebugConfiguration[] | undefined;
@@ -38,8 +40,9 @@ suite("Launch configuration main classes", () => {
     });
 
     setup(async () => {
-        const workspaceFolder = vscode.workspace.workspaceFolders?.[0];
-        assert.ok(workspaceFolder);
+        const folder = vscode.workspace.workspaceFolders?.[0];
+        assert.ok(folder);
+        workspaceFolder = folder;
         const projectUri = vscode.Uri.joinPath(workspaceFolder.uri, "launch fixtures #1", "app");
         app = new LaunchTestApp(projectUri.toString(), "example", { entries: [] }, AppState.INACTIVE);
         apps = [app];
@@ -58,6 +61,169 @@ suite("Launch configuration main classes", () => {
     function configuration(mainClass: string, projectName?: string): vscode.DebugConfiguration {
         return { type: "java", request: "launch", name: mainClass, mainClass, ...(projectName ? { projectName } : {}) };
     }
+
+    function sourceEntry(folder: string, isOwn?: boolean): ClassPathData["entries"][number] {
+        return {
+            kind: "source", path: folder, isOwn, isTest: false, isSystem: false,
+            outputFolder: "", sourceContainerUrl: "", javadocContainerUrl: ""
+        };
+    }
+
+    function linkedApp(name: string, entries: ClassPathData["entries"]): LaunchTestApp {
+        return new LaunchTestApp(
+            vscode.Uri.file(path.join(os.tmpdir(), "spring-dashboard-launch-tests", "jdt_ws", name)).toString(),
+            name, { entries }, AppState.INACTIVE
+        );
+    }
+
+    for (const isOwn of [true, undefined]) {
+        test(`Launches an unscoped configuration from linked sources ${isOwn ? "with" : "without"} ownership metadata`, async () => {
+            const folder = workspaceFolder;
+            app = linkedApp(app.name, [sourceEntry(path.join(folder.uri.fsPath, "src"), isOwn)]);
+            apps = [app];
+            assert.strictEqual(vscode.workspace.getWorkspaceFolder(vscode.Uri.parse(app.path)), undefined);
+            const config = {
+                ...configuration("library.Application"),
+                classPaths: ["lib/application.jar"],
+                vmArgs: "-Dcustom=true",
+                args: "--custom",
+                env: { CUSTOM: "true" }
+            };
+            await launch.update("configurations", [config], vscode.ConfigurationTarget.WorkspaceFolder);
+            const candidates = await controller["_getMainClassCandidates"](app);
+            assert.strictEqual(candidates.length, 1);
+            assert.strictEqual(candidates[0].filePath, folder.uri.fsPath);
+            const originalStartDebugging = vscode.debug.startDebugging;
+            const startedConfigurations: vscode.DebugConfiguration[] = [];
+            try {
+                vscode.debug.startDebugging = async (workspaceFolder, debugConfiguration) => {
+                    assert.strictEqual(workspaceFolder?.uri.toString(), folder.uri.toString());
+                    assert.ok(typeof debugConfiguration !== "string");
+                    startedConfigurations.push(debugConfiguration);
+                    return true;
+                };
+                await controller.runBootApp(app, true);
+            } finally {
+                vscode.debug.startDebugging = originalStartDebugging;
+            }
+            assert.strictEqual(startedConfigurations.length, 1);
+            const started = startedConfigurations[0];
+            assert.strictEqual(started.cwd, folder.uri.fsPath);
+            assert.strictEqual(started.projectName, app.name);
+            assert.strictEqual(started.name, config.name);
+            assert.deepStrictEqual(started.classPaths, config.classPaths);
+            assert.strictEqual(started.args, config.args);
+            assert.deepStrictEqual(started.env, config.env);
+            assert.ok(started.vmArgs.includes("-Dcustom=true"));
+            assert.deepStrictEqual(
+                vscode.workspace.getConfiguration("launch", folder.uri).get("configurations"),
+                [config]
+            );
+        });
+    }
+
+    test("Finds the workspace from main classes when no source root identifies it", async () => {
+        const folder = workspaceFolder;
+        app = linkedApp(app.name, []);
+        app.mainClasses = [{
+            mainClass: "example.Application", projectName: app.name,
+            filePath: path.join(folder.uri.fsPath, "src", "Application.java")
+        }];
+        apps = [app];
+        await launch.update("configurations", [configuration("example.Application")], vscode.ConfigurationTarget.WorkspaceFolder);
+        const candidates = await controller["_getMainClassCandidates"](app);
+        assert.strictEqual(candidates.length, 1);
+        assert.strictEqual(candidates[0].projectName, undefined);
+        assert.strictEqual(candidates[0].filePath, folder.uri.fsPath);
+    });
+
+    test("Resolves logical linked-source paths through JDT LS", async () => {
+        const folder = workspaceFolder;
+        const projectPath = path.join(os.tmpdir(), "spring-dashboard-launch-tests", "jdt_ws", app.name);
+        app = linkedApp(app.name, [sourceEntry(path.join(projectPath, "_", "src"), true)]);
+        apps = [app];
+        const config = configuration("library.Application");
+        await launch.update("configurations", [config], vscode.ConfigurationTarget.WorkspaceFolder);
+        const originalExecuteCommand = vscode.commands.executeCommand;
+        try {
+            vscode.commands.executeCommand = async <T>(command: string, ...args: unknown[]): Promise<T> => {
+                if (command === "java.execute.workspaceCommand" && args[0] === "java.project.getSettings") {
+                    assert.strictEqual(args[1], app.path);
+                    assert.deepStrictEqual(args[2], ["org.eclipse.jdt.ls.core.sourcePaths"]);
+                    return { "org.eclipse.jdt.ls.core.sourcePaths": [path.join(folder.uri.fsPath, "src")] } as T;
+                }
+                return originalExecuteCommand<T>(command, ...args);
+            };
+            const candidates = await controller["_getMainClassCandidates"](app);
+            assert.strictEqual(candidates.length, 1);
+            assert.strictEqual(candidates[0].filePath, folder.uri.fsPath);
+            assert.deepStrictEqual(controller["_getLaunchConfig"](candidates[0], folder.uri), config);
+        } finally {
+            vscode.commands.executeCommand = originalExecuteCommand;
+        }
+    });
+
+    test("Surfaces failures resolving logical source paths", async () => {
+        app = linkedApp(app.name, [sourceEntry(path.join(os.tmpdir(), "logical-source"), true)]);
+        apps = [app];
+        const originalExecuteCommand = vscode.commands.executeCommand;
+        const error = new Error("Source-path lookup failed");
+        try {
+            vscode.commands.executeCommand = async () => { throw error; };
+            await assert.rejects(controller["_getMainClassCandidates"](app), error);
+        } finally {
+            vscode.commands.executeCommand = originalExecuteCommand;
+        }
+    });
+
+    test("Does not infer workspace ownership from a referenced project's sources", async () => {
+        const folder = workspaceFolder;
+        app = linkedApp(app.name, [sourceEntry(path.join(folder.uri.fsPath, "dependency", "src"), false)]);
+        apps = [app];
+        await launch.update("configurations", [configuration("library.Application")], vscode.ConfigurationTarget.WorkspaceFolder);
+        assert.deepStrictEqual(await controller["_getMainClassCandidates"](app), []);
+    });
+
+    test("Does not guess a workspace when own sources span multiple folders", async () => {
+        const folder = workspaceFolder;
+        const otherUri = vscode.Uri.file(path.join(os.tmpdir(), "spring-dashboard-other-folder"));
+        const otherFolder: vscode.WorkspaceFolder = { uri: otherUri, name: "other", index: 1 };
+        const otherSource = vscode.Uri.joinPath(otherUri, "src");
+        app = linkedApp(app.name, [
+            sourceEntry(path.join(folder.uri.fsPath, "src"), true),
+            sourceEntry(otherSource.fsPath, true)
+        ]);
+        apps = [app];
+        await launch.update("configurations", [configuration("library.Application")], vscode.ConfigurationTarget.WorkspaceFolder);
+        const originalGetWorkspaceFolder = vscode.workspace.getWorkspaceFolder;
+        try {
+            vscode.workspace.getWorkspaceFolder = uri => uri.toString() === otherSource.toString() ?
+                otherFolder : originalGetWorkspaceFolder(uri);
+            assert.deepStrictEqual(await controller["_getMainClassCandidates"](app), []);
+        } finally {
+            vscode.workspace.getWorkspaceFolder = originalGetWorkspaceFolder;
+        }
+    });
+
+    test("Counts linked apps when rejecting ambiguous unscoped configurations", async () => {
+        const folder = workspaceFolder;
+        app = linkedApp(app.name, [sourceEntry(path.join(folder.uri.fsPath, "src"), true)]);
+        const otherApp = linkedApp("other", [sourceEntry(path.join(folder.uri.fsPath, "other", "src"), true)]);
+        apps = [app, otherApp];
+        await launch.update("configurations", [
+            configuration("library.Unscoped"),
+            configuration("library.Application", app.name),
+            configuration("library.OtherApplication", otherApp.name)
+        ], vscode.ConfigurationTarget.WorkspaceFolder);
+        assert.deepStrictEqual(
+            (await controller["_getMainClassCandidates"](app)).map(candidate => candidate.mainClass),
+            ["library.Application"]
+        );
+        assert.deepStrictEqual(
+            (await controller["_getMainClassCandidates"](otherApp)).map(candidate => candidate.mainClass),
+            ["library.OtherApplication"]
+        );
+    });
 
     test("Merges custom main classes without restoring test classes or duplicates", async () => {
         const projectPath = vscode.Uri.parse(app.path).fsPath;

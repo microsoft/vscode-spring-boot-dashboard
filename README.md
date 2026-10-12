@@ -39,6 +39,18 @@ ext install vscode-spring-boot-dashboard
 - Right click on a certain app and choose to start, stop or debug it
 - Right click on a certain app and open the website in a browser
 
+### Custom Java launch configurations
+
+The dashboard also offers concrete Java main classes from the app's workspace-folder
+`launch.json`, including main classes supplied by libraries. Set `projectName` to the
+app's project name when a folder contains multiple Spring Boot apps; configurations
+without `projectName` are used only when the folder contains one app.
+
+For linked or unmanaged projects whose Eclipse metadata lives outside the opened
+folder, the dashboard locates the workspace through the app's own sources. Run and
+Debug use that folder's launch configuration and working directory without rewriting
+the configuration's custom arguments, environment, or classpath.
+
 ## Data/Telemetry
 VS Code collects usage data and sends it to Microsoft to help improve our products and services. Read our [privacy statement](http://go.microsoft.com/fwlink/?LinkId=521839) to learn more. If you don’t wish to send usage data to Microsoft, you can set the `telemetry.enableTelemetry` setting to `false`. Learn more in our [FAQ](https://code.visualstudio.com/docs/supporting/faq#_how-to-disable-telemetry-reporting).
 
