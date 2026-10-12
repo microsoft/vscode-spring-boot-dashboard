@@ -109,6 +109,9 @@ PetClinic submodule and launches an Extension Development Host. Network access
 and a graphical display are required; headless Linux needs Xvfb or an equivalent
 display setup (see [Linux CI](.github/workflows/linux.yml)).
 
+The runner then opens a multi-root workspace with PetClinic and an empty test
+folder to verify folder-level and workspace-level launch configuration scoping.
+
 **Restore the entry point after testing, even if tests fail.** The `pretest`
 script changes `package.json`'s `main` to `./out/src/extension` and does not reset
 it. Before returning to the PetClinic F5 workflow or packaging, restore just that

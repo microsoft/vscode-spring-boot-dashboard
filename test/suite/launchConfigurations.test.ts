@@ -29,11 +29,19 @@ suite("Launch configuration main classes", () => {
     let manager: LocalAppManager;
     let controller: LocalAppController;
     let workspaceFolder: vscode.WorkspaceFolder;
+    let otherWorkspaceFolder: vscode.WorkspaceFolder;
     let originalGetAppList: LocalAppManager["getAppList"];
     let launch: vscode.WorkspaceConfiguration;
     let originalConfigurations: vscode.DebugConfiguration[] | undefined;
+    let originalOtherConfigurations: vscode.DebugConfiguration[] | undefined;
+    let originalWorkspaceConfigurations: vscode.DebugConfiguration[] | undefined;
 
-    suiteSetup(async () => {
+    suiteSetup(async function () {
+        const otherFolder = vscode.workspace.workspaceFolders?.[1];
+        if (!otherFolder) {
+            this.skip();
+        }
+        otherWorkspaceFolder = otherFolder;
         await setupTestEnv();
         manager = dashboard.appsProvider.manager;
         controller = new LocalAppController(manager, dashboard.context);
@@ -50,15 +58,25 @@ suite("Launch configuration main classes", () => {
         manager.getAppList = () => apps;
         launch = vscode.workspace.getConfiguration("launch", projectUri);
         originalConfigurations = launch.inspect<vscode.DebugConfiguration[]>("configurations")?.workspaceFolderValue;
+        const otherLaunch = vscode.workspace.getConfiguration("launch", otherWorkspaceFolder.uri);
+        originalOtherConfigurations = otherLaunch.inspect<vscode.DebugConfiguration[]>("configurations")?.workspaceFolderValue;
+        const workspaceLaunch = vscode.workspace.getConfiguration("launch");
+        originalWorkspaceConfigurations = workspaceLaunch.inspect<vscode.DebugConfiguration[]>("configurations")?.workspaceValue;
+        await workspaceLaunch.update("configurations", [], vscode.ConfigurationTarget.Workspace);
+        await otherLaunch.update("configurations", undefined, vscode.ConfigurationTarget.WorkspaceFolder);
         await launch.update("configurations", [], vscode.ConfigurationTarget.WorkspaceFolder);
     });
 
     teardown(async () => {
         manager.getAppList = originalGetAppList;
         await launch.update("configurations", originalConfigurations, vscode.ConfigurationTarget.WorkspaceFolder);
+        await vscode.workspace.getConfiguration("launch", otherWorkspaceFolder.uri)
+            .update("configurations", originalOtherConfigurations, vscode.ConfigurationTarget.WorkspaceFolder);
+        await vscode.workspace.getConfiguration("launch")
+            .update("configurations", originalWorkspaceConfigurations, vscode.ConfigurationTarget.Workspace);
     });
 
-    function configuration(mainClass: string, projectName?: string): vscode.DebugConfiguration {
+    function configuration(mainClass: string, projectName?: string): vscode.DebugConfiguration & { mainClass: string } {
         return { type: "java", request: "launch", name: mainClass, mainClass, ...(projectName ? { projectName } : {}) };
     }
 
@@ -174,6 +192,150 @@ suite("Launch configuration main classes", () => {
         } finally {
             vscode.commands.executeCommand = originalExecuteCommand;
         }
+    });
+
+    for (const target of [vscode.ConfigurationTarget.WorkspaceFolder, vscode.ConfigurationTarget.Workspace]) {
+        test(`Keeps scoped ${target === vscode.ConfigurationTarget.WorkspaceFolder ? "folder" : "workspace"} launches when another app's source lookup fails`, async () => {
+            const otherApp = linkedApp("other", [sourceEntry(path.join(os.tmpdir(), "other-logical-source"), true)]);
+            apps = [app, otherApp];
+            const config = { ...configuration("library.Application", app.name), args: "--custom" };
+            if (target === vscode.ConfigurationTarget.Workspace) {
+                await launch.update("configurations", undefined, vscode.ConfigurationTarget.WorkspaceFolder);
+            }
+            await launch.update("configurations", [configuration("library.Unscoped"), config], target);
+            const error = new Error("Other app's source-path lookup failed");
+            const originalExecuteCommand = vscode.commands.executeCommand;
+            const originalStartDebugging = vscode.debug.startDebugging;
+            let lookupCalls = 0;
+            const startedConfigurations: vscode.DebugConfiguration[] = [];
+            try {
+                vscode.commands.executeCommand = async <T>(command: string, ...args: unknown[]): Promise<T> => {
+                    if (command === "java.execute.workspaceCommand" && args[0] === "java.project.getSettings") {
+                        assert.strictEqual(args[1], otherApp.path);
+                        lookupCalls++;
+                        throw error;
+                    }
+                    return originalExecuteCommand<T>(command, ...args);
+                };
+                vscode.debug.startDebugging = async (folder, debugConfiguration) => {
+                    assert.strictEqual(folder?.uri.toString(), workspaceFolder.uri.toString());
+                    assert.ok(typeof debugConfiguration !== "string");
+                    startedConfigurations.push(debugConfiguration);
+                    return true;
+                };
+                assert.deepStrictEqual(
+                    (await controller["_getMainClassCandidates"](app)).map(candidate => candidate.mainClass),
+                    [config.mainClass]
+                );
+                await controller.runBootApp(app, true);
+                assert.strictEqual(startedConfigurations.length, 1);
+                assert.strictEqual(startedConfigurations[0].mainClass, config.mainClass);
+                assert.strictEqual(startedConfigurations[0].projectName, app.name);
+                assert.strictEqual(startedConfigurations[0].args, config.args);
+                assert.strictEqual(lookupCalls, 2);
+            } finally {
+                vscode.commands.executeCommand = originalExecuteCommand;
+                vscode.debug.startDebugging = originalStartDebugging;
+            }
+        });
+    }
+
+    test("Rejects unscoped configurations when another app's workspace is unknown", async () => {
+        apps = [app, linkedApp("other", [])];
+        await launch.update("configurations", [
+            configuration("library.Unscoped"),
+            configuration("library.Application", app.name)
+        ], vscode.ConfigurationTarget.WorkspaceFolder);
+        assert.deepStrictEqual(
+            (await controller["_getMainClassCandidates"](app)).map(candidate => candidate.mainClass),
+            ["library.Application"]
+        );
+    });
+
+    test("Matches folder-local unscoped configurations independently in a multi-root workspace", async () => {
+        const otherApp = new LaunchTestApp(otherWorkspaceFolder.uri.toString(), "other", { entries: [] }, AppState.INACTIVE);
+        apps = [app, otherApp];
+        const config = configuration("library.Application");
+        const otherConfig = configuration("library.OtherApplication");
+        await launch.update("configurations", [config], vscode.ConfigurationTarget.WorkspaceFolder);
+        await vscode.workspace.getConfiguration("launch", otherWorkspaceFolder.uri)
+            .update("configurations", [otherConfig], vscode.ConfigurationTarget.WorkspaceFolder);
+        assert.deepStrictEqual(
+            vscode.workspace.getConfiguration("launch", workspaceFolder.uri)
+                .inspect<vscode.DebugConfiguration[]>("configurations")?.workspaceFolderValue,
+            [config]
+        );
+        assert.deepStrictEqual(
+            (await controller["_getMainClassCandidates"](app)).map(candidate => candidate.mainClass),
+            [config.mainClass]
+        );
+        assert.deepStrictEqual(
+            (await controller["_getMainClassCandidates"](otherApp)).map(candidate => candidate.mainClass),
+            [otherConfig.mainClass]
+        );
+    });
+
+    test("Requires project scoping for workspace configurations when multiple folders contain apps", async () => {
+        const otherApp = new LaunchTestApp(otherWorkspaceFolder.uri.toString(), "other", { entries: [] }, AppState.INACTIVE);
+        apps = [app, otherApp];
+        const configs = [
+            configuration("library.Unscoped"),
+            configuration("library.Application", app.name),
+            configuration("library.OtherApplication", otherApp.name)
+        ];
+        await launch.update("configurations", undefined, vscode.ConfigurationTarget.WorkspaceFolder);
+        await launch.update("configurations", configs, vscode.ConfigurationTarget.Workspace);
+        const scope = vscode.workspace.getConfiguration("launch", workspaceFolder.uri)
+            .inspect<vscode.DebugConfiguration[]>("configurations");
+        assert.strictEqual(scope?.workspaceFolderValue, undefined);
+        assert.deepStrictEqual(scope?.workspaceValue, configs);
+        assert.deepStrictEqual(
+            (await controller["_getMainClassCandidates"](app)).map(candidate => candidate.mainClass),
+            ["library.Application"]
+        );
+        assert.deepStrictEqual(
+            (await controller["_getMainClassCandidates"](otherApp)).map(candidate => candidate.mainClass),
+            ["library.OtherApplication"]
+        );
+    });
+
+    test("Keeps unscoped workspace launch options when the workspace contains only one app", async () => {
+        const config = { ...configuration("library.Application"), args: "--custom", env: { CUSTOM: "true" } };
+        await launch.update("configurations", undefined, vscode.ConfigurationTarget.WorkspaceFolder);
+        await launch.update("configurations", [config], vscode.ConfigurationTarget.Workspace);
+        const candidates = await controller["_getMainClassCandidates"](app);
+        assert.strictEqual(candidates.length, 1);
+        assert.deepStrictEqual(controller["_getLaunchConfig"](candidates[0], workspaceFolder.uri), config);
+        const originalStartDebugging = vscode.debug.startDebugging;
+        const startedConfigurations: vscode.DebugConfiguration[] = [];
+        try {
+            vscode.debug.startDebugging = async (folder, debugConfiguration) => {
+                assert.strictEqual(folder?.uri.toString(), workspaceFolder.uri.toString());
+                assert.ok(typeof debugConfiguration !== "string");
+                startedConfigurations.push(debugConfiguration);
+                return true;
+            };
+            await controller.runBootApp(app, true);
+        } finally {
+            vscode.debug.startDebugging = originalStartDebugging;
+        }
+        assert.strictEqual(startedConfigurations.length, 1);
+        assert.strictEqual(startedConfigurations[0].projectName, app.name);
+        assert.strictEqual(startedConfigurations[0].args, config.args);
+        assert.deepStrictEqual(startedConfigurations[0].env, config.env);
+        assert.deepStrictEqual(vscode.workspace.getConfiguration("launch").get("configurations"), [config]);
+    });
+
+    test("Prefers folder-local configuration scope over inherited workspace configurations", async () => {
+        const otherApp = new LaunchTestApp(otherWorkspaceFolder.uri.toString(), "other", { entries: [] }, AppState.INACTIVE);
+        apps = [app, otherApp];
+        await launch.update("configurations", [configuration("library.WorkspaceApplication")], vscode.ConfigurationTarget.Workspace);
+        await launch.update("configurations", [configuration("library.FolderApplication")], vscode.ConfigurationTarget.WorkspaceFolder);
+        assert.deepStrictEqual(
+            (await controller["_getMainClassCandidates"](app)).map(candidate => candidate.mainClass),
+            ["library.FolderApplication"]
+        );
+        assert.deepStrictEqual(await controller["_getMainClassCandidates"](otherApp), []);
     });
 
     test("Does not infer workspace ownership from a referenced project's sources", async () => {

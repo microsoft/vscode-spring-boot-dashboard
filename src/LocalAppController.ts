@@ -348,19 +348,30 @@ export class LocalAppController {
     private async _getLaunchMainClasses(app: BootApp): Promise<MainClassData[]> {
         const configResource = await this._getAppResource(app);
         const workspaceFolder = vscode.workspace.getWorkspaceFolder(configResource);
+        const launch = vscode.workspace.getConfiguration("launch", configResource);
+        const configurations = launch.get<vscode.DebugConfiguration[]>("configurations", []);
+        const folderScoped = launch.inspect<vscode.DebugConfiguration[]>("configurations")?.workspaceFolderValue !== undefined;
         const apps = this.manager.getAppList();
-        const appResources = workspaceFolder === undefined ? [] : await Promise.all(
-            apps.map(candidate => candidate === app ? configResource : this._getAppResource(candidate))
+        const appFolders = workspaceFolder === undefined ? [] : await Promise.all(
+            apps.map(async candidate => {
+                if (candidate === app) {
+                    return workspaceFolder;
+                }
+                try {
+                    return vscode.workspace.getWorkspaceFolder(await this._getAppResource(candidate));
+                } catch (error) {
+                    console.error(`Failed to resolve workspace ownership for ${candidate.name}.`, error);
+                    return undefined;
+                }
+            })
         );
-        const appsInFolder = workspaceFolder === undefined ? [] :
-            apps.filter((_, index) =>
-                vscode.workspace.getWorkspaceFolder(appResources[index])?.uri.toString() === workspaceFolder.uri.toString()
-            );
-        const includeUnscoped = appsInFolder.length === 1 && appsInFolder[0] === app;
-
-        const configurations = vscode.workspace
-            .getConfiguration("launch", configResource)
-            .get<vscode.DebugConfiguration[]>("configurations", []);
+        const appsInScope = apps.filter((_, index) => {
+            const folder = appFolders[index];
+            return folder !== undefined &&
+                (!folderScoped || folder.uri.toString() === workspaceFolder?.uri.toString());
+        });
+        const includeUnscoped = appFolders.every(folder => folder !== undefined) &&
+            appsInScope.length === 1 && appsInScope[0] === app;
 
         return configurations
             .filter(config =>

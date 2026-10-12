@@ -5,7 +5,7 @@ import { glob } from "glob";
 import * as Mocha from "mocha";
 import * as path from "path";
 
-export async function run(): Promise<void> {
+export async function run(testPattern = "**/*.test.js"): Promise<void> {
     // Create the mocha test
     const mocha = new Mocha({
         ui: "tdd",
@@ -14,7 +14,7 @@ export async function run(): Promise<void> {
     });
 
     const testsRoot = __dirname;
-    const files = await glob("**/*.test.js", { cwd: testsRoot });
+    const files = await glob(testPattern, { cwd: testsRoot });
     files.forEach((file) => mocha.addFile(path.resolve(testsRoot, file)));
 
     return new Promise((c, e) => {

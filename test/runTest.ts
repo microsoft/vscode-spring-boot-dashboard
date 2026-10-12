@@ -92,6 +92,20 @@ async function main(): Promise<void> {
             launchArgs
         });
 
+        const launchTestsFolder = path.resolve(extensionDevelopmentPath, ".vscode-test", "launch-tests-folder");
+        const launchTestsWorkspace = path.resolve(extensionDevelopmentPath, ".vscode-test", "launch-tests.code-workspace");
+        fs.mkdirSync(launchTestsFolder, { recursive: true });
+        fs.writeFileSync(launchTestsWorkspace, JSON.stringify({
+            folders: [{ path: repositoryPath }, { path: launchTestsFolder }],
+            settings: { "java.server.launchMode": "Standard", "java.import.gradle.enabled": false }
+        }), "utf-8");
+        await runTests({
+            vscodeExecutablePath,
+            extensionDevelopmentPath,
+            extensionTestsPath: path.resolve(__dirname, "./suite/launchConfigurations"),
+            launchArgs: [launchTestsWorkspace, ...launchArgs.slice(1)]
+        });
+
         process.exit(0);
 
     } catch (err) {

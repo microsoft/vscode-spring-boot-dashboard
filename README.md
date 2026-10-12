@@ -46,6 +46,11 @@ The dashboard also offers concrete Java main classes from the app's workspace-fo
 app's project name when a folder contains multiple Spring Boot apps; configurations
 without `projectName` are used only when the folder contains one app.
 
+Configurations in a `.code-workspace` file require `projectName` when the workspace
+contains multiple apps, even if each folder contains only one app. If another app's
+workspace ownership cannot be resolved, unscoped configurations are excluded, but
+configurations with the current app's `projectName` remain available.
+
 For linked or unmanaged projects whose Eclipse metadata lives outside the opened
 folder, the dashboard locates the workspace through the app's own sources. Run and
 Debug use that folder's launch configuration and working directory without rewriting
