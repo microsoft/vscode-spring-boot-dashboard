@@ -8,7 +8,7 @@ import * as vscode from "vscode";
 import { AppState, BootApp } from "./BootApp";
 import { LocalAppManager } from "./LocalAppManager";
 import { MainClassData } from "./types/jdtls";
-import { constructOpenUrl, isActuatorJarFile, readAll } from "./utils";
+import { constructOpenUrl, excludeTestMainClasses, isActuatorJarFile, isConcreteJavaLaunchConfiguration, readAll } from "./utils";
 
 import getPort = require("get-port");
 import { sendInfo } from "vscode-extension-telemetry-wrapper";
@@ -45,7 +45,7 @@ export class LocalAppController {
         const mainClasData = await vscode.window.withProgress(
             { location: vscode.ProgressLocation.Window, title: `Resolving main classes for ${app.name}...` },
             async () => {
-                const mainClassList = await app.getLaunchableMainClasses();
+                const mainClassList = await this._getMainClassCandidates(app);
 
                 if (mainClassList && mainClassList instanceof Array && mainClassList.length > 0) {
                     return mainClassList.length === 1 ? mainClassList[0] :
@@ -62,27 +62,31 @@ export class LocalAppController {
             return;
         }
 
-        const configResource = mainClasData.filePath ? vscode.Uri.file(mainClasData.filePath) : vscode.Uri.parse(app.path);
+        const appResource = await this._getAppResource(app);
+        const configResource = mainClasData.filePath ? vscode.Uri.file(mainClasData.filePath) : appResource;
         let targetConfig = this._getLaunchConfig(mainClasData, configResource);
         if (!targetConfig) {
             targetConfig = await this._createNewLaunchConfig(mainClasData, configResource);
         }
         app.activeSessionName = targetConfig.name;
 
-        targetConfig = await resolveDebugConfigurationWithSubstitutedVariables(targetConfig);
+        // Scope the runtime configuration without changing the launch.json entry.
+        targetConfig = await resolveDebugConfigurationWithSubstitutedVariables({
+            ...targetConfig,
+            projectName: targetConfig.projectName ?? app.name,
+        });
         app.jmxPort = parseJMXPort(targetConfig.vmArgs);
 
-        const cwdUri: vscode.Uri = vscode.Uri.parse(app.path);
         const launchConfig = Object.assign({}, targetConfig, {
             noDebug: !debug,
-            cwd: cwdUri.fsPath,
+            cwd: appResource.fsPath,
         });
         if (profile) {
             launchConfig.vmArgs = launchConfig.vmArgs + ` -Dspring.profiles.active=${profile}`;
         }
 
         await vscode.debug.startDebugging(
-            vscode.workspace.getWorkspaceFolder(cwdUri),
+            vscode.workspace.getWorkspaceFolder(appResource),
             launchConfig
         );
     }
@@ -289,9 +293,103 @@ export class LocalAppController {
         return rawConfigs.find(conf => conf.type === "java" && conf.request === "launch" && conf.mainClass === mainClasData.mainClass && conf.projectName === mainClasData.projectName);
     }
 
-    private _constructLaunchConfigName(mainClass: string, projectName: string) {
+    private async _getMainClassCandidates(app: BootApp): Promise<MainClassData[]> {
+        const mainClasses = await app.getMainClasses();
+        const launchableMainClasses = await excludeTestMainClasses(mainClasses, app.classpath);
+        // Prefer launch.json entries so deduplication preserves their configuration identity.
+        const candidates = [
+            ...await this._getLaunchMainClasses(app),
+            ...launchableMainClasses,
+        ];
+        const seen = new Set<string>();
+
+        return (candidates.length > 0 ? candidates : mainClasses).filter(candidate => {
+            const key = `${candidate.mainClass}|${candidate.projectName ?? app.name}`;
+            if (seen.has(key)) {
+                return false;
+            }
+            seen.add(key);
+            return true;
+        });
+    }
+
+    private async _getAppResource(app: BootApp): Promise<vscode.Uri> {
+        const projectUri = vscode.Uri.parse(app.path);
+        if (vscode.workspace.getWorkspaceFolder(projectUri)) {
+            return projectUri;
+        }
+
+        // Invisible projects live in JDT LS storage and link sources from the opened folder.
+        const sourceEntries = app.classpath.entries
+            .filter(entry => entry.kind === "source" && entry.isOwn !== false);
+        let folders = sourceEntries
+            .map(entry => vscode.workspace.getWorkspaceFolder(vscode.Uri.file(entry.path)))
+            .filter((folder): folder is vscode.WorkspaceFolder => folder !== undefined);
+        if (folders.length === 0) {
+            folders = (app.mainClasses ?? [])
+                .filter(candidate => candidate.projectName === undefined || candidate.projectName === app.name)
+                .map(candidate => candidate.filePath ?
+                    vscode.workspace.getWorkspaceFolder(vscode.Uri.file(candidate.filePath)) : undefined)
+                .filter((folder): folder is vscode.WorkspaceFolder => folder !== undefined);
+        }
+        if (folders.length === 0 && sourceEntries.length > 0) {
+            // Older Spring Tools versions report logical paths for linked source folders.
+            const sourcePathsKey = "org.eclipse.jdt.ls.core.sourcePaths";
+            const settings = await vscode.commands.executeCommand<Record<string, string[]>>(
+                "java.execute.workspaceCommand", "java.project.getSettings", app.path, [sourcePathsKey]
+            );
+            folders = (settings?.[sourcePathsKey] ?? [])
+                .map(sourcePath => vscode.workspace.getWorkspaceFolder(vscode.Uri.file(sourcePath)))
+                .filter((folder): folder is vscode.WorkspaceFolder => folder !== undefined);
+        }
+        const uniqueFolders = new Set(folders.map(folder => folder.uri.toString()));
+        return uniqueFolders.size === 1 ? folders[0].uri : projectUri;
+    }
+
+    private async _getLaunchMainClasses(app: BootApp): Promise<MainClassData[]> {
+        const configResource = await this._getAppResource(app);
+        const workspaceFolder = vscode.workspace.getWorkspaceFolder(configResource);
+        const launch = vscode.workspace.getConfiguration("launch", configResource);
+        const configurations = launch.get<vscode.DebugConfiguration[]>("configurations", []);
+        const folderScoped = launch.inspect<vscode.DebugConfiguration[]>("configurations")?.workspaceFolderValue !== undefined;
+        const apps = this.manager.getAppList();
+        const appFolders = workspaceFolder === undefined ? [] : await Promise.all(
+            apps.map(async candidate => {
+                if (candidate === app) {
+                    return workspaceFolder;
+                }
+                try {
+                    return vscode.workspace.getWorkspaceFolder(await this._getAppResource(candidate));
+                } catch (error) {
+                    console.error(`Failed to resolve workspace ownership for ${candidate.name}.`, error);
+                    return undefined;
+                }
+            })
+        );
+        const appsInScope = apps.filter((_, index) => {
+            const folder = appFolders[index];
+            return folder !== undefined &&
+                (!folderScoped || folder.uri.toString() === workspaceFolder?.uri.toString());
+        });
+        const includeUnscoped = appFolders.every(folder => folder !== undefined) &&
+            appsInScope.length === 1 && appsInScope[0] === app;
+
+        return configurations
+            .filter(config =>
+                isConcreteJavaLaunchConfiguration(config) &&
+                (config.projectName === app.name ||
+                    (config.projectName === undefined && includeUnscoped))
+            )
+            .map(config => ({
+                filePath: configResource.fsPath,
+                mainClass: config.mainClass,
+                projectName: config.projectName,
+            }));
+    }
+
+    private _constructLaunchConfigName(mainClass: string, projectName?: string) {
         const prefix = "Spring Boot-";
-        let name = prefix + mainClass.substr(mainClass.lastIndexOf(".") + 1);
+        let name = prefix + mainClass.substring(mainClass.lastIndexOf(".") + 1);
         if (projectName !== undefined) {
             name += `<${projectName}>`;
         }
