@@ -8,7 +8,7 @@ import * as vscode from "vscode";
 import { AppState, BootApp } from "./BootApp";
 import { LocalAppManager } from "./LocalAppManager";
 import { MainClassData } from "./types/jdtls";
-import { constructOpenUrl, isActuatorJarFile, isConcreteJavaLaunchConfiguration, readAll } from "./utils";
+import { constructOpenUrl, excludeTestMainClasses, isActuatorJarFile, isConcreteJavaLaunchConfiguration, readAll } from "./utils";
 
 import getPort = require("get-port");
 import { sendInfo } from "vscode-extension-telemetry-wrapper";
@@ -294,15 +294,16 @@ export class LocalAppController {
     }
 
     private async _getMainClassCandidates(app: BootApp): Promise<MainClassData[]> {
-        const mainClasses = await app.getLaunchableMainClasses();
+        const mainClasses = await app.getMainClasses();
+        const launchableMainClasses = await excludeTestMainClasses(mainClasses, app.classpath);
         // Prefer launch.json entries so deduplication preserves their configuration identity.
         const candidates = [
             ...await this._getLaunchMainClasses(app),
-            ...mainClasses,
+            ...launchableMainClasses,
         ];
         const seen = new Set<string>();
 
-        return candidates.filter(candidate => {
+        return (candidates.length > 0 ? candidates : mainClasses).filter(candidate => {
             const key = `${candidate.mainClass}|${candidate.projectName ?? app.name}`;
             if (seen.has(key)) {
                 return false;

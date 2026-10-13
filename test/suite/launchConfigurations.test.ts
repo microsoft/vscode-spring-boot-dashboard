@@ -94,6 +94,17 @@ suite("Launch configuration main classes", () => {
         );
     }
 
+    function setTestOnlyMainClasses(): MainClassData[] {
+        const sourcePath = path.join(vscode.Uri.parse(app.path).fsPath, "src", "test");
+        app.classpath = { entries: [{ ...sourceEntry(sourcePath, true), isTest: true }] };
+        app.mainClasses = ["TestApplication", "OtherTestApplication"].map(name => ({
+            filePath: path.join(sourcePath, `${name}.java`),
+            mainClass: `example.${name}`,
+            projectName: app.name
+        }));
+        return app.mainClasses;
+    }
+
     for (const isOwn of [true, undefined]) {
         test(`Launches an unscoped configuration from linked sources ${isOwn ? "with" : "without"} ownership metadata`, async () => {
             const folder = workspaceFolder;
@@ -153,6 +164,31 @@ suite("Launch configuration main classes", () => {
         assert.strictEqual(candidates.length, 1);
         assert.strictEqual(candidates[0].projectName, undefined);
         assert.strictEqual(candidates[0].filePath, folder.uri.fsPath);
+    });
+
+    test("Loads main classes before resolving a linked project's workspace", async () => {
+        const folder = workspaceFolder;
+        app = linkedApp(app.name, []);
+        const discoveredMainClasses = [{
+            mainClass: "example.Application", projectName: app.name,
+            filePath: path.join(folder.uri.fsPath, "src", "Application.java")
+        }];
+        app.getMainClasses = async () => {
+            app.mainClasses = discoveredMainClasses;
+            return discoveredMainClasses;
+        };
+        apps = [app];
+        const config = configuration("library.Application");
+        await launch.update("configurations", [config], vscode.ConfigurationTarget.WorkspaceFolder);
+        assert.strictEqual(app.mainClasses, undefined);
+
+        const candidates = await controller["_getMainClassCandidates"](app);
+        assert.deepStrictEqual(candidates.map(candidate => candidate.mainClass), [
+            config.mainClass, discoveredMainClasses[0].mainClass
+        ]);
+        assert.strictEqual(candidates[0].filePath, folder.uri.fsPath);
+        assert.strictEqual(candidates[1], discoveredMainClasses[0]);
+        assert.strictEqual(app.mainClasses, discoveredMainClasses);
     });
 
     test("Resolves logical linked-source paths through JDT LS", async () => {
@@ -387,7 +423,91 @@ suite("Launch configuration main classes", () => {
         );
     });
 
-    test("Merges custom main classes without restoring test classes or duplicates", async () => {
+    for (const scoped of [false, true]) {
+        test(`Uses ${scoped ? "a scoped" : "an unscoped"} custom launcher without offering test-only main classes`, async () => {
+            const cachedMainClasses = setTestOnlyMainClasses();
+            const config = {
+                ...configuration("library.Application", scoped ? app.name : undefined),
+                args: "--custom"
+            };
+            await launch.update("configurations", [config], vscode.ConfigurationTarget.WorkspaceFolder);
+            assert.strictEqual(await app.getLaunchableMainClasses(), cachedMainClasses);
+            const candidates = await controller["_getMainClassCandidates"](app);
+            assert.deepStrictEqual(candidates, [{
+                filePath: vscode.Uri.parse(app.path).fsPath,
+                mainClass: config.mainClass,
+                projectName: scoped ? app.name : undefined
+            }]);
+
+            const originalShowQuickPick = vscode.window.showQuickPick;
+            const originalStartDebugging = vscode.debug.startDebugging;
+            const startedConfigurations: vscode.DebugConfiguration[] = [];
+            let quickPickCalls = 0;
+            try {
+                vscode.window.showQuickPick = async () => {
+                    quickPickCalls++;
+                    return undefined;
+                };
+                vscode.debug.startDebugging = async (folder, debugConfiguration) => {
+                    assert.strictEqual(folder?.uri.toString(), workspaceFolder.uri.toString());
+                    assert.ok(typeof debugConfiguration !== "string");
+                    startedConfigurations.push(debugConfiguration);
+                    return true;
+                };
+                await controller.runBootApp(app, true);
+            } finally {
+                vscode.window.showQuickPick = originalShowQuickPick;
+                vscode.debug.startDebugging = originalStartDebugging;
+            }
+            assert.strictEqual(quickPickCalls, 0);
+            assert.strictEqual(startedConfigurations.length, 1);
+            assert.strictEqual(startedConfigurations[0].mainClass, config.mainClass);
+            assert.strictEqual(startedConfigurations[0].projectName, app.name);
+            assert.strictEqual(startedConfigurations[0].args, config.args);
+            assert.strictEqual(app.mainClasses, cachedMainClasses);
+            assert.deepStrictEqual(
+                vscode.workspace.getConfiguration("launch", vscode.Uri.parse(app.path)).get("configurations"),
+                [config]
+            );
+        });
+    }
+
+    for (const rejectedLaunchers of [false, true]) {
+        test(`Keeps the test-only fallback with ${rejectedLaunchers ? "only rejected" : "no"} custom launchers`, async () => {
+            const cachedMainClasses = setTestOnlyMainClasses();
+            const configs = rejectedLaunchers ? [
+                configuration("${file}", app.name),
+                configuration("library.OtherApplication", "other"),
+                { ...configuration("library.Application", app.name), request: "attach" }
+            ] : [];
+            await launch.update("configurations", configs, vscode.ConfigurationTarget.WorkspaceFolder);
+            assert.deepStrictEqual(await controller["_getMainClassCandidates"](app), cachedMainClasses);
+            assert.strictEqual(await app.getLaunchableMainClasses(), cachedMainClasses);
+            assert.strictEqual(app.mainClasses, cachedMainClasses);
+        });
+    }
+
+    test("Keeps an explicitly configured test main without restoring other test mains", async () => {
+        const cachedMainClasses = setTestOnlyMainClasses();
+        const config = {
+            ...configuration(cachedMainClasses[0].mainClass, app.name),
+            args: "--custom-test"
+        };
+        await launch.update("configurations", [config], vscode.ConfigurationTarget.WorkspaceFolder);
+        const candidates = await controller["_getMainClassCandidates"](app);
+        assert.deepStrictEqual(candidates, [{
+            filePath: vscode.Uri.parse(app.path).fsPath,
+            mainClass: config.mainClass,
+            projectName: app.name
+        }]);
+        assert.deepStrictEqual(
+            controller["_getLaunchConfig"](candidates[0], vscode.Uri.file(candidates[0].filePath)),
+            config
+        );
+        assert.strictEqual(app.mainClasses, cachedMainClasses);
+    });
+
+    test("Merges custom and production main classes without restoring test classes or duplicates", async () => {
         const projectPath = vscode.Uri.parse(app.path).fsPath;
         const productionMain = {
             filePath: path.join(projectPath, "src", "main", "Application.java"),

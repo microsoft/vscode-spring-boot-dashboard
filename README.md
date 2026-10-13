@@ -51,6 +51,11 @@ contains multiple apps, even if each folder contains only one app. If another ap
 workspace ownership cannot be resolved, unscoped configurations are excluded, but
 configurations with the current app's `projectName` remain available.
 
+Discovered main classes in test source folders are excluded. If neither non-test
+main classes nor eligible custom launchers are available, the dashboard falls
+back to the test-only list. A test main explicitly named in an eligible custom
+launch configuration remains available.
+
 For linked or unmanaged projects whose Eclipse metadata lives outside the opened
 folder, the dashboard locates the workspace through the app's own sources. Run and
 Debug use that folder's launch configuration and working directory without rewriting
