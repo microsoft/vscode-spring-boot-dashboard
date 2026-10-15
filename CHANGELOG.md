@@ -4,6 +4,24 @@ All notable changes to the "vscode-spring-boot-dashboard" extension will be docu
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
+## 0.15.0
+### Added
+- Support custom Java main classes from `launch.json`, including library-provided main classes, scoped to the corresponding app. [#413](https://github.com/microsoft/vscode-spring-boot-dashboard/pull/413).
+- Detect profiles from `bootstrap-*.properties`, `bootstrap-*.yml`, and `bootstrap-*.yaml` files and from source folders' `config` directories, without duplicate profile choices. [#375](https://github.com/microsoft/vscode-spring-boot-dashboard/pull/375).
+
+### Changed
+- Limit concurrent main-class searches to reduce resource contention in large workspaces. [#357](https://github.com/microsoft/vscode-spring-boot-dashboard/pull/357).
+- Require VS Code 1.75.0 or later. [#345](https://github.com/microsoft/vscode-spring-boot-dashboard/pull/345).
+
+### Fixed
+- Fix refreshing live connections in the Beans and Endpoint Mappings views. [#354](https://github.com/microsoft/vscode-spring-boot-dashboard/pull/354).
+- Recognize Spring projects whose classpath contains `spring-beans` JARs. [#365](https://github.com/microsoft/vscode-spring-boot-dashboard/pull/365).
+- Exclude discovered main classes in test source folders from Run and Debug choices while keeping test-only projects launchable. [#421](https://github.com/microsoft/vscode-spring-boot-dashboard/pull/421).
+- Use the correct launch configuration and working directory for linked or unmanaged projects. [#413](https://github.com/microsoft/vscode-spring-boot-dashboard/pull/413).
+- Display indexed beans and endpoint mappings for projects with linked source folders. [#443](https://github.com/microsoft/vscode-spring-boot-dashboard/pull/443).
+- Prevent live memory charts from continuously growing. [#444](https://github.com/microsoft/vscode-spring-boot-dashboard/pull/444).
+- Render process names as text in the Memory view to prevent HTML injection. [#390](https://github.com/microsoft/vscode-spring-boot-dashboard/pull/390).
+
 ## 0.14.0
 ### Added
 - Show active profiles on BootApp description when attached to live process. [#320](https://github.com/microsoft/vscode-spring-boot-dashboard/issues/320).
