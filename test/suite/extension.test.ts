@@ -79,13 +79,23 @@ suite("Extension Test Suite", () => {
         );
     });
 
-    test("Can detect the current process", async () => {
-        assert.strictEqual(await isAlive(process.pid), true);
+    test("Can detect the current process", () => {
+        assert.strictEqual(isAlive(process.pid), true);
     });
 
-    test("Keeps process state when detection fails", async () => {
+    test("Treats a missing process as inactive", () => {
+        const error = Object.assign(new Error("Process not found"), { code: "ESRCH" });
+        assert.strictEqual(isAlive(1, () => { throw error; }), false);
+    });
+
+    test("Treats an inaccessible process as alive", () => {
+        const error = Object.assign(new Error("Operation not permitted"), { code: "EPERM" });
+        assert.strictEqual(isAlive(1, () => { throw error; }), true);
+    });
+
+    test("Keeps process state when detection fails", () => {
         const error = new Error("Process detection unavailable");
-        assert.strictEqual(await isAlive(process.pid, async () => { throw error; }), undefined);
+        assert.strictEqual(isAlive(1, () => { throw error; }), undefined);
     });
 
     test("Treats two-dot-prefixed directories as source-folder children", async () => {
