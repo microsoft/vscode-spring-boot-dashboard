@@ -6,23 +6,7 @@ import { Readable } from "stream";
 import * as vscode from "vscode";
 import { ClassPathData, MainClassData } from "./types/jdtls";
 
-type PidtreeModule = typeof import("pidtree");
-type PidtreeLoader = () => Promise<PidtreeModule>;
 
-declare const WEBPACK_BUNDLED: boolean;
-
-const importPidtree = new Function("specifier", "return import(specifier);") as
-    (specifier: string) => Promise<PidtreeModule>;
-
-async function loadPidtree(): Promise<PidtreeModule> {
-    if (typeof WEBPACK_BUNDLED !== "undefined" && WEBPACK_BUNDLED) {
-        return import("pidtree");
-    }
-
-    // TypeScript rewrites import() to require() for CommonJS output, so keep
-    // the native import intact for ESM-only pidtree in unbundled test builds.
-    return importPidtree("pidtree");
-}
 export function readAll(input: Readable): Promise<string> {
     let buffer = "";
     return new Promise<string>((resolve, reject) => {
@@ -39,16 +23,24 @@ export function readAll(input: Readable): Promise<string> {
     });
 }
 
-export async function isAlive(pid?: number, pidtreeLoader: PidtreeLoader = loadPidtree): Promise<boolean | undefined> {
+type ProcessKiller = (pid: number, signal?: NodeJS.Signals | number) => boolean;
+
+export function isAlive(pid?: number, processKiller: ProcessKiller = process.kill): boolean | undefined {
     if (!pid) {
         return false;
     }
 
     try {
-        const { pidtree } = await pidtreeLoader();
-        const pidList = await pidtree(-1);
-        return pidList.includes(pid);
+        processKiller(pid, 0);
+        return true;
     } catch (error) {
+        const code = (error as NodeJS.ErrnoException).code;
+        if (code === "EPERM") {
+            return true;
+        }
+        if (code === "ESRCH") {
+            return false;
+        }
         console.error(`Failed to determine whether process ${pid} is alive.`, error);
         return undefined;
     }
