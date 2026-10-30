@@ -2,6 +2,8 @@ name: $(Date:yyyyMMdd).$(Rev:r)
 variables:
   - name: Codeql.Enabled
     value: true
+  - name: npm_config_loglevel
+    value: verbose
   - template: /.azp/npm-cfs-variables.yml@self
   - template: /.azp/maven-cfs-variables.yml@self
 schedules:
