@@ -2,8 +2,6 @@ name: $(Date:yyyyMMdd).$(Rev:r)
 variables:
   - name: Codeql.Enabled
     value: true
-  - name: npm_config_loglevel
-    value: verbose
   - template: /.azp/npm-cfs-variables.yml@self
   - template: /.azp/maven-cfs-variables.yml@self
 schedules:
@@ -26,9 +24,6 @@ extends:
   parameters:
     pool:
       name: VSEng-MicroBuildVSStable
-    sdl:
-      sourceAnalysisVariablesToReset:
-        - npm_config_registry
     stages:
       - stage: Build
         jobs:
