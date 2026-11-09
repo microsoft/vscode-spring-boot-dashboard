@@ -62,6 +62,8 @@ export async function initializeExtension(_oprationId: string, context: vscode.E
         instrumentOperationAsVsCodeCommand("spring-boot-dashboard.localapp.run-multiple", async () => await controller.runBootApps()),
         instrumentOperationAsVsCodeCommand("spring-boot-dashboard.localapp.debug-multiple", async () => await controller.runBootApps(true)),
         instrumentOperationAsVsCodeCommand("spring-boot-dashboard.localapp.stop-multiple", async () => await controller.stopBootApps()),
+        instrumentOperationAsVsCodeCommand("spring-boot-dashboard.localapp.filterLaunchable", () => appsProvider.launchableFilter = true),
+        instrumentOperationAsVsCodeCommand("spring-boot-dashboard.localapp.showAllApps", () => appsProvider.launchableFilter = false),
     );
 
     vscode.debug.onDidStartDebugSession((session: vscode.DebugSession) => {

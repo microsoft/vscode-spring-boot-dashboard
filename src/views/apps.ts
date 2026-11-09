@@ -15,6 +15,14 @@ type TreeData = BootApp | RemoteBootAppData | WorkspaceFolderItem | string /** f
 
 export class AppDataProvider implements vscode.TreeDataProvider<TreeData> {
 
+    /**
+     * Whether the APPS view hides apps without a launchable main class.
+     * Toggled via the view title button.
+     *
+     * @author zhangzp
+     */
+    private _launchableFilter = false;
+
     private emitter: vscode.EventEmitter<TreeData | undefined>;
     public readonly onDidChangeTreeData: vscode.Event<TreeData | undefined>;
 
@@ -29,7 +37,20 @@ export class AppDataProvider implements vscode.TreeDataProvider<TreeData> {
         this.manager.onDidChangeApps(e => this.emitter.fire(e));
         this.remoteAppManager.onDidProviderDataChange(e => this.emitter.fire(e));
 
+        vscode.commands.executeCommand("setContext", "spring.apps:launchableFilter", false);
         this.manager.fireDidChangeApps(undefined);
+    }
+
+    public get launchableFilter(): boolean {
+        return this._launchableFilter;
+    }
+
+    public set launchableFilter(value: boolean) {
+        this._launchableFilter = value;
+        // Update the context key so the view title button swaps to the
+        // "filled" (active) icon while the filter is on.
+        vscode.commands.executeCommand("setContext", "spring.apps:launchableFilter", value);
+        this.emitter.fire(undefined);
     }
 
     getTreeItem(element: TreeData): vscode.TreeItem | Thenable<vscode.TreeItem> {
@@ -66,16 +87,35 @@ export class AppDataProvider implements vscode.TreeDataProvider<TreeData> {
             if (providers.length > 0) {
                 return [new WorkspaceFolderItem(), ...providers]
             } else {
-                return this.manager.getAppList();
+                return this.getVisibleApps();
             }
         } else if (element instanceof WorkspaceFolderItem) {
-            return this.manager.getAppList();
+            return this.getVisibleApps();
         } else if (typeof element === "string") {
             const remoteApps = await this.remoteAppManager.getRemoteApps(element);
             return remoteApps;
         } else {
             return [];
         }
+    }
+
+    /**
+     * Returns the apps to render, honoring the "show launchable apps only" toggle.
+     *
+     * With the filter enabled, apps whose main classes have not been resolved yet
+     * (hasMainClass === undefined) are hidden as well: apps loaded gradually while
+     * the filter is on must not flash up before their resolution completes.
+     * BootApp refreshes the view once resolution finishes, so launchable apps
+     * appear as soon as they are confirmed.
+     *
+     * @author zhangzp
+     */
+    private getVisibleApps(): BootApp[] {
+        const apps = this.manager.getAppList();
+        if (!this._launchableFilter) {
+            return apps;
+        }
+        return apps.filter(app => app.hasMainClass === true);
     }
 
     public refresh(element: BootApp | undefined) {

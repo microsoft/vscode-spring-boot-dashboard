@@ -143,6 +143,18 @@
         "icon": "$(stop-circle)"
       },
       {
+        "command": "spring-boot-dashboard.localapp.filterLaunchable",
+        "title": "Show Launchable Apps Only",
+        "category": "Spring Boot Dashboard",
+        "icon": "$(filter)"
+      },
+      {
+        "command": "spring-boot-dashboard.localapp.showAllApps",
+        "title": "Show All Apps",
+        "category": "Spring Boot Dashboard",
+        "icon": "$(filter-filled)"
+      },
+      {
         "command": "spring-boot-dashboard.localapp.debug-multiple",
         "title": "Debug ...",
         "category": "Spring Boot Dashboard",
@@ -350,6 +362,14 @@
         {
           "command": "spring.properties.find",
           "when": "false"
+        },
+        {
+          "command": "spring-boot-dashboard.localapp.filterLaunchable",
+          "when": "false"
+        },
+        {
+          "command": "spring-boot-dashboard.localapp.showAllApps",
+          "when": "false"
         }
       ],
       "view/title": [
@@ -362,6 +382,16 @@
           "command": "spring-boot-dashboard.localapp.stop-multiple",
           "when": "view == spring.apps",
           "group": "navigation@3"
+        },
+        {
+          "command": "spring-boot-dashboard.localapp.filterLaunchable",
+          "when": "view == spring.apps && !spring.apps:launchableFilter",
+          "group": "navigation@4"
+        },
+        {
+          "command": "spring-boot-dashboard.localapp.showAllApps",
+          "when": "view == spring.apps && spring.apps:launchableFilter",
+          "group": "navigation@4"
         },
         {
           "command": "spring-boot-dashboard.refresh",
