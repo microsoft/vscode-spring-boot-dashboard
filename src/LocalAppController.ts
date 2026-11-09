@@ -10,7 +10,6 @@ import { LocalAppManager } from "./LocalAppManager";
 import { MainClassData } from "./types/jdtls";
 import { constructOpenUrl, excludeTestMainClasses, isActuatorJarFile, isConcreteJavaLaunchConfiguration, readAll } from "./utils";
 
-import getPort = require("get-port");
 import { sendInfo } from "vscode-extension-telemetry-wrapper";
 import { dashboard } from "./global";
 
@@ -157,12 +156,24 @@ export class LocalAppController {
 
         if (app) {
             this.manager.bindDebugSession(app, session);
-            if (isActuatorOnClasspath(session.configuration)) {
-                // actuator enabled: wait live connection to update running state.
+            // The live connection is established by vscode-spring-boot, which only
+            // auto-connects when `boot-java.live-information.automatic-connection.on`
+            // is enabled (it then injects the required JVM args for every java launch
+            // and connects via the local JMX connector). The dashboard no longer
+            // force-injects JMX arguments itself, so only wait for a live connection
+            // (LAUNCHING) when actuator is on the classpath AND automatic connection
+            // is enabled; otherwise there will never be a connect event and we would
+            // be stuck in 'launching' forever.
+            const hasActuator = isActuatorOnClasspath(session.configuration);
+            const autoConnect = vscode.workspace.getConfiguration("boot-java.live-information").get<boolean>("automatic-connection.on", true);
+            if (hasActuator && autoConnect) {
+                // actuator enabled and automatic live connection on: wait for the
+                // live connection to update running state.
                 this._setState(app, AppState.LAUNCHING);
                 sendInfo("", { name: "onDidStartBootApp", withActuator: "true" });
             } else {
-                // actuator absent: no live connection, set project as 'running' immediately.
+                // no actuator, or automatic live connection disabled: no live
+                // connection will happen, set project as 'running' immediately.
                 this._setState(app, AppState.RUNNING);
                 // Guide to enable actuator
                 this.showActuatorGuideIfNecessary(app);
@@ -462,25 +473,14 @@ async function resolveDebugConfigurationWithSubstitutedVariables(debugConfigurat
     }
 
     // Add default vmArgs if not specified
-    if (debugConfiguration.vmArgs.indexOf("-Dcom.sun.management.jmxremote") < 0) {
-        debugConfiguration.vmArgs += " -Dcom.sun.management.jmxremote";
-    }
-    if (debugConfiguration.vmArgs.indexOf("-Dcom.sun.management.jmxremote.port") < 0) {
-        const jmxport = await getPort();
-        debugConfiguration.vmArgs += ` -Dcom.sun.management.jmxremote.port=${jmxport}`;
-    }
-    if (debugConfiguration.vmArgs.indexOf("-Dcom.sun.management.jmxremote.authenticate=") < 0) {
-        debugConfiguration.vmArgs += " -Dcom.sun.management.jmxremote.authenticate=false";
-    }
-    if (debugConfiguration.vmArgs.indexOf("-Dcom.sun.management.jmxremote.ssl=") < 0) {
-        debugConfiguration.vmArgs += " -Dcom.sun.management.jmxremote.ssl=false";
-    }
-    if (debugConfiguration.vmArgs.indexOf("-Dspring.jmx.enabled=") < 0) {
-        debugConfiguration.vmArgs += " -Dspring.jmx.enabled=true";
-    }
-    if (debugConfiguration.vmArgs.indexOf("-Djava.rmi.server.hostname=") < 0) {
-        debugConfiguration.vmArgs += " -Djava.rmi.server.hostname=localhost";
-    }
+    // NOTE: The dashboard no longer force-injects remote JMX arguments
+    // (-Dcom.sun.management.jmxremote.* / -Dspring.jmx.enabled). The live process
+    // connection is owned by vscode-spring-boot, which injects what it needs
+    // (spring.jmx.enabled, management.endpoints.jmx.exposure.include,
+    // spring.application.admin.enabled) when `boot-java.live-information
+    // .automatic-connection.on` is enabled and connects via the local JMX
+    // connector. Keeping the following two flags is harmless and helps the
+    // spring-boot extension identify the launched app.
     if (debugConfiguration.vmArgs.indexOf("-Dspring.application.admin.enabled=") < 0) {
         debugConfiguration.vmArgs += " -Dspring.application.admin.enabled=true";
     }
