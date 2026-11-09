@@ -431,7 +431,7 @@
         },
         {
           "command": "spring-boot-dashboard.localapp.stop",
-          "when": "view == spring.apps && viewItem == BootApp_running",
+          "when": "view == spring.apps && viewItem =~ /^BootApp_(running|launching)$/",
           "group": "action@8"
         },
         {
@@ -451,7 +451,7 @@
         },
         {
           "command": "spring-boot-dashboard.localapp.stop",
-          "when": "view == spring.apps && viewItem == BootApp_running",
+          "when": "view == spring.apps && viewItem =~ /^BootApp_(running|launching)$/",
           "group": "inline@8"
         },
         {
