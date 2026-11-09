@@ -30,8 +30,21 @@ export class LocalAppController {
         if (appList.length === 1 && appList[0].state !== AppState.RUNNING) {
             this.runBootApp(appList[0], debug);
         } else {
+            // Batch run: only offer apps that have launchable (non-test) main classes.
+            const candidates: { label: string; path: string }[] = [];
+            for (const app of appList.filter(app => app.state !== AppState.RUNNING)) {
+                const mainClasses = await app.getMainClasses();
+                const launchable = await excludeTestMainClasses(mainClasses ?? [], app.classpath);
+                if (launchable.length > 0) {
+                    candidates.push({ label: app.name, path: app.path });
+                }
+            }
+            if (candidates.length === 0) {
+                vscode.window.showInformationMessage("No runnable Spring Boot apps found (no main class).");
+                return;
+            }
             const appsToRun = await vscode.window.showQuickPick(
-                appList.filter(app => app.state !== AppState.RUNNING).map(app => ({ label: app.name, path: app.path })), /** items */
+                candidates,
                 { canPickMany: true, placeHolder: `Select apps to ${debug ? "debug" : "run"}.` } /** options */
             );
             if (appsToRun !== undefined) {
