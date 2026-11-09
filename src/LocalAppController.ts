@@ -8,7 +8,7 @@ import * as vscode from "vscode";
 import { AppState, BootApp } from "./BootApp";
 import { LocalAppManager } from "./LocalAppManager";
 import { MainClassData } from "./types/jdtls";
-import { constructOpenUrl, excludeTestMainClasses, isActuatorJarFile, isConcreteJavaLaunchConfiguration, readAll } from "./utils";
+import { constructOpenUrl, excludeTestMainClasses, isActuatorJarFile, isConcreteJavaLaunchConfiguration, readAll, sleep } from "./utils";
 
 import { sendInfo } from "vscode-extension-telemetry-wrapper";
 import { dashboard } from "./global";
@@ -213,6 +213,42 @@ export class LocalAppController {
             } else {
                 await session.customRequest("disconnect", { restart: !!restart });
             }
+        }
+    }
+
+    /**
+     * Restarts the app: stops the current session, waits until it has fully
+     * terminated (state back to INACTIVE), then launches it again with the same
+     * launch configuration.
+     *
+     * Note: profiles selected via "Run with Profile" are not persisted in the
+     * launch config, so a restart launches without them.
+     *
+     * @param app the Boot app to restart
+     * @author zhangzp
+     */
+    public async restartBootApp(app: BootApp): Promise<void> {
+        if (app.state !== AppState.INACTIVE) {
+            await this.stopBootApp(app);
+            // Wait for the debug session to terminate (onDidStopBootApp sets the
+            // state back to INACTIVE) before launching again, so the new instance
+            // doesn't collide with the old one on ports.
+            await this._waitUntilInactive(app);
+        }
+        await this.runBootApp(app);
+    }
+
+    /**
+     * Polls the app state until it becomes INACTIVE or the timeout elapses.
+     *
+     * @param app the Boot app to wait for
+     * @param timeoutMs max time to wait, defaults to 15 seconds
+     * @author zhangzp
+     */
+    private async _waitUntilInactive(app: BootApp, timeoutMs: number = 15000): Promise<void> {
+        const deadline = Date.now() + timeoutMs;
+        while (app.state !== AppState.INACTIVE && Date.now() < deadline) {
+            await sleep(200);
         }
     }
 

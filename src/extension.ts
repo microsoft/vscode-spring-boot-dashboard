@@ -57,6 +57,7 @@ export async function initializeExtension(_oprationId: string, context: vscode.E
         instrumentOperationAsVsCodeCommand("spring-boot-dashboard.localapp.runWithProfile", async (app: BootApp) => await controller.runAppWithProfile(app)),
         instrumentOperationAsVsCodeCommand("spring-boot-dashboard.localapp.debugWithProfile", async (app: BootApp) => await controller.runAppWithProfile(app, true)),
         instrumentOperationAsVsCodeCommand("spring-boot-dashboard.localapp.stop", async (app: BootApp) => await controller.stopBootApp(app)),
+        instrumentOperationAsVsCodeCommand("spring-boot-dashboard.localapp.restart", async (app: BootApp) => await controller.restartBootApp(app)),
         instrumentOperationAsVsCodeCommand("spring-boot-dashboard.localapp.open", async (app: BootApp) => await controller.openBootApp(app)),
         instrumentOperationAsVsCodeCommand("spring-boot-dashboard.localapp.run-multiple", async () => await controller.runBootApps()),
         instrumentOperationAsVsCodeCommand("spring-boot-dashboard.localapp.debug-multiple", async () => await controller.runBootApps(true)),

@@ -149,6 +149,12 @@
         "icon": "$(debug)"
       },
       {
+        "command": "spring-boot-dashboard.localapp.restart",
+        "title": "Restart",
+        "category": "Spring Boot Dashboard",
+        "icon": "$(debug-restart)"
+      },
+      {
         "command": "spring.dashboard.livedata.refresh",
         "title": "Refresh Live Connection",
         "category": "Spring Boot Dashboard",
@@ -430,14 +436,19 @@
           "group": "action@8"
         },
         {
-          "command": "spring-boot-dashboard.localapp.stop",
-          "when": "view == spring.apps && viewItem =~ /^BootApp_(running|launching)$/",
-          "group": "action@8"
-        },
-        {
           "command": "spring-boot-dashboard.localapp.open",
           "when": "view == spring.apps && viewItem == BootApp_running",
           "group": "action@a"
+        },
+        {
+          "command": "spring-boot-dashboard.localapp.restart",
+          "when": "view == spring.apps && viewItem =~ /^BootApp_(running|launching)$/",
+          "group": "action@b"
+        },
+        {
+          "command": "spring-boot-dashboard.localapp.stop",
+          "when": "view == spring.apps && viewItem =~ /^BootApp_(running|launching)$/",
+          "group": "action@c"
         },
         {
           "command": "spring-boot-dashboard.localapp.run",
@@ -450,14 +461,19 @@
           "group": "inline@6"
         },
         {
-          "command": "spring-boot-dashboard.localapp.stop",
-          "when": "view == spring.apps && viewItem =~ /^BootApp_(running|launching)$/",
-          "group": "inline@8"
-        },
-        {
           "command": "spring-boot-dashboard.localapp.open",
           "when": "view == spring.apps && viewItem == BootApp_running",
           "group": "inline@a"
+        },
+        {
+          "command": "spring-boot-dashboard.localapp.restart",
+          "when": "view == spring.apps && viewItem =~ /^BootApp_(running|launching)$/",
+          "group": "inline@b"
+        },
+        {
+          "command": "spring-boot-dashboard.localapp.stop",
+          "when": "view == spring.apps && viewItem =~ /^BootApp_(running|launching)$/",
+          "group": "inline@c"
         },
         {
           "command": "spring-boot-dashboard.localapp.run-multiple",
