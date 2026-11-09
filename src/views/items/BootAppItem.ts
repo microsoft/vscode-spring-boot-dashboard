@@ -45,14 +45,9 @@ export class BootAppItem implements vscode.TreeItem {
     }
 
     public get iconPath(): string | vscode.ThemeIcon | {dark: string, light: string} {
-        switch (this.state) {
-            case "running":
-                return BootAppItem.RUNNING_ICON();
-            case "launching":
-                return new vscode.ThemeIcon("sync~spin");
-            default:
-                return BootAppItem.STOPPED_ICON();
-        }
+        // Delegate to BootApp.iconPath so apps without a main class get the
+        // neutral icon instead of the running/stopped state indicator.
+        return this._app.iconPath;
     }
 
     public get state(): string {
@@ -60,6 +55,13 @@ export class BootAppItem implements vscode.TreeItem {
     }
 
     public get contextValue(): string {
+        // Apps without a resolvable main class are not launchable: use a distinct
+        // context value so the start/stop menu entries (incl. inline controls)
+        // registered for the exact `BootApp_<state>` values don't match.
+        // Running/launching apps always keep their controls (they were started somehow).
+        if (this._app.hasMainClass === false && this.state === "inactive") {
+            return `BootApp_${this._app.state}_noMain`;
+        }
         return `BootApp_${this._app.state}`;
     }
 }

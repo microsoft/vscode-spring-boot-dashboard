@@ -53,6 +53,17 @@ export class BootApp {
     private _watchdog?: NodeJS.Timeout; // used to watch running process.
 
     public mainClasses: MainClassData[];
+
+    /**
+     * Whether the app has launchable (non-test) main classes.
+     * `undefined` means main classes have not been resolved yet.
+     * Apps without a main class are shown in the APPS view but get no
+     * start/stop controls and no running/stopped state icon.
+     *
+     * @author zhangzp
+     */
+    public hasMainClass?: boolean;
+
     public symbols: { beans: lsp.SymbolInformation[], mappings: lsp.SymbolInformation[] };
 
     constructor(
@@ -155,7 +166,11 @@ export class BootApp {
     }
 
     public get iconPath(): vscode.ThemeIcon | { dark: string, light: string } {
-        if (this.state === "running") {
+        // Apps without a main class can never be started/stopped: show a neutral
+        // icon instead of the running/stopped state indicator.
+        if (this.state === AppState.INACTIVE && this.hasMainClass === false) {
+            return new vscode.ThemeIcon("package");
+        } else if (this.state === "running") {
             return BootAppItem.RUNNING_ICON();
         } else if (this.state === "launching") {
             return new vscode.ThemeIcon("sync~spin");
@@ -197,11 +212,27 @@ export class BootApp {
     public async getMainClasses(): Promise<MainClassData[]> {
         if (this.mainClasses === undefined) {
             // Note: Command `vscode.java.resolveMainClass` is implemented in extension java-debugger
-            const mainClassList = await searchQueue.pushAsync({
-                path: this.path,
-            });
+            let mainClassList: MainClassData[] | undefined;
+            try {
+                mainClassList = await searchQueue.pushAsync({
+                    path: this.path,
+                });
+            } catch (error) {
+                // Resolution failed (e.g. java tooling not ready): leave mainClasses
+                // undefined so a later call can retry, and log instead of bubbling up
+                // (the constructor fires this method without awaiting it).
+                console.error(`Failed to resolve main classes for ${this.name}:`, error);
+            }
             if (mainClassList && mainClassList instanceof Array) {
                 this.mainClasses = mainClassList;
+                // Compute launchability (exclude main classes from test source folders) and
+                // refresh the views so apps without a main class lose their start/stop
+                // controls and state icon once resolution completes.
+                const launchable = await excludeTestMainClasses(mainClassList, this.classpath);
+                this.hasMainClass = launchable.length > 0;
+                dashboard.appsProvider.refresh(this);
+                dashboard.beansProvider.refresh(undefined);
+                dashboard.mappingsProvider.refresh(undefined);
             } else {
                 return [];
             }
