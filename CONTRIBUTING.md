@@ -7,8 +7,8 @@ Agreement and Code of Conduct.
 ## Prerequisites
 
 - Git, including submodule support.
-- A supported Node.js LTS release, version 22 or newer, with npm. The locked
-  `@vscode/test-electron` dependency requires Node.js 22 or newer.
+- A supported Node.js LTS release, version 22.12 or newer, with npm. The locked
+  Mocha dependency requires Node.js 22.12 or newer on the Node.js 22 release line.
 - A current stable version of Visual Studio Code compatible with the dependent
   extensions below. The dashboard's own minimum VS Code version is not sufficient
   to determine the requirements of those extensions.
@@ -91,6 +91,7 @@ Run these from the repository root after installing dependencies:
 | Command | Purpose |
 | --- | --- |
 | `npm run compile` | Compile TypeScript, including tests, into `out`. |
+| `npm run test:runner` | Verify test discovery and failure reporting without launching VS Code. |
 | `npm run webpack` | Build the development bundle in `dist`. |
 | `npm run webpack-dev` | Rebuild that bundle on changes; also started by the PetClinic F5 configuration. |
 | `npm run vscode:prepublish` | Build the production bundle used for packaging. |
